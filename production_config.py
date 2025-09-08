@@ -10,8 +10,8 @@ Pozwala na dostosowanie parametrów, które nie są dostępne w API.
 DEFAULT_COMPANY_TIER = 5
 
 # Eco skill gracza (0-100+)
-# Domyślnie 20, bo bazowe wartości produkcji to produkcja z eco skill 20
-DEFAULT_ECO_SKILL = 20
+# Domyślnie 16, bazowe wartości to produkcja z eco skill 0, bonus jest dodawany
+DEFAULT_ECO_SKILL = 16
 
 # Liczba pracowników, którzy pracowali dzisiaj w firmie
 # Domyślnie 1, bo bazowe wartości to produkcja z 1 pracownikiem
@@ -34,10 +34,10 @@ DEFAULT_IS_ON_SALE = False
 
 # ===== KONFIGURACJA DLA RÓŻNYCH SCENARIUSZY =====
 
-# Scenariusz: Gracz z wysokim eco skill (poziom 20)
+# Scenariusz: Gracz z wysokim eco skill (poziom 16)
 HIGH_ECO_SKILL_CONFIG = {
     "default_company_tier": 5,
-    "default_eco_skill": 20,  # Poziom 20 (wysoki eco skill)
+    "default_eco_skill": 16,  # Poziom 16 (wysoki eco skill)
     "default_workers_today": 1,  # 1 pracownik
     "default_is_npc_owned": False,
     "default_military_base_level": 0,  # TODO: Potrzebne dane z gry
@@ -73,7 +73,7 @@ NPC_COMPANY_CONFIG = {
 # Scenariusz: Firma na sprzedaż
 COMPANY_ON_SALE_CONFIG = {
     "default_company_tier": 5,
-    "default_eco_skill": 20,
+    "default_eco_skill": 16,
     "default_workers_today": 0, # Brak pracowników
     "default_is_npc_owned": False,
     "default_military_base_level": 0,
@@ -116,8 +116,8 @@ def get_config(scenario: str = "default") -> dict:
 def print_available_scenarios():
     """Wyświetla dostępne scenariusze konfiguracji"""
     print("Dostępne scenariusze konfiguracji:")
-    print("1. default - Domyślne wartości (Q5 firma, eco skill 20, 1 pracownik)")
-    print("2. high_eco - Gracz z wysokim eco skill (20)")
+    print("1. default - Domyślne wartości (Q5 firma, eco skill 16, 1 pracownik)")
+    print("2. high_eco - Gracz z wysokim eco skill (16)")
     print("3. new_player - Nowy gracz (Q1 firma, eco skill 0)")
     print("4. npc_company - Firma NPC (produkcja / 3 dla produktów)")
     print("5. on_sale - Firma na sprzedaż (produkcja / 2)")

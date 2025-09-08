@@ -216,10 +216,10 @@ def generate_short_economic_report(
         
         document.add_paragraph("")
     
-    # 3. Best regions for each product
+    # 3. Production examples for each product (Q1-Q5)
     if sections.get('best_regions', True) and regions_data:
-        print("🏭 Adding best regions section...")
-        document.add_heading("🏭 Best Regions for Production", level=1)
+        print("🏭 Adding production examples section...")
+        document.add_heading("🏭 Production Examples by Product and Quality", level=1)
         
         # Analyze productivity
         analyzer = ProductionAnalyzer()
@@ -234,7 +234,7 @@ def generate_short_economic_report(
                     products_groups[item_name] = []
                 products_groups[item_name].append(data)
             
-            # For each product show the best region
+            # For each product show one example of each quality (Q1-Q5)
             for product_name, items in products_groups.items():
                 if items:
                     # Sort by efficiency_score
@@ -243,12 +243,9 @@ def generate_short_economic_report(
                         reverse=True
                     )
                     
-                    # Take the best region
-                    best_region = items[0]
-                    
                     document.add_heading(f"Product: {product_name.title()}", level=2)
                     
-                    # Table with best region
+                    # Table with one example of each quality
                     table = document.add_table(rows=1, cols=9)
                     table.style = 'Table Grid'
                     
@@ -263,6 +260,9 @@ def generate_short_economic_report(
                     hdr_cells[6].text = "Q3"
                     hdr_cells[7].text = "Q4"
                     hdr_cells[8].text = "Q5"
+                    
+                    # Take the best region (it has all Q1-Q5 values)
+                    best_region = items[0]
                     
                     # Data row
                     row_cells = table.add_row().cells

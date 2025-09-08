@@ -88,9 +88,10 @@ def process_regions_data(regions: List[Dict[str, Any]], eco_countries: Dict[int,
         if country_id in eco_countries:
             country_name = eco_countries[country_id].get("name", "Unknown")
         
-        # Oblicz bonus_score (suma wszystkich bonusów)
+        # Oblicz bonus_score (suma wszystkich bonusów) i przechowuj bonusy według typów
         bonus_score = 0
         bonus_description = ""
+        bonus_by_type = {}  # Nowe: przechowuj bonusy według typów
         if region.get("bonus"):
             bonus_parts = []
             for bonus in region["bonus"]:
@@ -98,6 +99,7 @@ def process_regions_data(regions: List[Dict[str, Any]], eco_countries: Dict[int,
                 bonus_value = bonus.get("value", 0)
                 bonus_score += bonus_value
                 bonus_parts.append(f"{bonus_type}:{bonus_value}")
+                bonus_by_type[bonus_type] = bonus_value  # Przechowuj bonus według typu
             bonus_description = " ".join(bonus_parts)
         
         # Oblicz bonus_per_pollution
@@ -111,6 +113,7 @@ def process_regions_data(regions: List[Dict[str, Any]], eco_countries: Dict[int,
             "pollution": pollution,
             "bonus_score": bonus_score,
             "bonus_description": bonus_description,
+            "bonus_by_type": bonus_by_type,  # Nowe: bonusy według typów
             "population": region.get("population", 0),
             "nb_npcs": region.get("nb_npcs", 0),
             "type": region.get("type", 0),
