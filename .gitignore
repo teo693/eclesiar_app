@@ -1,0 +1,105 @@
+# Environment variables and secrets
+.env
+.env.local
+.env.production
+.env.staging
+*.env
+
+# API keys and tokens
+*.key
+*.token
+auth_token.txt
+api_key.txt
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+eclesiar.db
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
+log/
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# Reports and output files (optional - uncomment if you don't want to track reports)
+# reports/
+# *.docx
+# *.html
+# *.txt
+# *.csv
+
+# Raw API output (contains sensitive data)
+raw_api_output.json
+historia_raportow.json
+
+# Test files
+test_*.py
+*_test.py
+test_output.log
+
+# Backup files
+*.bak
+*.backup
+*_backup.py
+orchestrator_backup.py
+reporting_backup.py
+reporting_html_backup.py
+
+# Production analysis files (optional)
+# production_analysis/
+# arbitrage_reports/
+# test_reports/
