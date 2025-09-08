@@ -91,6 +91,7 @@ def init_db() -> None:
                 pollution REAL NOT NULL,
                 bonus_score INTEGER NOT NULL,
                 bonus_description TEXT NOT NULL,
+                bonus_by_type TEXT NOT NULL,
                 population INTEGER NOT NULL,
                 nb_npcs INTEGER NOT NULL,
                 type INTEGER NOT NULL,
@@ -110,6 +111,16 @@ def init_db() -> None:
             )
             """
         )
+        
+        # Migracja: dodaj kolumnę bonus_by_type jeśli nie istnieje
+        try:
+            cur.execute("ALTER TABLE regions_data ADD COLUMN bonus_by_type TEXT DEFAULT '{}'")
+            print("Added bonus_by_type column to regions_data table")
+        except sqlite3.OperationalError as e:
+            if "duplicate column name" in str(e):
+                print("bonus_by_type column already exists")
+            else:
+                print(f"Error adding bonus_by_type column: {e}")
         
         conn.commit()
 
@@ -334,7 +345,7 @@ def load_regions_data() -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
             cursor = conn.execute(
                 """
                 SELECT region_name, country_name, country_id, pollution, 
-                       bonus_score, bonus_description, population, nb_npcs, 
+                       bonus_score, bonus_description, bonus_by_type, population, nb_npcs, 
                        type, original_country_id, bonus_per_pollution
                 FROM regions_data 
                 ORDER BY created_at DESC 
@@ -351,11 +362,12 @@ def load_regions_data() -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
                     'pollution': row[3],
                     'bonus_score': row[4],
                     'bonus_description': row[5],
-                    'population': row[6],
-                    'nb_npcs': row[7],
-                    'type': row[8],
-                    'original_country_id': row[9],
-                    'bonus_per_pollution': row[10]
+                    'bonus_by_type': json.loads(row[6]) if row[6] else {},
+                    'population': row[7],
+                    'nb_npcs': row[8],
+                    'type': row[9],
+                    'original_country_id': row[10],
+                    'bonus_per_pollution': row[11]
                 }
                 regions_data.append(region)
             
@@ -392,10 +404,10 @@ def save_regions_data(regions_data: List[Dict[str, Any]], regions_summary: Dict[
                 """
                 INSERT INTO regions_data(
                     created_at, region_name, country_name, country_id, 
-                    pollution, bonus_score, bonus_description, population, 
+                    pollution, bonus_score, bonus_description, bonus_by_type, population, 
                     nb_npcs, type, original_country_id, bonus_per_pollution
                 )
-                VALUES(?,?,?,?,?,?,?,?,?,?,?,?)
+                VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)
                 """,
                 (
                     ts,
@@ -405,6 +417,7 @@ def save_regions_data(regions_data: List[Dict[str, Any]], regions_summary: Dict[
                     region.get('pollution', 0.0),
                     region.get('bonus_score', 0),
                     region.get('bonus_description', ''),
+                    json.dumps(region.get('bonus_by_type', {}), ensure_ascii=False),
                     region.get('population', 0),
                     region.get('nb_npcs', 0),
                     region.get('type', 0),

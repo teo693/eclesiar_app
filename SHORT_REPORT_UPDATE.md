@@ -54,3 +54,4 @@ python3 main.py short-economic-report
 ```
 
 Raport zostanie zapisany w katalogu `reports/` jako plik DOCX.
+

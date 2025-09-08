@@ -105,3 +105,4 @@ Jeśli masz problemy z konfiguracją:
 1. Sprawdź plik `API_TROUBLESHOOTING.md`
 2. Sprawdź logi aplikacji
 3. Skontaktuj się z administracją Eclesiar
+

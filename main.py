@@ -13,6 +13,7 @@ from orchestrator import run as run_orchestrator
 from production_analyzer_consolidated import ProductionAnalyzer
 from arbitrage_analyzer_consolidated import CurrencyArbitrageAnalyzer
 from short_economic_report import generate_short_economic_report
+from production_calculator import ProductionCalculator
 
 
 def get_report_sections() -> dict:
@@ -108,6 +109,26 @@ def run_short_economic_report(output_dir: str) -> None:
         print(f"❌ Error generating short economic report: {e}")
 
 
+def run_production_calculator() -> None:
+    """Run interactive production calculator"""
+    print("🏭 Starting Production Calculator...")
+    try:
+        calculator = ProductionCalculator()
+        calculator.run_calculator()
+    except Exception as e:
+        print(f"❌ Error running production calculator: {e}")
+
+
+def run_quick_calculator() -> None:
+    """Run quick production calculator with test scenarios"""
+    print("⚡ Starting Quick Production Calculator...")
+    try:
+        from quick_calculator import main as quick_main
+        quick_main()
+    except Exception as e:
+        print(f"❌ Error running quick calculator: {e}")
+
+
 def run_orchestrator_html(output_dir: str, sections: dict = None) -> None:
     """Run orchestrator with HTML report generation"""
     print("🌐 Generating daily HTML report...")
@@ -135,7 +156,7 @@ def run_full_analysis(output_dir: str, min_profit: float, sections: dict = None)
 
 def interactive_menu():
     """Interactive application menu"""
-    print("🚀 Welcome to Eclesiar application!")
+    print("🚀 Welcome to Eclesiar Application!")
     print("=" * 50)
     
     while True:
@@ -146,9 +167,11 @@ def interactive_menu():
         print("4. 💰 Currency arbitrage analysis")
         print("5. 📈 Short economic report (DOCX)")
         print("6. 🔄 Full analysis (everything)")
-        print("7. ❌ Exit")
+        print("7. 🧮 Production Calculator (Interactive)")
+        print("8. ⚡ Quick Production Calculator (Test scenarios)")
+        print("9. ❌ Exit")
         
-        choice = input("\nSelect option (1-7): ").strip()
+        choice = input("\nSelect option (1-9): ").strip()
         
         if choice == '1':
             output_dir = input("📁 Output directory (default: reports): ").strip() or 'reports'
@@ -191,7 +214,15 @@ def interactive_menu():
             run_full_analysis(output_dir, min_profit, sections)
             
         elif choice == '7':
-            print("👋 Thank you for using the Eclesiar application!")
+            print("🧮 Starting Interactive Production Calculator...")
+            run_production_calculator()
+            
+        elif choice == '8':
+            print("⚡ Starting Quick Production Calculator...")
+            run_quick_calculator()
+            
+        elif choice == '9':
+            print("👋 Thank you for using the Eclesiar Application!")
             break
             
         else:
@@ -209,7 +240,7 @@ def interactive_menu():
         # Ask if continue
         continue_choice = input("\n🔄 Do you want to perform another operation? (y/n): ").strip().lower()
         if continue_choice not in ['y', 'yes']:
-            print("👋 Thank you for using the Eclesiar application!")
+            print("👋 Thank you for using the Eclesiar Application!")
             break
 
 
@@ -228,13 +259,15 @@ Usage examples:
   python main.py arbitrage-analysis    # Currency arbitrage analysis
   python main.py short-economic-report # Short economic report (DOCX)
   python main.py full-analysis         # Full analysis (everything)
+  python main.py production-calculator # Interactive production calculator
+  python main.py quick-calculator      # Quick production calculator (test scenarios)
   python main.py                       # Interactive mode
             """
         )
         
         parser.add_argument(
             'command',
-            choices=['daily-report', 'production-analysis', 'arbitrage-analysis', 'short-economic-report', 'full-analysis'],
+            choices=['daily-report', 'production-analysis', 'arbitrage-analysis', 'short-economic-report', 'full-analysis', 'production-calculator', 'quick-calculator'],
             help='Command to execute'
         )
         
@@ -289,6 +322,12 @@ Usage examples:
                     'production': True
                 }
                 run_full_analysis(args.output_dir, args.min_profit, sections)
+                
+            elif args.command == 'production-calculator':
+                run_production_calculator()
+                
+            elif args.command == 'quick-calculator':
+                run_quick_calculator()
             
             print(f"\n✅ Analysis completed successfully!")
             print(f"⏰ End time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")

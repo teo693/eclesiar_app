@@ -137,3 +137,4 @@ Jeśli masz problemy z konfiguracją:
 - Sprawdź `SETUP_INSTRUCTIONS.md`
 - Sprawdź `API_TROUBLESHOOTING.md`
 - Skontaktuj się z administracją
+

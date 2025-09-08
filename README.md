@@ -1,16 +1,19 @@
 # Eclesiar - Game Data Analysis Application
 
-Application for analyzing data from the Eclesiar game, generating daily reports, regional productivity analysis, and currency arbitrage analysis.
+Comprehensive application for analyzing data from the Eclesiar game, featuring daily reports, regional productivity analysis, currency arbitrage analysis, and interactive production calculators.
 
 ## 🏗️ Project Structure
 
 ```
 eclesiar/
-├── main.py                           # Main entry point
+├── main.py                           # Main entry point with interactive menu
 ├── orchestrator.py                   # Main application orchestrator
 ├── reporting.py                      # Daily report generation
 ├── production_analyzer_consolidated.py  # Regional productivity analysis
 ├── arbitrage_analyzer_consolidated.py   # Currency arbitrage analysis
+├── production_calculator.py          # Interactive production calculator
+├── quick_calculator.py               # Quick production calculator (test scenarios)
+├── short_economic_report.py          # Short economic report generator
 ├── api_client.py                     # API client
 ├── economy.py                        # Economic functions
 ├── military.py                       # Military functions
@@ -19,10 +22,12 @@ eclesiar/
 ├── db.py                            # SQLite database
 ├── config.py                         # Configuration
 ├── arbitrage_config.py               # Arbitrage configuration
+├── production_config.py              # Production analysis configuration
 ├── requirements.txt                  # Python dependencies
 ├── reports/                          # Daily reports (DOCX, HTML)
 ├── production_analysis/              # Productivity analysis
-└── arbitrage_reports/                # Arbitrage reports
+├── arbitrage_reports/                # Arbitrage reports
+└── CALCULATOR_README.md              # Production calculator documentation
 ```
 
 ## 🚀 Getting Started
@@ -34,29 +39,47 @@ pip install -r requirements.txt
 
 ### Running the application
 
-#### 1. Generate daily report
+#### Interactive Mode (Recommended)
+```bash
+python main.py
+```
+This launches the interactive menu where you can select from all available options.
+
+#### Command Line Mode
+
+##### 1. Generate daily report
 ```bash
 python main.py daily-report
 ```
 
-#### 2. Regional productivity analysis
+##### 2. Regional productivity analysis
 ```bash
 python main.py production-analysis
 ```
 
-#### 3. Currency arbitrage analysis
+##### 3. Currency arbitrage analysis
 ```bash
 python main.py arbitrage-analysis --min-profit 1.0
 ```
 
-#### 4. Short economic report (DOCX)
+##### 4. Short economic report (DOCX)
 ```bash
 python main.py short-economic-report
 ```
 
-#### 5. Full analysis (all modules)
+##### 5. Full analysis (all modules)
 ```bash
 python main.py full-analysis
+```
+
+##### 6. Interactive Production Calculator
+```bash
+python main.py production-calculator
+```
+
+##### 7. Quick Production Calculator (Test scenarios)
+```bash
+python main.py quick-calculator
 ```
 
 ### Additional options
@@ -92,6 +115,14 @@ python main.py arbitrage-analysis --min-profit 2.0 --output-dir arbitrage_result
 - Cheapest item of each type from all countries
 - Best production region for each product
 - Compact DOCX format for quick reference
+
+### 🧮 Production Calculator
+- **Interactive Calculator**: Full-featured calculator with region selection, company parameters, and detailed analysis
+- **Quick Calculator**: Fast testing of different scenarios with predefined parameters
+- **Real-time Calculations**: All 8 production factors from Eclesiar documentation
+- **Parameter Configuration**: Company tier, eco skill, workers, building levels, military base, ownership type
+- **Efficiency Analysis**: Detailed scoring and recommendations for optimization
+- **Multiple Products**: Support for all production types (weapon, iron, grain, aircraft, etc.)
 
 ## ⚙️ Configuration
 
@@ -152,6 +183,16 @@ python main.py full-analysis
 ```
 
 ## 📝 Changelog
+
+### v2.3 - Production Calculator (2025-09-08)
+- ✅ Added interactive production calculator with full parameter configuration
+- ✅ Added quick production calculator for testing scenarios
+- ✅ Implemented all 8 production factors from Eclesiar documentation
+- ✅ Added region selection with real-time data from API
+- ✅ Integrated calculators with main application menu
+- ✅ Added new commands: `python main.py production-calculator` and `python main.py quick-calculator`
+- ✅ Created comprehensive calculator documentation (CALCULATOR_README.md)
+- ✅ Translated all application interfaces to English
 
 ### v2.2 - Short Economic Report (2025-09-08)
 - ✅ Added short economic report generation (DOCX)

@@ -70,3 +70,4 @@ WEAPON:
 
 ## **Kontakt:**
 Jeśli potrzebujesz pomocy z kluczem API, skontaktuj się z administracją Eclesiar.
+

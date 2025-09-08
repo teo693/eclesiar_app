@@ -176,39 +176,71 @@ def generate_short_economic_report(
         document.add_heading("🛒 Cheapest Items of Each Type", level=1)
         
         if cheapest_items:
-            # Group items by type
+            # Group items by type and quality
             grouped_items = _group_items_by_type(cheapest_items)
             
-            for item_type, items in grouped_items.items():
-                if items:
-                    document.add_heading(f"{item_type}", level=2)
+            for product_type, quality_items in grouped_items.items():
+                if quality_items:
+                    document.add_heading(f"{product_type}", level=2)
                     
-                    # Find cheapest item of this type
-                    cheapest_item = min(items, key=lambda x: x.get('price_gold', float('inf')))
-                    
-                    # Table with cheapest item
-                    table = document.add_table(rows=1, cols=6)
+                    # Create table with all quality levels
+                    table = document.add_table(rows=1, cols=7)
                     table.style = 'Table Grid'
                     
                     # Headers
                     hdr_cells = table.rows[0].cells
-                    hdr_cells[0].text = "Item"
-                    hdr_cells[1].text = "Country"
-                    hdr_cells[2].text = "Price (currency)"
-                    hdr_cells[3].text = "Price (GOLD)"
-                    hdr_cells[4].text = "Quantity"
-                    hdr_cells[5].text = "Average of 5 cheapest (GOLD)"
+                    hdr_cells[0].text = "Quality"
+                    hdr_cells[1].text = "Item"
+                    hdr_cells[2].text = "Country"
+                    hdr_cells[3].text = "Price (currency)"
+                    hdr_cells[4].text = "Price (GOLD)"
+                    hdr_cells[5].text = "Quantity"
+                    hdr_cells[6].text = "Average of 5 cheapest (GOLD)"
                     
-                    # Data row
-                    row_cells = table.add_row().cells
-                    row_cells[0].text = str(cheapest_item.get('item_name', 'Unknown'))
-                    row_cells[1].text = str(cheapest_item.get('country', 'Unknown'))
-                    row_cells[2].text = f"{cheapest_item.get('price_currency', 0):.3f} {cheapest_item.get('currency_name', '')}"
-                    row_cells[3].text = f"{cheapest_item.get('price_gold', 0):.6f}"
-                    qty = cheapest_item.get('amount')
-                    row_cells[4].text = (str(int(qty)) if isinstance(qty, (int, float)) else "—")
-                    avg5 = cheapest_item.get('avg5_in_gold')
-                    row_cells[5].text = (f"{float(avg5):.6f}" if isinstance(avg5, (int, float)) else "—")
+                    # Sort quality levels (Q1, Q2, Q3, Q4, Q5)
+                    sorted_qualities = sorted(quality_items.keys(), key=lambda x: int(x[1:]) if x[1:].isdigit() else 0)
+                    
+                    for quality_level in sorted_qualities:
+                        items = quality_items[quality_level]
+                        if items:
+                            # Find cheapest item of this quality level
+                            cheapest_item = min(items, key=lambda x: x.get('price_gold', float('inf')))
+                            
+                            # Data row with bold formatting for the cheapest item
+                            row_cells = table.add_row().cells
+                            
+                            # Quality level
+                            row_cells[0].text = quality_level
+                            
+                            # Make the item name bold
+                            item_name_cell = row_cells[1]
+                            item_name_cell.text = str(cheapest_item.get('item_name', 'Unknown'))
+                            for paragraph in item_name_cell.paragraphs:
+                                for run in paragraph.runs:
+                                    run.bold = True
+                            
+                            # Make the country name bold
+                            country_cell = row_cells[2]
+                            country_cell.text = str(cheapest_item.get('country', 'Unknown'))
+                            for paragraph in country_cell.paragraphs:
+                                for run in paragraph.runs:
+                                    run.bold = True
+                            
+                            # Regular formatting for price in currency
+                            row_cells[3].text = f"{cheapest_item.get('price_currency', 0):.3f} {cheapest_item.get('currency_name', '')}"
+                            
+                            # Make the price in GOLD bold (most important)
+                            price_gold_cell = row_cells[4]
+                            price_gold_cell.text = f"{cheapest_item.get('price_gold', 0):.6f}"
+                            for paragraph in price_gold_cell.paragraphs:
+                                for run in paragraph.runs:
+                                    run.bold = True
+                            
+                            # Regular formatting for other cells
+                            qty = cheapest_item.get('amount')
+                            row_cells[5].text = (str(int(qty)) if isinstance(qty, (int, float)) else "—")
+                            avg5 = cheapest_item.get('avg5_in_gold')
+                            row_cells[6].text = (f"{float(avg5):.6f}" if isinstance(avg5, (int, float)) else "—")
                     
                     document.add_paragraph("")
         else:
@@ -305,9 +337,10 @@ def generate_short_economic_report(
     return filepath
 
 
-def _group_items_by_type(cheapest_items: Dict[int, List[Dict[str, Any]]]) -> Dict[str, List[Dict[str, Any]]]:
+def _group_items_by_type(cheapest_items: Dict[int, List[Dict[str, Any]]]) -> Dict[str, Dict[str, List[Dict[str, Any]]]]:
     """
-    Groups items by type (grain, iron, weapon, etc.)
+    Groups items by type (weapon, iron, etc.) and then by quality level (Q1, Q2, Q3, Q4, Q5)
+    Returns: {product_type: {quality_level: [items]}}
     """
     import re
     
@@ -334,6 +367,20 @@ def _group_items_by_type(cheapest_items: Dict[int, List[Dict[str, Any]]]) -> Dic
         else:
             return "Other"
     
+    def parse_item_quality(name: str) -> str:
+        """Determines item quality level based on name"""
+        name_lower = str(name).lower()
+        
+        # Look for quality patterns like "q1", "q2", etc.
+        quality_match = re.search(r'q(\d+)', name_lower)
+        if quality_match:
+            quality_num = int(quality_match.group(1))
+            if 1 <= quality_num <= 5:
+                return f"Q{quality_num}"
+        
+        # If no quality found, assume Q1
+        return "Q1"
+    
     grouped = {}
     
     for item_id, item_list in cheapest_items.items():
@@ -341,10 +388,13 @@ def _group_items_by_type(cheapest_items: Dict[int, List[Dict[str, Any]]]) -> Dic
             for item in item_list:
                 item_name = item.get('item_name', '')
                 item_type = parse_item_type(item_name)
+                item_quality = parse_item_quality(item_name)
                 
                 if item_type not in grouped:
-                    grouped[item_type] = []
-                grouped[item_type].append(item)
+                    grouped[item_type] = {}
+                if item_quality not in grouped[item_type]:
+                    grouped[item_type][item_quality] = []
+                grouped[item_type][item_quality].append(item)
     
     return grouped
 

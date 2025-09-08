@@ -61,19 +61,19 @@ class ProductionAnalyzer:
         self.db_path = db_path or os.getenv("ECLESIAR_DB_PATH", "eclesiar.db")
         self.npc_wages_cache = {}
         
-        # Mapowanie typów bonusów na produkty
+        # Mapowanie typów bonusów na produkty (API używa wielkich liter)
         self.bonus_type_mapping = {
             # Surowce
-            "grain": ["grain", "food", "general"],
-            "iron": ["iron", "weapon", "aircraft", "general"],
-            "titanium": ["titanium", "aircraft", "general"],
-            "fuel": ["fuel", "aircraft", "general"],
+            "grain": ["GRAIN", "grain", "food", "general"],
+            "iron": ["IRON", "iron", "weapon", "aircraft", "general"],
+            "titanium": ["TITANIUM", "titanium", "aircraft", "general"],
+            "fuel": ["OIL", "fuel", "aircraft", "general"],
             
             # Produkty
-            "food": ["food", "grain", "general"],
-            "weapon": ["weapon", "iron", "general"],
-            "aircraft": ["aircraft", "titanium", "iron", "general"],
-            "airplane ticket": ["airplane ticket", "ticket", "aircraft", "general"]
+            "food": ["FOOD", "food", "grain", "general"],
+            "weapon": ["WEAPONS", "weapon", "iron", "general"],  # TICKETS removed - should not apply to weapon production
+            "aircraft": ["AIRCRAFT", "aircraft", "titanium", "iron", "general"],
+            "airplane ticket": ["TICKETS", "airplane ticket", "ticket", "aircraft", "general"]
         }
         
         # Bazowe wartości produkcji dla różnych towarów
@@ -175,6 +175,19 @@ class ProductionAnalyzer:
             Krotka (bonus w procentach, typ bonusu)
         """
         bonus_by_type = region_data.get("bonus_by_type", {})
+        
+        # Jeśli bonus_by_type nie istnieje lub jest pusty, spróbuj sparsować bonus_description
+        if not bonus_by_type:
+            bonus_description = region_data.get("bonus_description", "")
+            if bonus_description:
+                # Parsuj bonus_description (format: "TICKETS:15" lub "WEAPONS:20 TICKETS:15")
+                bonus_by_type = self._parse_bonus_description(bonus_description)
+        
+        # Jeśli nadal nie ma bonus_by_type, użyj starego systemu
+        if not bonus_by_type:
+            total_bonus = region_data.get("bonus_score", 0)
+            return (total_bonus / 100.0 if total_bonus > 0 else 0.0), "general"
+        
         relevant_bonus_types = self.bonus_type_mapping.get(item_name.lower(), ["general"])
         
         # Znajdź pierwszy pasujący bonus
@@ -182,9 +195,34 @@ class ProductionAnalyzer:
             if bonus_type in bonus_by_type:
                 return bonus_by_type[bonus_type] / 100.0, bonus_type  # Konwersja z procentów
         
-        # Fallback: użyj ogólnego bonusu (suma wszystkich)
-        total_bonus = region_data.get("bonus_score", 0)
-        return (total_bonus / 100.0 if total_bonus > 0 else 0.0), "general"
+        # Jeśli nie znaleziono pasującego bonusu, zwróć 0%
+        return 0.0, "none"
+    
+    def _parse_bonus_description(self, bonus_description: str) -> Dict[str, float]:
+        """
+        Parsuje bonus_description do słownika bonus_by_type.
+        
+        Args:
+            bonus_description: String w formacie "TICKETS:15" lub "WEAPONS:20 TICKETS:15"
+            
+        Returns:
+            Słownik z bonusami według typów
+        """
+        bonus_by_type = {}
+        if not bonus_description:
+            return bonus_by_type
+        
+        # Podziel na części (spacje)
+        parts = bonus_description.strip().split()
+        for part in parts:
+            if ':' in part:
+                try:
+                    bonus_type, bonus_value = part.split(':', 1)
+                    bonus_by_type[bonus_type] = float(bonus_value)
+                except ValueError:
+                    continue
+        
+        return bonus_by_type
     
     def calculate_production_efficiency(self, region_data: Dict[str, Any], item_name: str, 
                                       company_tier: int = 5, eco_skill: int = 0, 

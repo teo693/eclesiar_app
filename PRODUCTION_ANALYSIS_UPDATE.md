@@ -154,3 +154,4 @@ TEST 2: Gracz z wysokim eco skill
 ## Podsumowanie
 
 System obliczania produkcji jest teraz znacznie bardziej dokładny i uwzględnia wszystkie mechaniki gry Eclesiar. Mimo że niektóre dane nie są dostępne w API, system używa rozsądnych domyślnych wartości i pozwala na łatwe dostosowanie parametrów dla różnych scenariuszy.
+
