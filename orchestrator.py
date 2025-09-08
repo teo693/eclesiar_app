@@ -13,6 +13,7 @@ from storage import (
     load_historical_data,
     save_historical_data,
     save_regions_data_to_storage,
+    load_regions_data_from_storage,
 )
 from economy import (
     fetch_countries_and_currencies,
@@ -91,7 +92,7 @@ def run(sections: dict = None) -> None:
         print("❌ Błąd: Token autoryzacyjny nie został załadowany z pliku .env.")
         return
     
-    # Ustaw domyślne sekcje jeśli nie podano
+    # Set default sections if not provided
     if sections is None:
         sections = {
             'military': True,
@@ -461,14 +462,21 @@ def run(sections: dict = None) -> None:
         
         if need_regions_data:
             progress.add_tasks(1)
-            regions_data, regions_summary = fetch_and_process_regions(eco_countries_cache)
+            # Try to load from cache first
+            regions_data, regions_summary = load_regions_data_from_storage()
+            if not regions_data:
+                # If no cached data, fetch fresh data
+                print("Brak danych o regionach w cache - pobieranie świeżych danych...")
+                regions_data, regions_summary = fetch_and_process_regions(eco_countries_cache)
+                if regions_data:
+                    try:
+                        save_regions_data_to_storage(regions_data, regions_summary)
+                    except Exception as e:
+                        print(f"Błąd podczas zapisu danych o regionach do bazy (cache): {e}")
+            
             if regions_data:
                 raw_data_from_file['regions_data'] = regions_data
                 raw_data_from_file['regions_summary'] = regions_summary
-                try:
-                    save_regions_data_to_storage(regions_data, regions_summary)
-                except Exception as e:
-                    print(f"Błąd podczas zapisu danych o regionach do bazy (cache): {e}")
             progress.advance(note="Ekonomia (cache): regiony z bonusami uzupełnione")
 
         if need_currency_extremes or need_regions_data or need_cheapest_items_all:
@@ -1023,14 +1031,21 @@ def run_html(output_dir: str = "reports", sections: dict = None) -> None:
         
         if need_regions_data:
             progress.add_tasks(1)
-            regions_data, regions_summary = fetch_and_process_regions(eco_countries_cache)
+            # Try to load from cache first
+            regions_data, regions_summary = load_regions_data_from_storage()
+            if not regions_data:
+                # If no cached data, fetch fresh data
+                print("Brak danych o regionach w cache - pobieranie świeżych danych...")
+                regions_data, regions_summary = fetch_and_process_regions(eco_countries_cache)
+                if regions_data:
+                    try:
+                        save_regions_data_to_storage(regions_data, regions_summary)
+                    except Exception as e:
+                        print(f"Błąd podczas zapisu danych o regionach do bazy (cache): {e}")
+            
             if regions_data:
                 raw_data_from_file['regions_data'] = regions_data
                 raw_data_from_file['regions_summary'] = regions_summary
-                try:
-                    save_regions_data_to_storage(regions_data, regions_summary)
-                except Exception as e:
-                    print(f"Błąd podczas zapisu danych o regionach do bazy (cache): {e}")
             progress.advance(note="Ekonomia (cache): regiony z bonusami uzupełnione")
 
         if need_currency_extremes or need_regions_data or need_cheapest_items_all:

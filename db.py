@@ -311,6 +311,61 @@ def load_raw_cache() -> Optional[Dict[str, Any]]:
         return None
 
 
+def load_regions_data() -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
+    """
+    Ładuje dane o regionach z bazy danych.
+    
+    Returns:
+        Krotka (lista regionów, podsumowanie)
+    """
+    try:
+        with _connect() as conn:
+            # Pobierz najnowsze podsumowanie
+            cursor = conn.execute(
+                """
+                SELECT summary_json FROM regions_summary 
+                ORDER BY created_at DESC LIMIT 1
+                """
+            )
+            summary_row = cursor.fetchone()
+            summary = json.loads(summary_row[0]) if summary_row else {}
+            
+            # Pobierz najnowsze dane regionów
+            cursor = conn.execute(
+                """
+                SELECT region_name, country_name, country_id, pollution, 
+                       bonus_score, bonus_description, population, nb_npcs, 
+                       type, original_country_id, bonus_per_pollution
+                FROM regions_data 
+                ORDER BY created_at DESC 
+                LIMIT 1000
+                """
+            )
+            
+            regions_data = []
+            for row in cursor.fetchall():
+                region = {
+                    'region_name': row[0],
+                    'country_name': row[1],
+                    'country_id': row[2],
+                    'pollution': row[3],
+                    'bonus_score': row[4],
+                    'bonus_description': row[5],
+                    'population': row[6],
+                    'nb_npcs': row[7],
+                    'type': row[8],
+                    'original_country_id': row[9],
+                    'bonus_per_pollution': row[10]
+                }
+                regions_data.append(region)
+            
+            return regions_data, summary
+            
+    except Exception as e:
+        print(f"Błąd podczas ładowania danych o regionach z bazy: {e}")
+        return [], {}
+
+
 def save_regions_data(regions_data: List[Dict[str, Any]], regions_summary: Dict[str, Any]) -> None:
     """
     Zapisuje dane o regionach do bazy danych.

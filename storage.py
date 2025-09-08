@@ -2,7 +2,7 @@ import json
 import os
 from typing import Any, Dict, List, Optional
 from config import HISTORY_FILE, RAW_API_OUTPUT_FILE
-from db import load_historical_reports, save_historical_report, load_raw_cache, save_raw_cache, save_regions_data
+from db import load_historical_reports, save_historical_report, load_raw_cache, save_raw_cache, save_regions_data, load_regions_data
 
 
 def load_historical_data() -> Dict[str, Any]:
@@ -68,6 +68,25 @@ def load_raw_api_output() -> Optional[Dict[str, Any]]:
         except (json.JSONDecodeError, FileNotFoundError):
             pass
     return None
+
+
+def load_regions_data_from_storage() -> tuple[List[Dict[str, Any]], Dict[str, Any]]:
+    """
+    Ładuje dane o regionach z storage (bazy danych).
+    
+    Returns:
+        Krotka (lista regionów, podsumowanie)
+    """
+    try:
+        regions_data, regions_summary = load_regions_data()
+        if regions_data:
+            print(f"Załadowano {len(regions_data)} regionów z bazy danych.")
+        else:
+            print("Brak danych o regionach w bazie danych.")
+        return regions_data, regions_summary
+    except Exception as e:
+        print(f"Błąd podczas ładowania danych o regionach: {e}")
+        return [], {}
 
 
 def save_regions_data_to_storage(regions_data: List[Dict[str, Any]], regions_summary: Dict[str, Any]) -> None:

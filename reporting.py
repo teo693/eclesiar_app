@@ -51,7 +51,7 @@ def generate_report(
     sections=None,
 ):
     """Generate daily report as a DOCX file and return its path."""
-    # Ustaw domyślne sekcje jeśli nie podano
+    # Set default sections if not provided
     if sections is None:
         sections = {
             'military': True,
@@ -79,7 +79,7 @@ def generate_report(
             document.add_paragraph(f"Source data fetched: {fetched_at}")
 
     # Best warrior shoutout
-    if sections.get('warriors', True):
+    if sections.get('warriors', False):
         tw_local = summary_data.get('top_warriors') or []
         if isinstance(tw_local, list) and len(tw_local) > 0:
             best = tw_local[0]
@@ -106,7 +106,7 @@ def generate_report(
     # Removed welcome blurb per request
 
     # Military section
-    if sections.get('military', True):
+    if sections.get('military', False):
         document.add_heading("⚔️ Battlefield Pulse: Key War Statistics", level=1)
         document.add_paragraph("Damage attributed to a country is the sum of damage dealt by players of that country across all battles in the last 24 hours (regardless of whether the country was a party to the conflict).")
 
@@ -119,8 +119,8 @@ def generate_report(
     today_ongoing = len(ongoing_wars)
     today_finished = len(finished_wars)
     
-    if sections.get('military', True) and (ongoing_wars or finished_wars):
-        document.add_heading("🗺️ Military Activity: ongoing and finished wars", level=2)
+    if sections.get('military', False) and (ongoing_wars or finished_wars):
+        document.add_heading("🗺️ Military Activity: Ongoing and Finished Wars", level=2)
         if ongoing_wars:
             document.add_paragraph("Ongoing battles:")
             for line in ongoing_wars:
@@ -156,7 +156,7 @@ def generate_report(
                     arrow = "▲" if change > 0 else "▼"
                     document.add_paragraph(f"Finished wars: {arrow} {change:+d} ({today_finished} vs {yesterday_finished})")
 
-    if sections.get('military', True):
+    if sections.get('military', False):
         military_summary = summary_data.get('military_summary', {})
         if not military_summary:
             document.add_paragraph("No war data from the last 24 hours. The server was calm.")
@@ -247,7 +247,7 @@ def generate_report(
         # Economic comparison with yesterday has been removed per request
 
     # Top warriors
-    if sections.get('warriors', True):
+    if sections.get('warriors', False):
         document.add_heading("🏆 Best of the Best: Heroes Ranking", level=1)
         top_warriors_local = summary_data.get('top_warriors', [])
         if not top_warriors_local:
@@ -565,7 +565,7 @@ def generate_report(
 
             # Removed price summary table per request
         
-        # Najtańsze towary ze wszystkich krajów
+        # Cheapest goods from all countries
         cheapest_items_all = economic_data.get('cheapest_items_all_countries', {})
         
         # Debug logging to help identify the issue
@@ -577,21 +577,21 @@ def generate_report(
             print(f"DEBUG: Available keys in economic_data: {list(economic_data.keys())}")
         
         if cheapest_items_all:
-            document.add_heading("🌍 Najtańsze towary ze wszystkich krajów", level=2)
-            document.add_paragraph("Najtańsze towary każdego typu ze wszystkich krajów:")
+            document.add_heading("🌍 Cheapest Goods from All Countries", level=2)
+            document.add_paragraph("Cheapest goods of each type from all countries:")
             
-            # Grupuj towary według typu i jakości
+            # Group goods by type and quality
             import re
             
             def parse_item_type_and_quality(name: str):
-                """Parsuje nazwę towaru i zwraca typ oraz jakość"""
+                """Parse item name and return type and quality"""
                 name_lower = str(name).lower()
                 
-                # Znajdź jakość (Q1, Q2, Q3, Q4, Q5)
+                # Find quality (Q1, Q2, Q3, Q4, Q5)
                 quality_match = re.search(r'\bq(\d+)\b', name_lower)
                 quality = int(quality_match.group(1)) if quality_match else None
                 
-                # Usuń jakość z nazwy i określ typ
+                # Remove quality from name and determine type
                 base_name = re.sub(r'\bq\d+\b', '', name_lower).strip()
                 
                 if any(word in base_name for word in ["grain", "zboże"]):
@@ -613,7 +613,7 @@ def generate_report(
                 else:
                     return "Other", quality
             
-            # Grupuj towary według typu i jakości
+            # Group goods by type and quality
             grouped_items = {}
             for item_id, item_list in cheapest_items_all.items():
                 try:
@@ -622,7 +622,7 @@ def generate_report(
                             item_name = item.get('item_name', '')
                             item_type, quality = parse_item_type_and_quality(item_name)
                             
-                            # Utwórz klucz grupy
+                            # Create group key
                             if quality is not None:
                                 group_key = f"{item_type} Q{quality}"
                             else:
@@ -637,21 +637,21 @@ def generate_report(
             
             print(f"DEBUG: Grouped items: {list(grouped_items.keys())}")
             
-            # Wyświetl każdą grupę w osobnej tabeli
+            # Display each group in a separate table
             for group_name, items in grouped_items.items():
                 if items:
                     document.add_heading(f"{group_name}", level=3)
                     
                     table = document.add_table(rows=1, cols=6)
                     hdr = table.rows[0].cells
-                    hdr[0].text = "Towar"
-                    hdr[1].text = "Kraj"
-                    hdr[2].text = "Cena (waluta)"
-                    hdr[3].text = "Cena (GOLD)"
-                    hdr[4].text = "Ilość"
-                    hdr[5].text = "Średnia z 5 najtańszych (GOLD)"
+                    hdr[0].text = "Good"
+                    hdr[1].text = "Country"
+                    hdr[2].text = "Price (currency)"
+                    hdr[3].text = "Price (GOLD)"
+                    hdr[4].text = "Quantity"
+                    hdr[5].text = "Average of 5 cheapest (GOLD)"
                     
-                    # Sortuj towary według ceny GOLD
+                    # Sort goods by GOLD price
                     sorted_items = sorted(items, key=lambda x: x.get('price_gold', 0))
                     
                     for item in sorted_items:
@@ -672,83 +672,80 @@ def generate_report(
                     document.add_paragraph("")  # Spacer for better formatting
         else:
             # Add fallback section if no cheapest items data
-            document.add_heading("🌍 Najtańsze towary ze wszystkich krajów", level=2)
-            document.add_paragraph("Brak danych o najtańszych towarach ze wszystkich krajów.")
-            document.add_paragraph("Dostępne klucze w danych ekonomicznych:")
+            document.add_heading("🌍 Cheapest Goods from All Countries", level=2)
+            document.add_paragraph("No data on cheapest goods from all countries.")
+            document.add_paragraph("Available keys in economic data:")
             for key in economic_data.keys():
                 document.add_paragraph(f"• {key}", style='List Bullet')
 
         # Production analysis as part of economic section (always show if enabled)
         production_data = summary_data.get('production_data', [])
-        if sections.get('production', True) and production_data:
-            document.add_heading("🏭 Analiza Produktywności Regionów", level=1)
-            document.add_paragraph("Analiza efektywności produkcji w różnych regionach dla różnych towarów.")
+        if sections.get('production', False) and production_data:
+            document.add_heading("🏭 Regional Productivity Analysis", level=1)
+            document.add_paragraph("Analysis of production efficiency in different regions for various goods.")
             
-            # Group by item type
+            # Group by item type instead of efficiency score
             items_groups = {}
             for data in production_data:
-                    # Handle both object and dictionary formats
-                    if hasattr(data, 'efficiency_score'):
-                        efficiency_score = data.efficiency_score
-                    else:
-                        efficiency_score = data.get('efficiency_score', 0)
-                    
-                    # Group by efficiency score ranges
-                    if efficiency_score > 0.8:
-                        group = "Bardzo wysoka efektywność"
-                    elif efficiency_score > 0.6:
-                        group = "Wysoka efektywność"
-                    elif efficiency_score > 0.4:
-                        group = "Średnia efektywność"
-                    else:
-                        group = "Niska efektywność"
-                    
-                    if group not in items_groups:
-                        items_groups[group] = []
-                    items_groups[group].append(data)
+                # Handle both object and dictionary formats
+                if hasattr(data, 'item_name'):
+                    item_name = data.item_name
+                else:
+                    item_name = data.get('item_name', 'Unknown')
+                
+                if item_name not in items_groups:
+                    items_groups[item_name] = []
+                items_groups[item_name].append(data)
             
-            for group_name, items in items_groups.items():
-                    if items:
-                        # Calculate min score for the group
-                        min_scores = []
-                        for item in items:
-                            if hasattr(item, 'efficiency_score'):
-                                min_scores.append(item.efficiency_score)
-                            else:
-                                min_scores.append(item.get('efficiency_score', 0))
-                        min_score = min(min_scores) if min_scores else 0
-                        document.add_heading(f"{group_name} (Score > {min_score:.2f})", level=2)
-                        
-                        # Create table
-                        table = document.add_table(rows=1, cols=6)
-                        hdr = table.rows[0].cells
-                        hdr[0].text = "Region"
-                        hdr[1].text = "Kraj"
-                        hdr[2].text = "Score"
-                        hdr[3].text = "Bonus"
-                        hdr[4].text = "Produkcja Q5"
-                        hdr[5].text = "Płace NPC (GOLD)"
-                        
-                        # Show top 10 from each group
-                        for item in items[:10]:
-                            row_cells = table.add_row().cells
-                            # Handle both object and dictionary formats
-                            if hasattr(item, 'region_name'):
-                                row_cells[0].text = item.region_name
-                                row_cells[1].text = item.country_name
-                                row_cells[2].text = f"{item.efficiency_score:.2f}"
-                                row_cells[3].text = f"{item.total_bonus:.1%}"
-                                row_cells[4].text = str(item.production_q5)
-                                row_cells[5].text = f"{item.npc_wages:.2f}"
-                    else:
-                        row_cells[0].text = item.get('region_name', 'Unknown')
-                        row_cells[1].text = item.get('country_name', 'Unknown')
-                        row_cells[2].text = f"{item.get('efficiency_score', 0):.2f}"
-                        row_cells[3].text = f"{item.get('total_bonus', 0):.1%}"
-                        row_cells[4].text = str(item.get('production_q5', 0))
-                        row_cells[5].text = f"{item.get('npc_wages', 0):.2f}"
-                        
-                        document.add_paragraph("")  # Spacer
+            for item_name, items in items_groups.items():
+                if items:
+                    # Sort by efficiency score (descending)
+                    items.sort(key=lambda x: x.efficiency_score if hasattr(x, 'efficiency_score') else x.get('efficiency_score', 0), reverse=True)
+                    
+                    document.add_heading(f"Product: {item_name.title()}", level=2)
+                    
+                    # Create table with all quality levels and NPC wages
+                    table = document.add_table(rows=1, cols=10)
+                    hdr = table.rows[0].cells
+                    hdr[0].text = "Region"
+                    hdr[1].text = "Country"
+                    hdr[2].text = "Score"
+                    hdr[3].text = "Bonus"
+                    hdr[4].text = "Q1"
+                    hdr[5].text = "Q2"
+                    hdr[6].text = "Q3"
+                    hdr[7].text = "Q4"
+                    hdr[8].text = "Q5"
+                    hdr[9].text = "NPC Wages (GOLD)"
+                    
+                    # Show top 10 from each item type
+                    for item in items[:10]:
+                        row_cells = table.add_row().cells
+                        # Handle both object and dictionary formats
+                        if hasattr(item, 'region_name'):
+                            row_cells[0].text = item.region_name
+                            row_cells[1].text = item.country_name
+                            row_cells[2].text = f"{item.efficiency_score:.2f}"
+                            row_cells[3].text = f"{item.total_bonus:.1%}"
+                            row_cells[4].text = str(item.production_q1)
+                            row_cells[5].text = str(item.production_q2)
+                            row_cells[6].text = str(item.production_q3)
+                            row_cells[7].text = str(item.production_q4)
+                            row_cells[8].text = str(item.production_q5)
+                            row_cells[9].text = f"{item.npc_wages:.2f}"
+                        else:
+                            row_cells[0].text = item.get('region_name', 'Unknown')
+                            row_cells[1].text = item.get('country_name', 'Unknown')
+                            row_cells[2].text = f"{item.get('efficiency_score', 0):.2f}"
+                            row_cells[3].text = f"{item.get('total_bonus', 0):.1%}"
+                            row_cells[4].text = str(item.get('production_q1', 0))
+                            row_cells[5].text = str(item.get('production_q2', 0))
+                            row_cells[6].text = str(item.get('production_q3', 0))
+                            row_cells[7].text = str(item.get('production_q4', 0))
+                            row_cells[8].text = str(item.get('production_q5', 0))
+                            row_cells[9].text = f"{item.get('npc_wages', 0):.2f}"
+                    
+                    document.add_paragraph("")  # Spacer
 
         # Add detailed production analysis by item type (similar to HTML)
 
@@ -759,7 +756,7 @@ def generate_report(
     file_name = f"raport_dzienny_{datetime.now().strftime('%Y-%m-%d_%H-%M')}.docx"
     file_path = os.path.join(output_dir, file_name)
     document.save(file_path)
-    print(f"Raport DOCX został pomyślnie wygenerowany jako '{file_path}'")
+    print(f"DOCX report successfully generated as '{file_path}'")
     return file_path
 
 

@@ -92,21 +92,8 @@ class ProductionAnalyzer:
                 local_wage = country.get("value", 0)
                 
                 if country_id and local_wage > 0:
-                    # Znajdź informacje o walucie tego kraju
-                    country_info = eco_countries.get(country_id, {})
-                    currency_id = country_info.get("currency_id")
-                    
-                    # Przelicz na gold
-                    wage_in_gold = 5.0  # Domyślna wartość
-                    
-                    if currency_id and currency_id in currency_rates:
-                        try:
-                            # Przelicz wage z lokalnej waluty na gold
-                            wage_in_gold = local_wage / currency_rates[currency_id]
-                        except (ZeroDivisionError, TypeError):
-                            wage_in_gold = 5.0  # Fallback
-                    
-                    self.npc_wages_cache[country_id] = wage_in_gold
+                    # NPC wages z API są już w GOLD, nie trzeba przeliczać
+                    self.npc_wages_cache[country_id] = local_wage
             
             print(f"Załadowano dane NPC wages dla {len(self.npc_wages_cache)} krajów")
             

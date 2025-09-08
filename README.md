@@ -1,163 +1,170 @@
-# Eclesiar - Aplikacja do Analizy Danych Gry
+# Eclesiar - Game Data Analysis Application
 
-Aplikacja do analizy danych z gry Eclesiar, generująca raporty dzienne, analizy produktywności regionów oraz analizy arbitrażu walutowego.
+Application for analyzing data from the Eclesiar game, generating daily reports, regional productivity analysis, and currency arbitrage analysis.
 
-## 🏗️ Struktura Projektu
+## 🏗️ Project Structure
 
 ```
 eclesiar/
-├── main.py                           # Główny punkt wejścia
-├── orchestrator.py                   # Główny orchestrator aplikacji
-├── reporting.py                      # Generowanie raportów dziennych
-├── production_analyzer_consolidated.py  # Analiza produktywności regionów
-├── arbitrage_analyzer_consolidated.py   # Analiza arbitrażu walutowego
-├── api_client.py                     # Klient API
-├── economy.py                        # Funkcje ekonomiczne
-├── military.py                       # Funkcje militarne
-├── regions.py                        # Funkcje regionalne
-├── storage.py                        # Zarządzanie danymi
-├── db.py                            # Baza danych SQLite
-├── config.py                         # Konfiguracja
-├── arbitrage_config.py               # Konfiguracja arbitrażu
-├── requirements.txt                  # Zależności Python
-├── reports/                          # Raporty dzienne (DOCX, HTML)
-├── production_analysis/              # Analizy produktywności
-└── arbitrage_reports/                # Raporty arbitrażowe
+├── main.py                           # Main entry point
+├── orchestrator.py                   # Main application orchestrator
+├── reporting.py                      # Daily report generation
+├── production_analyzer_consolidated.py  # Regional productivity analysis
+├── arbitrage_analyzer_consolidated.py   # Currency arbitrage analysis
+├── api_client.py                     # API client
+├── economy.py                        # Economic functions
+├── military.py                       # Military functions
+├── regions.py                        # Regional functions
+├── storage.py                        # Data management
+├── db.py                            # SQLite database
+├── config.py                         # Configuration
+├── arbitrage_config.py               # Arbitrage configuration
+├── requirements.txt                  # Python dependencies
+├── reports/                          # Daily reports (DOCX, HTML)
+├── production_analysis/              # Productivity analysis
+└── arbitrage_reports/                # Arbitrage reports
 ```
 
-## 🚀 Uruchomienie
+## 🚀 Getting Started
 
-### Instalacja zależności
+### Install dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-### Uruchomienie aplikacji
+### Running the application
 
-#### 1. Generowanie dziennego raportu
+#### 1. Generate daily report
 ```bash
 python main.py daily-report
 ```
 
-#### 2. Analiza produktywności regionów
+#### 2. Regional productivity analysis
 ```bash
 python main.py production-analysis
 ```
 
-#### 3. Analiza arbitrażu walutowego
+#### 3. Currency arbitrage analysis
 ```bash
 python main.py arbitrage-analysis --min-profit 1.0
 ```
 
-#### 4. Pełna analiza (wszystkie moduły)
+#### 4. Full analysis (all modules)
 ```bash
 python main.py full-analysis
 ```
 
-### Opcje dodatkowe
+### Additional options
 ```bash
 python main.py daily-report --output-dir custom_reports
 python main.py arbitrage-analysis --min-profit 2.0 --output-dir arbitrage_results
 ```
 
-## 📊 Funkcjonalności
+## 📊 Features
 
-### 📋 Raporty Dziennie
-- Statystyki militarne (wojny, uszkodzenia)
-- Ranking najlepszych wojowników
-- Analiza ekonomiczna (kursy walut, oferty pracy)
-- Porównania z poprzednimi dniami
-- Generowanie w formacie DOCX
+### 📋 Daily Reports
+- Military statistics (wars, damage)
+- Top warriors ranking
+- Economic analysis (currency rates, job offers)
+- Comparisons with previous days
+- DOCX format generation
 
-### 🏭 Analiza Produktywności Regionów
-- Obliczanie efektywności produkcji
-- Uwzględnianie bonusów regionalnych i krajowych
-- Analiza zanieczyszczeń i płac NPC
-- Ranking regionów według score'u efektywności
+### 🏭 Regional Productivity Analysis
+- Production efficiency calculations
+- Regional and national bonuses consideration
+- Pollution and NPC wages analysis
+- Regional ranking by efficiency score
 
-### 💰 Analiza Arbitrażu Walutowego
-- Wyszukiwanie okazji arbitrażowych
-- Analiza ryzyka transakcji
-- Ocena płynności rynków
-- Generowanie raportów CSV i TXT
-- Backtesting strategii
+### 💰 Currency Arbitrage Analysis
+- Arbitrage opportunity detection
+- Transaction risk analysis
+- Market liquidity assessment
+- CSV and TXT report generation
+- Strategy backtesting
 
-## ⚙️ Konfiguracja
+## ⚙️ Configuration
 
-### Plik .env
+### .env file
 ```env
 API_KEY=your_api_key_here
 API_URL=https://api.eclesiar.com
 ECLESIAR_DB_PATH=eclesiar.db
 ```
 
-### Konfiguracja arbitrażu (arbitrage_config.py)
+### Arbitrage configuration (arbitrage_config.py)
 ```python
 ARBITRAGE_CONFIG = {
-    'min_profit_threshold': 0.5,  # Minimalny zysk w %
-    'max_risk_score': 0.7,        # Maksymalny score ryzyka
-    'ticket_cost_gold': 0.1,      # Koszt biletu w złocie
-    'max_execution_time': 300     # Maksymalny czas wykonania w sekundach
+    'min_profit_threshold': 0.5,  # Minimum profit in %
+    'max_risk_score': 0.7,        # Maximum risk score
+    'ticket_cost_gold': 0.1,      # Ticket cost in gold
+    'max_execution_time': 300     # Maximum execution time in seconds
 }
 ```
 
-## 📁 Organizacja Raportów
+## 📁 Report Organization
 
-### Raporty dzienne
-- **Lokalizacja**: `reports/`
-- **Formaty**: DOCX, HTML
-- **Nazewnictwo**: `raport_dzienny_YYYY-MM-DD_HH-MM.docx`
+### Daily reports
+- **Location**: `reports/`
+- **Formats**: DOCX, HTML
+- **Naming**: `raport_dzienny_YYYY-MM-DD_HH-MM.docx`
 
-### Analizy produktywności
-- **Lokalizacja**: `production_analysis/`
-- **Formaty**: TXT
-- **Nazewnictwo**: `production_analysis_YYYYMMDD_HHMMSS.txt`
+### Productivity analysis
+- **Location**: `production_analysis/`
+- **Formats**: TXT
+- **Naming**: `production_analysis_YYYYMMDD_HHMMSS.txt`
 
-### Raporty arbitrażowe
-- **Lokalizacja**: `arbitrage_reports/`
-- **Formaty**: CSV, TXT
-- **Nazewnictwo**: `arbitrage_report_YYYYMMDD_HHMMSS.csv`
+### Arbitrage reports
+- **Location**: `arbitrage_reports/`
+- **Formats**: CSV, TXT
+- **Naming**: `arbitrage_report_YYYYMMDD_HHMMSS.csv`
 
-## 🔧 Rozwój
+## 🔧 Development
 
-### Dodawanie nowych modułów
-1. Utwórz nowy plik Python w głównym katalogu
-2. Dodaj import w `main.py`
-3. Dodaj nową komendę w parserze argumentów
-4. Zaktualizuj dokumentację
+### Adding new modules
+1. Create new Python file in main directory
+2. Add import in `main.py`
+3. Add new command in argument parser
+4. Update documentation
 
-### Testowanie
+### Testing
 ```bash
-# Test pojedynczego modułu
+# Test single module
 python -c "from production_analyzer_consolidated import ProductionAnalyzer; print('OK')"
 
-# Test pełnej aplikacji
+# Test full application
 python main.py full-analysis
 ```
 
-## 📝 Historia Zmian
+## 📝 Changelog
 
-### v2.0 - Reorganizacja (2025-09-03)
-- ✅ Usunięto duplikaty plików
-- ✅ Skonsolidowano analizatory produkcji i arbitrażu
-- ✅ Zorganizowano raporty w osobne foldery
-- ✅ Utworzono główny punkt wejścia (`main.py`)
-- ✅ Uporządkowano strukturę projektu
-- ✅ Zaktualizowano dokumentację
+### v2.1 - English Translation (2025-09-08)
+- ✅ Added NPC wages column to productivity table
+- ✅ Translated entire application to English
+- ✅ Fixed military sections appearing in economic reports
+- ✅ Updated README to English
+- ✅ Translated console menu and all output messages
 
-### v1.0 - Wersja początkowa
-- Podstawowe funkcjonalności raportowania
-- Analiza produktywności regionów
-- Analiza arbitrażu walutowego
+### v2.0 - Reorganization (2025-09-03)
+- ✅ Removed duplicate files
+- ✅ Consolidated production and arbitrage analyzers
+- ✅ Organized reports in separate folders
+- ✅ Created main entry point (`main.py`)
+- ✅ Organized project structure
+- ✅ Updated documentation
 
-## 🤝 Wsparcie
+### v1.0 - Initial version
+- Basic reporting functionality
+- Regional productivity analysis
+- Currency arbitrage analysis
 
-W przypadku problemów lub pytań:
-1. Sprawdź logi aplikacji
-2. Upewnij się, że wszystkie zależności są zainstalowane
-3. Sprawdź konfigurację API w pliku `.env`
-4. Sprawdź uprawnienia do zapisu w katalogach wyjściowych
+## 🤝 Support
 
-## 📄 Licencja
+In case of problems or questions:
+1. Check application logs
+2. Make sure all dependencies are installed
+3. Check API configuration in `.env` file
+4. Check write permissions in output directories
 
-Projekt prywatny - do użytku wewnętrznego.
+## 📄 License
+
+Private project - for internal use only.

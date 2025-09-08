@@ -15,7 +15,7 @@ from arbitrage_analyzer_consolidated import CurrencyArbitrageAnalyzer
 
 
 def get_report_sections() -> dict:
-    """Pobiera od użytkownika informacje o sekcjach do zawarcia w raporcie"""
+    """Get user input for report sections to include"""
     sections = {
         'military': True,
         'warriors': True, 
@@ -23,15 +23,15 @@ def get_report_sections() -> dict:
         'production': True
     }
     
-    print("\n📋 Wybierz sekcje do zawarcia w raporcie:")
-    print("1. ⚔️ Sekcja militarna (statystyki wojenne, wojny)")
-    print("2. 🏆 Sekcja wojowników (ranking bohaterów)")
-    print("3. 💰 Sekcja ekonomiczna (kursy walut, oferty pracy, towary)")
-    print("4. 🏭 Analiza produktywności regionów")
-    print("5. ✅ Wszystkie sekcje (domyślnie)")
-    print("6. ❌ Tylko sekcja militarna")
+    print("\n📋 Select sections to include in the report:")
+    print("1. ⚔️ Military section (war statistics, wars)")
+    print("2. 🏆 Warriors section (heroes ranking)")
+    print("3. 💰 Economic section (currency rates, job offers, goods)")
+    print("4. 🏭 Regional productivity analysis")
+    print("5. ✅ All sections (default)")
+    print("6. ❌ Military section only")
     
-    choice = input("\nWybierz opcję (1-6): ").strip()
+    choice = input("\nSelect option (1-6): ").strip()
     
     if choice == '1':
         sections = {'military': True, 'warriors': False, 'economic': False, 'production': False}
@@ -43,107 +43,107 @@ def get_report_sections() -> dict:
         sections = {'military': False, 'warriors': False, 'economic': False, 'production': True}
     elif choice == '6':
         sections = {'military': True, 'warriors': False, 'economic': False, 'production': False}
-    # choice == '5' lub domyślnie - wszystkie sekcje
+    # choice == '5' or default - all sections
     
-    # Pokaż wybrane sekcje
+    # Show selected sections
     selected = []
     if sections['military']:
-        selected.append("⚔️ Militarna")
+        selected.append("⚔️ Military")
     if sections['warriors']:
-        selected.append("🏆 Wojownicy")
+        selected.append("🏆 Warriors")
     if sections['economic']:
-        selected.append("💰 Ekonomiczna")
+        selected.append("💰 Economic")
     if sections['production']:
-        selected.append("🏭 Produktywność")
+        selected.append("🏭 Productivity")
     
-    print(f"✅ Wybrane sekcje: {', '.join(selected)}")
+    print(f"✅ Selected sections: {', '.join(selected)}")
     return sections
 
 
 def run_production_analysis(output_dir: str) -> None:
-    """Uruchamia analizę produktywności regionów"""
-    print("🏭 Analiza produktywności regionów...")
+    """Run regional productivity analysis"""
+    print("🏭 Regional productivity analysis...")
     analyzer = ProductionAnalyzer()
-    # Tutaj możesz dodać logikę do pobierania danych regionów
-    print("✅ Analiza produktywności zakończona")
+    # Here you can add logic to fetch region data
+    print("✅ Productivity analysis completed")
 
 
 def run_arbitrage_analysis(output_dir: str, min_profit: float) -> None:
-    """Uruchamia analizę arbitrażu walutowego"""
-    print("💰 Analiza arbitrażu walutowego...")
+    """Run currency arbitrage analysis"""
+    print("💰 Currency arbitrage analysis...")
     analyzer = CurrencyArbitrageAnalyzer(min_profit_threshold=min_profit)
     opportunities = analyzer.find_arbitrage_opportunities()
     
     if opportunities:
-        print(f"✅ Znaleziono {len(opportunities)} okazji arbitrażowych")
-        # Generuj raporty
+        print(f"✅ Found {len(opportunities)} arbitrage opportunities")
+        # Generate reports
         csv_result = analyzer.generate_arbitrage_report(opportunities, "csv")
         txt_result = analyzer.generate_arbitrage_report(opportunities, "txt")
         print(f"📊 {csv_result}")
         print(f"📄 {txt_result}")
     else:
-        print("❌ Nie znaleziono okazji arbitrażowych")
+        print("❌ No arbitrage opportunities found")
 
 
 def run_orchestrator_html(output_dir: str, sections: dict = None) -> None:
-    """Uruchamia orchestrator z generowaniem raportu HTML"""
-    print("🌐 Generowanie dziennego raportu HTML...")
+    """Run orchestrator with HTML report generation"""
+    print("🌐 Generating daily HTML report...")
     from orchestrator import run_html as run_orchestrator_html_func
     run_orchestrator_html_func(output_dir, sections)
 
 
 def run_full_analysis(output_dir: str, min_profit: float, sections: dict = None) -> None:
-    """Uruchamia pełną analizę - wszystkie moduły"""
-    print("🔄 Pełna analiza - wszystkie moduły...")
+    """Run full analysis - all modules"""
+    print("🔄 Full analysis - all modules...")
     
-    # 1. Dzienny raport
-    print("\n📋 1/3 Generowanie dziennego raportu...")
+    # 1. Daily report
+    print("\n📋 1/3 Generating daily report...")
     run_orchestrator(sections)
     
-    # 2. Analiza produktywności
-    print("\n🏭 2/3 Analiza produktywności regionów...")
+    # 2. Productivity analysis
+    print("\n🏭 2/3 Regional productivity analysis...")
     run_production_analysis(output_dir)
     
-    # 3. Analiza arbitrażu
-    print("\n💰 3/3 Analiza arbitrażu walutowego...")
+    # 3. Arbitrage analysis
+    print("\n💰 3/3 Currency arbitrage analysis...")
     run_arbitrage_analysis(output_dir, min_profit)
 
 
 def interactive_menu():
-    """Interaktywne menu aplikacji"""
-    print("🚀 Witaj w aplikacji Eclesiar!")
+    """Interactive application menu"""
+    print("🚀 Welcome to Eclesiar application!")
     print("=" * 50)
     
     while True:
-        print("\n📋 Co chcesz zrobić?")
-        print("1. 📊 Generuj dzienny raport (DOCX)")
-        print("2. 🌐 Generuj dzienny raport (HTML)")
-        print("3. 🏭 Analiza produktywności regionów")
-        print("4. 💰 Analiza arbitrażu walutowego")
-        print("5. 🔄 Pełna analiza (wszystko)")
-        print("6. ❌ Wyjście")
+        print("\n📋 What would you like to do?")
+        print("1. 📊 Generate daily report (DOCX)")
+        print("2. 🌐 Generate daily report (HTML)")
+        print("3. 🏭 Regional productivity analysis")
+        print("4. 💰 Currency arbitrage analysis")
+        print("5. 🔄 Full analysis (everything)")
+        print("6. ❌ Exit")
         
-        choice = input("\nWybierz opcję (1-6): ").strip()
+        choice = input("\nSelect option (1-6): ").strip()
         
         if choice == '1':
-            output_dir = input("📁 Katalog wyjściowy (domyślnie: reports): ").strip() or 'reports'
+            output_dir = input("📁 Output directory (default: reports): ").strip() or 'reports'
             sections = get_report_sections()
-            print("📋 Generowanie dziennego raportu DOCX...")
+            print("📋 Generating daily DOCX report...")
             run_orchestrator(sections)
             
         elif choice == '2':
-            output_dir = input("📁 Katalog wyjściowy (domyślnie: reports): ").strip() or 'reports'
+            output_dir = input("📁 Output directory (default: reports): ").strip() or 'reports'
             sections = get_report_sections()
-            print("🌐 Generowanie dziennego raportu HTML...")
+            print("🌐 Generating daily HTML report...")
             run_orchestrator_html(output_dir, sections)
             
         elif choice == '3':
-            output_dir = input("📁 Katalog wyjściowy (domyślnie: reports): ").strip() or 'reports'
+            output_dir = input("📁 Output directory (default: reports): ").strip() or 'reports'
             run_production_analysis(output_dir)
             
         elif choice == '4':
-            output_dir = input("📁 Katalog wyjściowy (domyślnie: reports): ").strip() or 'reports'
-            min_profit = input("💰 Minimalny próg zysku w % (domyślnie: 0.5): ").strip()
+            output_dir = input("📁 Output directory (default: reports): ").strip() or 'reports'
+            min_profit = input("💰 Minimum profit threshold in % (default: 0.5): ").strip()
             try:
                 min_profit = float(min_profit) if min_profit else 0.5
             except ValueError:
@@ -151,8 +151,8 @@ def interactive_menu():
             run_arbitrage_analysis(output_dir, min_profit)
             
         elif choice == '5':
-            output_dir = input("📁 Katalog wyjściowy (domyślnie: reports): ").strip() or 'reports'
-            min_profit = input("💰 Minimalny próg zysku w % (domyślnie: 0.5): ").strip()
+            output_dir = input("📁 Output directory (default: reports): ").strip() or 'reports'
+            min_profit = input("💰 Minimum profit threshold in % (default: 0.5): ").strip()
             try:
                 min_profit = float(min_profit) if min_profit else 0.5
             except ValueError:
@@ -161,88 +161,83 @@ def interactive_menu():
             run_full_analysis(output_dir, min_profit, sections)
             
         elif choice == '6':
-            print("👋 Dziękujemy za korzystanie z aplikacji Eclesiar!")
+            print("👋 Thank you for using the Eclesiar application!")
             break
             
         else:
             print("❌ Nieprawidłowy wybór. Spróbuj ponownie.")
             continue
         
-        # Utwórz katalog wyjściowy jeśli nie istnieje
+        # Create output directory if it doesn't exist
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
-            print(f"📁 Utworzono katalog: {output_dir}")
+            print(f"📁 Created directory: {output_dir}")
         
-        print(f"\n✅ Operacja zakończona pomyślnie!")
-        print(f"⏰ Czas zakończenia: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"\n✅ Operation completed successfully!")
+        print(f"⏰ End time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         
-        # Zapytaj czy kontynuować
-        continue_choice = input("\n🔄 Czy chcesz wykonać kolejną operację? (t/n): ").strip().lower()
-        if continue_choice not in ['t', 'tak', 'y', 'yes']:
-            print("👋 Dziękujemy za korzystanie z aplikacji Eclesiar!")
+        # Ask if continue
+        continue_choice = input("\n🔄 Do you want to perform another operation? (y/n): ").strip().lower()
+        if continue_choice not in ['y', 'yes']:
+            print("👋 Thank you for using the Eclesiar application!")
             break
 
 
 def main():
-    """Główna funkcja aplikacji"""
-    # Sprawdź czy są argumenty wiersza poleceń
+    """Main application function"""
+    # Check if there are command line arguments
     if len(sys.argv) > 1:
-        # Tryb argumentów wiersza poleceń (stary sposób)
+        # Command line arguments mode
         parser = argparse.ArgumentParser(
-            description="Aplikacja Eclesiar - analiza danych gry",
+            description="Eclesiar Application - Game Data Analysis",
             formatter_class=argparse.RawDescriptionHelpFormatter,
             epilog="""
-Przykłady użycia:
-  python main.py daily-report          # Generuj dzienny raport
-  python main.py production-analysis   # Analiza produktywności regionów
-  python main.py arbitrage-analysis    # Analiza arbitrażu walutowego
-  python main.py full-analysis         # Pełna analiza (wszystko)
-  python main.py                       # Tryb interaktywny
+Usage examples:
+  python main.py daily-report          # Generate daily report
+  python main.py production-analysis   # Regional productivity analysis
+  python main.py arbitrage-analysis    # Currency arbitrage analysis
+  python main.py full-analysis         # Full analysis (everything)
+  python main.py                       # Interactive mode
             """
         )
         
         parser.add_argument(
             'command',
             choices=['daily-report', 'production-analysis', 'arbitrage-analysis', 'full-analysis'],
-            help='Komenda do wykonania'
+            help='Command to execute'
         )
         
         parser.add_argument(
             '--output-dir',
             default='reports',
-            help='Katalog wyjściowy dla raportów (domyślnie: reports)'
+            help='Output directory for reports (default: reports)'
         )
         
         parser.add_argument(
             '--min-profit',
             type=float,
             default=0.5,
-            help='Minimalny próg zysku dla arbitrażu w %% (domyślnie: 0.5)'
+            help='Minimum profit threshold for arbitrage in %% (default: 0.5)'
         )
         
         args = parser.parse_args()
         
-        # Utwórz katalog wyjściowy jeśli nie istnieje
+        # Create output directory if it doesn't exist
         if not os.path.exists(args.output_dir):
             os.makedirs(args.output_dir)
-            print(f"📁 Utworzono katalog: {args.output_dir}")
+            print(f"📁 Created directory: {args.output_dir}")
         
-        print(f"🚀 Uruchamianie aplikacji Eclesiar...")
-        print(f"📊 Komenda: {args.command}")
-        print(f"📁 Katalog wyjściowy: {args.output_dir}")
-        print(f"⏰ Czas rozpoczęcia: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"🚀 Starting Eclesiar application...")
+        print(f"📊 Command: {args.command}")
+        print(f"📁 Output directory: {args.output_dir}")
+        print(f"⏰ Start time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print("-" * 60)
         
         try:
             if args.command == 'daily-report':
-                print("📋 Generowanie dziennego raportu...")
-                # Dla trybu wiersza poleceń, używamy wszystkich sekcji domyślnie
-                sections = {
-                    'military': True,
-                    'warriors': True, 
-                    'economic': True,
-                    'production': True
-                }
+                print("📋 Generating daily report...")
+                # Use get_report_sections() function so user can select sections
+                sections = get_report_sections()
                 run_orchestrator(sections)
                 
             elif args.command == 'production-analysis':
@@ -261,24 +256,24 @@ Przykłady użycia:
                 }
                 run_full_analysis(args.output_dir, args.min_profit, sections)
             
-            print(f"\n✅ Analiza zakończona pomyślnie!")
-            print(f"⏰ Czas zakończenia: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+            print(f"\n✅ Analysis completed successfully!")
+            print(f"⏰ End time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
             
         except KeyboardInterrupt:
-            print("\n⚠️ Analiza została przerwana przez użytkownika")
+            print("\n⚠️ Analysis was interrupted by user")
             sys.exit(1)
         except Exception as e:
-            print(f"\n❌ Błąd podczas wykonywania analizy: {e}")
+            print(f"\n❌ Error during analysis execution: {e}")
             sys.exit(1)
     else:
-        # Tryb interaktywny
+        # Interactive mode
         try:
             interactive_menu()
         except KeyboardInterrupt:
-            print("\n⚠️ Program został przerwany przez użytkownika")
+            print("\n⚠️ Program was interrupted by user")
             sys.exit(1)
         except Exception as e:
-            print(f"\n❌ Błąd podczas wykonywania programu: {e}")
+            print(f"\n❌ Error during program execution: {e}")
             sys.exit(1)
 
 
