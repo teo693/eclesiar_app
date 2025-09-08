@@ -13,6 +13,7 @@ DANE BRAKUJĄCE (używane domyślne wartości):
 ❌ Bazowe wartości produkcji Q1-Q5 (hardkodowane na podstawie dokumentacji)
 ❌ Poziomy military base (domyślnie 0)
 ❌ Poziomy Production Fields/Industrial Zones (domyślnie 0)
+❌ Poziomy szpitala (domyślnie 0)
 ❌ Eco skill graczy (domyślnie 0)
 ❌ Liczba pracowników w firmach (domyślnie 0)
 ❌ Status firm (na sprzedaż) (domyślnie False)
@@ -228,10 +229,11 @@ class ProductionAnalyzer:
                                       company_tier: int = 5, eco_skill: int = 0, 
                                       workers_today: int = 0, is_npc_owned: bool = False,
                                       military_base_level: int = 0, production_field_level: int = 0,
-                                      industrial_zone_level: int = 0, is_on_sale: bool = False) -> ProductionData:
+                                      industrial_zone_level: int = 0, hospital_level: int = 0, 
+                                      is_on_sale: bool = False) -> ProductionData:
         """
         Oblicza efektywność produkcji dla konkretnego regionu i towaru
-        zgodnie z mechanikami Eclesiar (8 czynników wpływających na produkcję)
+        zgodnie z mechanikami Eclesiar (9 czynników wpływających na produkcję)
         """
         try:
             # Pobierz bazową produkcję dla towaru
@@ -257,6 +259,12 @@ class ProductionAnalyzer:
             # Pobierz NPC wages dla kraju
             npc_wages = self.npc_wages_cache.get(country_id, 5.0)
             
+            # Walidacja poziomów budynków (0-5)
+            military_base_level = max(0, min(5, military_base_level))
+            production_field_level = max(0, min(5, production_field_level))
+            industrial_zone_level = max(0, min(5, industrial_zone_level))
+            hospital_level = max(0, min(5, hospital_level))
+            
             # ===== OBLICZANIE PRODUKCJI ZGODNIE Z MECHANIKAMI ECLESIAR =====
             
             # 1. NPC Company Owner - produkcja dzielona przez 3 dla produktów
@@ -264,40 +272,44 @@ class ProductionAnalyzer:
             if is_npc_owned and building_type == "Industrial Zone":
                 production = production / 3
             
-            # 2. Military base bonus (5% dla broni i air-weapons)
-            if military_base_level >= 3 and item_name.lower() in ["weapon", "aircraft"]:
-                production = production * 1.05
-            
-            # 3. Consecutive workers debuff
-            # [production] = [production] * (1.3 - ( [AMOUNT OF WORKERS] / 10 ))
-            worker_debuff = 1.3 - (workers_today / 10)
-            production = production * max(0.1, worker_debuff)  # Minimum 10% produkcji
-            
-            # 4. Eco skill bonus
-            # Bazowe wartości to produkcja z eco skill 0 (zgodnie z dokumentacją)
-            # Zastosuj eco skill bonus: production = base * (1 + eco_skill/50)
-            eco_bonus = 1 + (eco_skill / 50)
-            production = int(production * eco_bonus)
-            
-            # 5. Region and country bonus (tylko odpowiedni bonus dla produktu)
-            regional_bonus, bonus_type = self.get_relevant_bonus(region_data, item_name)
-            country_bonus = 0.0  # TODO: Implementować country bonus gdy będzie dostępny w API
-            total_bonus = regional_bonus + country_bonus
-            production = production + (production * total_bonus)
-            
-            # 6. Pollution debuff
-            # [production] = [production] - (([production] - ([production]*0.1)) * [POLLUTION_VALUE])
-            if pollution > 0:
-                pollution_debuff = (production - (production * 0.1)) * (pollution / 100.0)
-                production = production - pollution_debuff
-            
-            # 7. Production fields and industrial zones (5% per level)
+            # 2. Building bonuses (5% per level) - WCZEŚNIEJ w kolejności
             if building_type == "Production Field" and production_field_level > 0:
                 production = production * (1 + (production_field_level * 0.05))
             elif building_type == "Industrial Zone" and industrial_zone_level > 0:
                 production = production * (1 + (industrial_zone_level * 0.05))
             
-            # 8. Company state (on sale)
+            # 3. Hospital bonus (2% per level) - wpływa na wszystkie rodzaje produkcji
+            if hospital_level > 0:
+                production = production * (1 + (hospital_level * 0.02))
+            
+            # 4. Military base bonus (5% dla broni i air-weapons)
+            if military_base_level >= 3 and item_name.lower() in ["weapon", "aircraft"]:
+                production = production * 1.05
+            
+            # 5. Consecutive workers debuff
+            # [production] = [production] * (1.3 - ( [AMOUNT OF WORKERS] / 10 ))
+            worker_debuff = 1.3 - (workers_today / 10)
+            production = production * max(0.1, worker_debuff)  # Minimum 10% produkcji
+            
+            # 6. Eco skill bonus
+            # Bazowe wartości to produkcja z eco skill 0 (zgodnie z dokumentacją)
+            # Zastosuj eco skill bonus: production = base * (1 + eco_skill/50)
+            eco_bonus = 1 + (eco_skill / 50)
+            production = int(production * eco_bonus)
+            
+            # 7. Region and country bonus (tylko odpowiedni bonus dla produktu)
+            regional_bonus, bonus_type = self.get_relevant_bonus(region_data, item_name)
+            country_bonus = 0.0  # TODO: Implementować country bonus gdy będzie dostępny w API
+            total_bonus = regional_bonus + country_bonus
+            production = production + (production * total_bonus)
+            
+            # 8. Pollution debuff
+            # [production] = [production] - (([production] - ([production]*0.1)) * [POLLUTION_VALUE])
+            if pollution > 0:
+                pollution_debuff = (production - (production * 0.1)) * (pollution / 100.0)
+                production = production - pollution_debuff
+            
+            # 9. Company state (on sale)
             if is_on_sale:
                 production = production / 2
             
@@ -346,7 +358,8 @@ class ProductionAnalyzer:
                            default_company_tier: int = 5, default_eco_skill: int = 0,
                            default_workers_today: int = 0, default_is_npc_owned: bool = False,
                            default_military_base_level: int = 0, default_production_field_level: int = 0,
-                           default_industrial_zone_level: int = 0, default_is_on_sale: bool = False) -> List[ProductionData]:
+                           default_industrial_zone_level: int = 0, default_hospital_level: int = 0,
+                           default_is_on_sale: bool = False) -> List[ProductionData]:
         """
         Analizuje wszystkie regiony dla wszystkich towarów
         Używa domyślnych wartości dla parametrów, które nie są dostępne w API
@@ -372,6 +385,7 @@ class ProductionAnalyzer:
                     military_base_level=default_military_base_level,
                     production_field_level=default_production_field_level,
                     industrial_zone_level=default_industrial_zone_level,
+                    hospital_level=default_hospital_level,
                     is_on_sale=default_is_on_sale
                 )
                 if production_data:
@@ -386,7 +400,8 @@ class ProductionAnalyzer:
                                  default_company_tier: int = 5, default_eco_skill: int = 0,
                                  default_workers_today: int = 0, default_is_npc_owned: bool = False,
                                  default_military_base_level: int = 0, default_production_field_level: int = 0,
-                                 default_industrial_zone_level: int = 0, default_is_on_sale: bool = False) -> str:
+                                 default_industrial_zone_level: int = 0, default_hospital_level: int = 0,
+                                 default_is_on_sale: bool = False) -> str:
         """Generuje raport produktywności"""
         try:
             production_data = self.analyze_all_regions(
@@ -398,6 +413,7 @@ class ProductionAnalyzer:
                 default_military_base_level=default_military_base_level,
                 default_production_field_level=default_production_field_level,
                 default_industrial_zone_level=default_industrial_zone_level,
+                default_hospital_level=default_hospital_level,
                 default_is_on_sale=default_is_on_sale
             )
             
