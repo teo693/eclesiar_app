@@ -1,0 +1,138 @@
+================================================================================
+RAPORT ARBITRAŻU WALUTOWEGO
+================================================================================
+Data generowania: 2025-09-02 10:36:37
+Koszt biletu: 0.1 złota
+Minimalny próg zysku: 0.5%
+
+TOP 10 OKAZJI DO ARBITRAŻU:
+--------------------------------------------------------------------------------
+ 1. IRR → ALL
+     Kurs kupna: 0.029000
+     Kurs sprzedaży: 9999999.000000
+     Zysk: 34482755072.41%
+     Min. ilość: 0.00
+     Max. ilość: 1.00
+     Szacowany zysk: 9999998.6710 złota
+     Ryzyko: 1.00/1.0
+     Pewność: 1.00/1.0
+
+ 2. LTL → ALL
+     Kurs kupna: 0.033000
+     Kurs sprzedaży: 9999999.000000
+     Zysk: 30303027172.73%
+     Min. ilość: 0.00
+     Max. ilość: 1.00
+     Szacowany zysk: 9999998.6670 złota
+     Ryzyko: 1.00/1.0
+     Pewność: 1.00/1.0
+
+ 3. JPY → ALL
+     Kurs kupna: 0.040000
+     Kurs sprzedaży: 9999999.000000
+     Zysk: 24999997400.00%
+     Min. ilość: 0.00
+     Max. ilość: 1.00
+     Szacowany zysk: 9999998.6600 złota
+     Ryzyko: 1.00/1.0
+     Pewność: 1.00/1.0
+
+ 4. COP → ALL
+     Kurs kupna: 0.079000
+     Kurs sprzedaży: 9999999.000000
+     Zysk: 12658226482.28%
+     Min. ilość: 0.00
+     Max. ilość: 1.00
+     Szacowany zysk: 9999998.6210 złota
+     Ryzyko: 1.00/1.0
+     Pewność: 0.90/1.0
+
+ 5. RON → ALL
+     Kurs kupna: 0.080000
+     Kurs sprzedaży: 9999999.000000
+     Zysk: 12499998650.00%
+     Min. ilość: 0.00
+     Max. ilość: 1.00
+     Szacowany zysk: 9999998.6200 złota
+     Ryzyko: 1.00/1.0
+     Pewność: 1.00/1.0
+
+ 6. IEP → ALL
+     Kurs kupna: 0.086000
+     Kurs sprzedaży: 9999999.000000
+     Zysk: 11627905713.95%
+     Min. ilość: 0.00
+     Max. ilość: 1.00
+     Szacowany zysk: 9999998.6140 złota
+     Ryzyko: 1.00/1.0
+     Pewność: 0.60/1.0
+
+ 7. SAR → ALL
+     Kurs kupna: 0.090000
+     Kurs sprzedaży: 9999999.000000
+     Zysk: 11111109900.00%
+     Min. ilość: 0.00
+     Max. ilość: 1.00
+     Szacowany zysk: 9999998.6100 złota
+     Ryzyko: 1.00/1.0
+     Pewność: 1.00/1.0
+
+ 8. CLP → ALL
+     Kurs kupna: 0.092000
+     Kurs sprzedaży: 9999999.000000
+     Zysk: 10869564030.43%
+     Min. ilość: 0.00
+     Max. ilość: 1.00
+     Szacowany zysk: 9999998.6080 złota
+     Ryzyko: 1.00/1.0
+     Pewność: 1.00/1.0
+
+ 9. MKD → ALL
+     Kurs kupna: 0.099000
+     Kurs sprzedaży: 9999999.000000
+     Zysk: 10101008990.91%
+     Min. ilość: 0.00
+     Max. ilość: 1.00
+     Szacowany zysk: 9999998.6010 złota
+     Ryzyko: 1.00/1.0
+     Pewność: 1.00/1.0
+
+10. GRD → ALL
+     Kurs kupna: 0.099000
+     Kurs sprzedaży: 9999999.000000
+     Zysk: 10101008990.91%
+     Min. ilość: 0.00
+     Max. ilość: 1.00
+     Szacowany zysk: 9999998.6010 złota
+     Ryzyko: 1.00/1.0
+     Pewność: 1.00/1.0
+
+STRATEGIE ZAROBKOWE:
+--------------------------------------------------------------------------------
+1. ARBITRAŻ PROSTY:
+   - Kup walutę A za złoto po niskiej cenie
+   - Sprzedaj walutę A za złoto po wysokiej cenie
+   - Uwzględnij koszty transakcji (bilety)
+
+2. ARBITRAŻ KRZYŻOWY:
+   - Kup walutę A za złoto
+   - Wymień walutę A na walutę B
+   - Sprzedaj walutę B za złoto
+
+3. ARBITRAŻ TRÓJKĄTNY:
+   - Wykorzystaj różnice kursów między trzema walutami
+   - Wymagane: znajomość kursów wymiany między walutami
+
+4. CZASOWE OKAZJE:
+   - Monitoruj zmiany cen w czasie
+   - Wykorzystuj wahania rynkowe
+   - Uwzględnij spread bid-ask
+
+WSKAZÓWKI:
+--------------------------------------------------------------------------------
+• Minimalna ilość do zarobienia: 0.3000 złota
+• Im większy spread, tym niższe ryzyko
+• Im więcej ofert, tym wyższa pewność transakcji
+• Uwzględnij czas realizacji transakcji
+• Monitoruj zmiany cen w czasie rzeczywistym
+• Rozważ koszty przechowywania walut
