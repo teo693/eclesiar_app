@@ -8,21 +8,32 @@ Comprehensive application for analyzing data from the Eclesiar game, featuring d
 eclesiar_app/
 ├── main.py                           # Main entry point with interactive menu
 ├── src/                              # Source code
-│   ├── core/                         # Business logic
-│   │   ├── services/                 # Business services
-│   │   │   ├── orchestrator_service.py      # Main application orchestrator
-│   │   │   ├── economy_service.py           # Economic functions
+│   ├── core/                         # Business logic (Clean Architecture)
+│   │   ├── models/                   # Domain entities and repository interfaces
+│   │   │   ├── entities.py           # Domain entities (Country, Currency, Region, etc.)
+│   │   │   └── repositories.py       # Repository interfaces (Repository Pattern)
+│   │   ├── services/                 # Business services (Service Layer)
+│   │   │   ├── base_service.py       # Base service with dependency injection
+│   │   │   ├── orchestrator_service.py      # Original orchestrator
+│   │   │   ├── orchestrator_service_refactored.py # Refactored orchestrator
+│   │   │   ├── economy_service.py           # Original economic functions
+│   │   │   ├── economy_service_refactored.py # Refactored economic service
 │   │   │   ├── military_service.py          # Military functions
 │   │   │   ├── regions_service.py           # Regional functions
 │   │   │   ├── calculator_service.py        # Interactive production calculator
 │   │   │   └── quick_calculator_service.py  # Quick production calculator
-│   │   ├── models/                   # Data models
+│   │   ├── strategies/               # Strategy Pattern implementations
+│   │   │   └── data_fetching_strategy.py    # Data fetching strategies
+│   │   ├── config/                   # Configuration and dependency injection
+│   │   │   └── app_config.py         # Application configuration with DI container
 │   │   └── utils/                    # Utility functions
-│   ├── data/                         # Data layer
+│   ├── data/                         # Data access layer
 │   │   ├── api/                      # API client
 │   │   │   └── client.py             # API client implementation
 │   │   ├── database/                 # Database layer
 │   │   │   └── models.py             # SQLite database models
+│   │   ├── repositories/             # Repository implementations
+│   │   │   └── sqlite_repository.py  # SQLite repository implementations
 │   │   └── storage/                  # Data management
 │   │       └── cache.py              # Cache and storage management
 │   ├── reports/                      # Report generation
@@ -32,6 +43,8 @@ eclesiar_app/
 │   │   │   ├── production_report.py  # Regional productivity analysis
 │   │   │   ├── arbitrage_report.py   # Currency arbitrage analysis
 │   │   │   └── short_economic_report.py # Short economic report generator
+│   │   ├── factories/                # Factory Pattern for report generation
+│   │   │   └── report_factory.py     # Report generator factory
 │   │   ├── templates/                # Report templates
 │   │   └── exporters/                # Export to different formats
 │   │       ├── export_markdown.py    # Markdown export
@@ -131,6 +144,71 @@ python main.py quick-calculator
 python main.py daily-report --output-dir custom_reports
 python main.py arbitrage-analysis --min-profit 2.0 --output-dir arbitrage_results
 ```
+
+## 🏛️ Architecture
+
+### Clean Architecture Principles
+The project follows **Clean Architecture** principles with clear separation of concerns:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Presentation Layer                       │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────┐ │
+│  │   CLI Interface │  │   Web API       │  │   Reports   │ │
+│  └─────────────────┘  └─────────────────┘  └─────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+                              │
+┌─────────────────────────────────────────────────────────────┐
+│                    Application Layer                        │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────┐ │
+│  │   Orchestrator  │  │   Services      │  │  Strategies │ │
+│  │   Service       │  │   Layer         │  │   Pattern   │ │
+│  └─────────────────┘  └─────────────────┘  └─────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+                              │
+┌─────────────────────────────────────────────────────────────┐
+│                      Domain Layer                           │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────┐ │
+│  │   Entities      │  │   Repository    │  │   Business  │ │
+│  │   (Models)      │  │   Interfaces    │  │   Rules     │ │
+│  └─────────────────┘  └─────────────────┘  └─────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+                              │
+┌─────────────────────────────────────────────────────────────┐
+│                   Infrastructure Layer                      │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────┐ │
+│  │   Database      │  │   API Client    │  │   Storage   │ │
+│  │   (SQLite)      │  │   (HTTP)        │  │   (Cache)   │ │
+│  └─────────────────┘  └─────────────────┘  └─────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Design Patterns Benefits
+
+#### **Repository Pattern**
+- **Abstraction**: Data access logic is abstracted from business logic
+- **Testability**: Easy to mock repositories for unit testing
+- **Flexibility**: Can switch between different data sources (SQLite, PostgreSQL, etc.)
+
+#### **Service Layer Pattern**
+- **Business Logic**: Centralized business rules and operations
+- **Reusability**: Services can be reused across different interfaces
+- **Maintainability**: Changes to business logic are isolated
+
+#### **Factory Pattern**
+- **Dynamic Creation**: Report generators are created based on type
+- **Extensibility**: Easy to add new report types
+- **Loose Coupling**: Report creation is decoupled from usage
+
+#### **Strategy Pattern**
+- **Algorithm Selection**: Different data fetching strategies can be used
+- **Runtime Switching**: Strategies can be changed at runtime
+- **Performance**: Optimized strategies for different scenarios
+
+#### **Dependency Injection**
+- **Testability**: Dependencies can be easily mocked
+- **Configuration**: Centralized configuration management
+- **Loose Coupling**: Components depend on abstractions, not concretions
 
 ## 📊 Features
 
@@ -246,29 +324,83 @@ MIN_SPREAD_THRESHOLD=0.001
 ## 🔧 Development
 
 ### Project Structure
-The project follows a clean architecture pattern with clear separation of concerns:
+The project follows a **Clean Architecture** pattern with clear separation of concerns and design patterns:
 
-- **`src/core/`** - Business logic and domain models
-- **`src/data/`** - Data access layer (API, database, storage)
-- **`src/reports/`** - Report generation and export functionality
+#### **Core Layer (`src/core/`)**
+- **`models/`** - Domain entities and repository interfaces (Repository Pattern)
+- **`services/`** - Business logic services with dependency injection (Service Layer)
+- **`strategies/`** - Data fetching strategies (Strategy Pattern)
+- **`config/`** - Application configuration and dependency injection container
+
+#### **Data Layer (`src/data/`)**
+- **`api/`** - API client for external data sources
+- **`database/`** - Database models and SQLite operations
+- **`repositories/`** - Repository pattern implementations
+- **`storage/`** - Cache and data storage management
+
+#### **Reports Layer (`src/reports/`)**
+- **`generators/`** - Report generation logic
+- **`factories/`** - Factory pattern for report generators
+- **`exporters/`** - Export functionality to different formats
+- **`templates/`** - Report templates
+
+#### **Infrastructure**
 - **`src/cli/`** - Command line interface components
 - **`config/`** - Configuration management
 - **`tests/`** - Test suites (unit, integration, fixtures)
 
+### Design Patterns Used
+
+#### **Repository Pattern**
+- **Purpose**: Abstracts data access logic
+- **Location**: `src/core/models/repositories.py` (interfaces), `src/data/repositories/` (implementations)
+- **Benefits**: Testability, flexibility, separation of concerns
+
+#### **Service Layer Pattern**
+- **Purpose**: Encapsulates business logic
+- **Location**: `src/core/services/`
+- **Benefits**: Centralized business rules, reusability
+
+#### **Factory Pattern**
+- **Purpose**: Creates report generators dynamically
+- **Location**: `src/reports/factories/report_factory.py`
+- **Benefits**: Extensibility, loose coupling
+
+#### **Strategy Pattern**
+- **Purpose**: Interchangeable data fetching algorithms
+- **Location**: `src/core/strategies/data_fetching_strategy.py`
+- **Benefits**: Runtime algorithm selection, maintainability
+
+#### **Dependency Injection**
+- **Purpose**: Manages object dependencies
+- **Location**: `src/core/config/app_config.py`
+- **Benefits**: Testability, loose coupling, configuration management
+
 ### Adding new modules
-1. Create new Python file in appropriate directory under `src/`
-2. Add import in `main.py` or relevant service
-3. Add new command in argument parser if needed
-4. Update documentation in `docs/`
-5. Add tests in `tests/`
+1. **Domain Entity**: Add to `src/core/models/entities.py`
+2. **Repository Interface**: Add to `src/core/models/repositories.py`
+3. **Repository Implementation**: Add to `src/data/repositories/`
+4. **Business Service**: Add to `src/core/services/` with dependency injection
+5. **Report Generator**: Add to `src/reports/generators/` and register in factory
+6. **Configuration**: Update `src/core/config/app_config.py` if needed
+7. **Tests**: Add to `tests/` directory
+8. **Documentation**: Update relevant docs in `docs/`
 
 ### Testing
 ```bash
-# Test single module
-python3 -c "from src.reports.generators.production_report import ProductionAnalyzer; print('OK')"
+# Test configuration loading
+python3 -c "from src.core.config.app_config import AppConfig; config = AppConfig.from_env(); print('✅ Configuration loaded')"
+
+# Test design patterns
+python3 -c "from src.core.models.entities import Country, Currency; print('✅ Entities imported')"
+python3 -c "from src.reports.factories.report_factory import ReportFactory; print('✅ Factory Pattern imported')"
+python3 -c "from src.core.strategies.data_fetching_strategy import DataFetchingContext; print('✅ Strategy Pattern imported')"
+
+# Test refactored services
+python3 -c "from src.core.services.orchestrator_service_refactored import OrchestratorService; print('✅ Refactored Orchestrator imported')"
 
 # Test full application
-python3 main.py full-analysis
+python3 main.py --help
 
 # Run tests (when implemented)
 pytest tests/
@@ -293,6 +425,18 @@ mypy src/
 ```
 
 ## 📝 Changelog
+
+### v3.1 - Design Patterns Implementation (2025-01-09) 🏗️
+- ✅ **Repository Pattern** - Implemented data access abstraction with interfaces and SQLite implementations
+- ✅ **Service Layer Pattern** - Created business services with dependency injection
+- ✅ **Factory Pattern** - Implemented report generator factory for dynamic report creation
+- ✅ **Strategy Pattern** - Added data fetching strategies (Full, Optimized, Cached)
+- ✅ **Dependency Injection** - Centralized configuration and DI container
+- ✅ **Refactored Orchestrator** - New orchestrator using design patterns with fallback compatibility
+- ✅ **Domain Entities** - Defined clear domain models (Country, Currency, Region, etc.)
+- ✅ **Clean Architecture** - Proper separation of concerns across layers
+- ✅ **Enhanced Testability** - All components can be easily mocked and tested
+- ✅ **Backward Compatibility** - Maintained compatibility with existing functionality
 
 ### v3.0 - Major Refactoring (2025-01-09) 🚀
 - ✅ **Complete project reorganization** - Implemented clean architecture
