@@ -93,7 +93,7 @@ def fetch_all_items() -> Dict[int, str]:
 def fetch_currency_to_gold_rate(currency_id: int) -> Optional[float]:
     # Używamy transaction=SELL - oferty kupna waluty za GOLD
     url = f"market/coin/get?currency_id={currency_id}&transaction=SELL"
-    res = fetch_data(url, f"kursie waluty {currency_id}")
+    res = fetch_data(url, f"currency rates {currency_id}")
     if res and res.get("code") == 200:
         offers = res.get("data") or []
         if offers:
@@ -224,7 +224,7 @@ def fetch_cheapest_items_from_all_countries(
 ) -> Dict[int, List[Dict[str, Any]]]:
     """Pobiera najtańsze towary każdego rodzaju ze wszystkich krajów - zwraca listę 5 najtańszych dla każdego towaru"""
     cheapest_items = {}
-    print(f"DEBUG: Rozpoczynam pobieranie najtańszych towarów dla {len(items)} towarów z {len(countries)} krajów")
+    print(f"DEBUG: Starting to fetch cheapest goods for {len(items)} items from {len(countries)} countries")
     
     for item_id, item_name in items.items():
         all_items_for_type = []
@@ -299,7 +299,7 @@ def fetch_cheapest_items_from_all_countries(
             all_items_for_type.sort(key=lambda x: x["price_gold"])
             cheapest_items[item_id] = all_items_for_type[:5]
     
-    print(f"DEBUG: Zakończono pobieranie najtańszych towarów. Znaleziono {len(cheapest_items)} typów towarów")
+    print(f"DEBUG: Finished fetching cheapest goods. Found {len(cheapest_items)} item types")
     return cheapest_items
 
 
@@ -350,10 +350,10 @@ def fetch_currency_offers(
 
 def fetch_country_statistics(statistic: str) -> List[Dict[str, Any]]:
     """Pobiera statystyki krajów z API"""
-    res = fetch_data(f"statistics/country?statistic={statistic}", f"statystykach krajów ({statistic})")
+    res = fetch_data(f"statistics/country?statistic={statistic}", f"country statistics ({statistic})")
     
     if not res or res.get("code") != 200:
-        print(f"Błąd podczas pobierania statystyk {statistic}")
+        print(f"Error fetching statistics {statistic}")
         return []
     
     data = res.get("data", [])

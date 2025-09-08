@@ -58,7 +58,7 @@ def fetch_data(endpoint: str, description: str, params: Optional[Dict[str, Any]]
     api_url = _with_api_key(api_url)
     verbose = os.getenv("API_VERBOSE", "1") == "1"
     if verbose:
-        print(f"Pobieranie danych: {description} z URL: {api_url}...")
+        print(f"Fetching data: {description} from URL: {api_url}...")
     try:
         timeout_sec = float(os.getenv("API_TIMEOUT", "10"))
         response = _get_session().get(api_url, headers=_headers(), params=params, timeout=timeout_sec)
@@ -78,12 +78,12 @@ def fetch_data(endpoint: str, description: str, params: Optional[Dict[str, Any]]
                 preview = json.dumps(data, indent=2)
                 if len(preview) > 3000:
                     preview = preview[:3000] + "... (truncated)"
-                print(f"--- Dane o {description} ---\n{preview}\n")
+                print(f"--- Data about {description} ---\n{preview}\n")
             except Exception:
                 pass
         return data
     except requests.exceptions.RequestException as e:
-        print(f"Błąd podczas pobierania {description}: {e}")
+        print(f"Error fetching {description}: {e}")
         return None
 
 

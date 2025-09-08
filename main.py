@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Główny punkt wejścia do aplikacji Eclesiar.
-Zapewnia czysty interfejs do wszystkich funkcjonalności.
+Main entry point for the Eclesiar application.
+Provides a clean interface to all functionalities.
 """
 
 import os
@@ -165,7 +165,7 @@ def interactive_menu():
             break
             
         else:
-            print("❌ Nieprawidłowy wybór. Spróbuj ponownie.")
+            print("❌ Invalid choice. Please try again.")
             continue
         
         # Create output directory if it doesn't exist
@@ -247,7 +247,7 @@ Usage examples:
                 run_arbitrage_analysis(args.output_dir, args.min_profit)
                     
             elif args.command == 'full-analysis':
-                # Dla trybu wiersza poleceń, używamy wszystkich sekcji domyślnie
+                # For command line mode, use all sections by default
                 sections = {
                     'military': True,
                     'warriors': True, 

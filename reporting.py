@@ -753,7 +753,7 @@ def generate_report(
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     
-    file_name = f"raport_dzienny_{datetime.now().strftime('%Y-%m-%d_%H-%M')}.docx"
+    file_name = f"daily_report_{datetime.now().strftime('%Y-%m-%d_%H-%M')}.docx"
     file_path = os.path.join(output_dir, file_name)
     document.save(file_path)
     print(f"DOCX report successfully generated as '{file_path}'")

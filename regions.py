@@ -51,7 +51,7 @@ def fetch_all_regions_with_bonuses(eco_countries: Dict[int, Dict[str, Any]]) -> 
                 regions_with_bonus.append(region)
         return regions_with_bonus
     
-    # Równoległe pobieranie regionów dla wszystkich krajów
+    # Parallel fetching of regions for all countries
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = {executor.submit(fetch_country_regions, cid): cid for cid in eco_countries.keys()}
         
@@ -170,7 +170,7 @@ def fetch_and_process_regions(eco_countries: Dict[int, Dict[str, Any]]) -> Tuple
     Returns:
         Krotka (lista regionów, podsumowanie)
     """
-    print("Pobieranie danych o regionach z bonusami...")
+    print("Fetching region data with bonuses...")
     
     # Pobierz wszystkie regiony z bonusami
     regions = fetch_all_regions_with_bonuses(eco_countries)

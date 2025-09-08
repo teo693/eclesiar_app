@@ -104,16 +104,16 @@ def run(sections: dict = None) -> None:
     # Inicjalizacja bazy danych
     try:
         init_db()
-        print("🗄️ Baza danych zainicjalizowana")
+        print("🗄️ Database initialized")
     except Exception as e:
-        print(f"⚠️ Uwaga: inicjalizacja bazy danych nie powiodła się: {e}")
+        print(f"⚠️ Warning: database initialization failed: {e}")
 
     progress = ConsoleProgress()
-    print("🚀 Start procesu: pobieranie danych i generowanie raportu...")
-    print("⚡ Zawsze pobieram świeże dane z API (cache wyłączony)")
+    print("🚀 Starting process: fetching data and generating report...")
+    print("⚡ Always fetching fresh data from API (cache disabled)")
 
-    # Zawsze pobieraj świeże dane z API - cache wyłączony
-    print("Pobieram świeże dane z API...")
+    # Always fetch fresh data from API - cache disabled
+    print("Fetching fresh data from API...")
     raw_data_dump: Dict[str, Any] = {}
     try:
         # Pobranie listy wojen
@@ -128,12 +128,12 @@ def run(sections: dict = None) -> None:
         
         # Sprawdź czy mamy dane o wojnach w cache
         if not raw_data_dump['wars'] or not raw_data_dump['wars'].get('data'):
-            print("Brak danych o wojnach - pomijam pobieranie rund i uderzeń")
+            print("No war data - skipping rounds and hits fetching")
             raw_data_dump['hits'] = {}
-            progress.advance(note="Brak wojen - pominięto")
+            progress.advance(note="No wars - skipped")
             return
 
-        # Równoległe pobieranie rund i uderzeń (ograniczona liczba wątków)
+        # Parallel fetching of rounds and hits (limited number of threads)
         hits_result: Dict[str, Any] = {}
         if raw_data_dump['wars'] and raw_data_dump['wars'].get('data'):
                 yesterday = datetime.now() - timedelta(days=1)
@@ -214,9 +214,9 @@ def run(sections: dict = None) -> None:
 
         if hits_result:
             raw_data_dump['hits'] = hits_result
-            print(f"Pobrano dane o {len(hits_result)} rundach z uderzeniami")
+            print(f"Fetched data for {len(hits_result)} rounds with hits")
         else:
-            print("Brak danych o uderzeniach - używam pustego cache")
+            print("No hit data - using empty cache")
             raw_data_dump['hits'] = {}
 
         # Ekonomia
@@ -226,7 +226,7 @@ def run(sections: dict = None) -> None:
         
         # Sprawdź czy mamy dane ekonomiczne
         if not eco_countries or not currencies_map:
-                print("Brak danych ekonomicznych - pomijam dalsze pobieranie")
+                print("No economic data - skipping further fetching")
                 raw_data_dump['eco_countries'] = {}
                 raw_data_dump['currencies_map'] = {}
                 raw_data_dump['currency_codes_map'] = {}
@@ -247,7 +247,7 @@ def run(sections: dict = None) -> None:
         except Exception:
             pass
         if eco_countries:
-                # Usunięto pobieranie items_map - nie jest potrzebne do raportów
+                # Removed items_map fetching - not needed for reports
                 # raw_data_dump['items_map'] = {}  # Pusty słownik zamiast pobierania
                 if not raw_data_dump.get('currency_rates') or os.getenv("REFRESH_RATES", "0") == "1":
                     progress.add_tasks(1)
@@ -310,13 +310,13 @@ def run(sections: dict = None) -> None:
                 if regions_data:
                     raw_data_dump['regions_data'] = regions_data
                     raw_data_dump['regions_summary'] = regions_summary
-                    print(f"Pobrano dane o {len(regions_data)} regionach z bonusami")
+                    print(f"Fetched data for {len(regions_data)} regions with bonuses")
                     try:
                         save_regions_data_to_storage(regions_data, regions_summary)
                     except Exception as e:
-                        print(f"Błąd podczas zapisu danych o regionach do bazy: {e}")
+                        print(f"Error saving region data to database: {e}")
                 else:
-                    print("Brak danych o regionach - używam pustego cache")
+                    print("No region data - using empty cache")
                     raw_data_dump['regions_data'] = []
                     raw_data_dump['regions_summary'] = {}
                 progress.advance(note="Ekonomia: regiony z bonusami")
@@ -325,7 +325,7 @@ def run(sections: dict = None) -> None:
         save_raw_api_output(raw_data_dump)
         raw_data_from_file = raw_data_dump
     except Exception as e:
-        print(f"❌ Wystąpił błąd przy pobieraniu danych: {e}")
+        print(f"❌ Error occurred while fetching data: {e}")
         import traceback
         traceback.print_exc()
         progress.finish(final_note="Przerwano z błędem")
@@ -335,8 +335,8 @@ def run(sections: dict = None) -> None:
 
     # Sprawdź czy dane zostały pomyślnie pobrane
     if not raw_data_dump:
-        print("❌ Błąd: Nie można wczytać danych. Raport nie zostanie wygenerowany.")
-        progress.finish(final_note="Brak danych")
+        print("❌ Error: Cannot load data. Report will not be generated.")
+        progress.finish(final_note="No data")
         return
 
     # Uzupełnij brakujące dane ekonomiczne jeśli potrzeba
@@ -391,6 +391,7 @@ def run(sections: dict = None) -> None:
             and (
                 os.getenv("RECALC_ECONOMY", "0") == "1"
                 or not raw_data_from_file.get('regions_data')
+                or sections.get('production', False)  # Need regions data for production analysis
             )
         )
 
@@ -428,7 +429,7 @@ def run(sections: dict = None) -> None:
                 items_map_cache = fetch_all_items()
                 raw_data_from_file['items_map'] = items_map_cache
             
-            # Sprawdź czy kraje istnieją w API przed pobieraniem danych
+            # Check if countries exist in API before fetching data
             valid_countries_cache = {}
             for country_id, country_info in eco_countries_cache.items():
                 try:
@@ -438,9 +439,9 @@ def run(sections: dict = None) -> None:
                     if test_response is not None and test_response.get("code") == 200:
                         valid_countries_cache[country_id] = country_info
                     else:
-                        print(f"Kraj {country_id} ({country_info.get('name', 'Unknown')}) nie istnieje w API - pomijam")
+                        print(f"Country {country_id} ({country_info.get('name', 'Unknown')}) does not exist in API - skipping")
                 except Exception as e:
-                    print(f"Błąd podczas sprawdzania kraju {country_id}: {e}")
+                    print(f"Error checking country {country_id}: {e}")
                     continue
             
             if valid_countries_cache:
@@ -466,13 +467,13 @@ def run(sections: dict = None) -> None:
             regions_data, regions_summary = load_regions_data_from_storage()
             if not regions_data:
                 # If no cached data, fetch fresh data
-                print("Brak danych o regionach w cache - pobieranie świeżych danych...")
+                print("No region data in cache - fetching fresh data...")
                 regions_data, regions_summary = fetch_and_process_regions(eco_countries_cache)
                 if regions_data:
                     try:
                         save_regions_data_to_storage(regions_data, regions_summary)
                     except Exception as e:
-                        print(f"Błąd podczas zapisu danych o regionach do bazy (cache): {e}")
+                        print(f"Error saving region data to database (cache): {e}")
             
             if regions_data:
                 raw_data_from_file['regions_data'] = regions_data
@@ -481,10 +482,10 @@ def run(sections: dict = None) -> None:
 
         if need_currency_extremes or need_regions_data or need_cheapest_items_all:
             save_raw_api_output(raw_data_from_file)
-            print("Zaktualizowano cache z nowymi danymi")
+            print("Cache updated with new data")
     except Exception as e:
         # Brakujące dane ekonomiczne w cache to nie-krytyczny błąd – kontynuujemy generowanie raportu
-        print(f"⚠️ Uwaga: problem z cache ekonomicznym: {e}")
+        print(f"⚠️ Warning: economic cache problem: {e}")
         pass
 
     historical_data = load_historical_data()
@@ -568,7 +569,7 @@ def run(sections: dict = None) -> None:
                 economic_summary["lowest_npc_wage"] = lowest_npc_wage
                 print(f"Loaded NPC wages data for {len(lowest_npc_wage)} countries")
             except Exception as e:
-                print(f"Błąd podczas pobierania danych o najniższych NPC wage: {e}")
+                print(f"Error fetching lowest NPC wage data: {e}")
         
         # Dodaj dane o regionach z bonusami
         if raw_data_from_file.get('regions_data'):
@@ -590,7 +591,7 @@ def run(sections: dict = None) -> None:
         }
 
         # Generuj tabele produktywności
-        if raw_data_from_file.get('regions_data') and raw_data_from_file.get('eco_countries'):
+        if raw_data_from_file.get('regions_data') and (raw_data_from_file.get('eco_countries') or sections.get('production', False)):
             try:
                 from production_analyzer_consolidated import ProductionAnalyzer
                 analyzer = ProductionAnalyzer()
@@ -598,7 +599,7 @@ def run(sections: dict = None) -> None:
                 current_summary["production_data"] = production_data
                 print(f"Generated productivity data for {len(production_data)} regions")
             except Exception as e:
-                print(f"Błąd podczas generowania danych produktywności: {e}")
+                print(f"Error generating productivity data: {e}")
                 current_summary["production_data"] = []
 
         progress.add_tasks(1)
@@ -614,8 +615,8 @@ def run(sections: dict = None) -> None:
             "reports",
             sections,
         )
-        progress.advance(note="Generowanie raportu DOCX")
-        print(f"Raport DOCX wygenerowany: {report_file}")
+        progress.advance(note="Generating DOCX report")
+        print(f"DOCX report generated: {report_file}")
         
         # Convert ProductionData objects to dictionaries for JSON serialization
         summary_for_save = current_summary.copy()
@@ -644,11 +645,11 @@ def run(sections: dict = None) -> None:
         
         historical_data[today_key] = summary_for_save
         save_historical_data(historical_data)
-        print(f"\n✅ Raport DOCX został pomyślnie wygenerowany: {report_file}")
-        print(f"📊 Dane historyczne zapisane dla: {today_key}")
-        progress.finish(final_note="Zakończono")
+        print(f"\n✅ DOCX report successfully generated: {report_file}")
+        print(f"📊 Historical data saved for: {today_key}")
+        progress.finish(final_note="Completed")
     except Exception as e:
-        print(f"❌ Błąd podczas przetwarzania danych: {e}")
+        print(f"❌ Error processing data: {e}")
         import traceback
         traceback.print_exc()
         progress.finish(final_note="Przerwano z błędem")
@@ -673,16 +674,16 @@ def run_html(output_dir: str = "reports", sections: dict = None) -> None:
     # Inicjalizacja bazy danych
     try:
         init_db()
-        print("🗄️ Baza danych zainicjalizowana")
+        print("🗄️ Database initialized")
     except Exception as e:
-        print(f"⚠️ Uwaga: inicjalizacja bazy danych nie powiodła się: {e}")
+        print(f"⚠️ Warning: database initialization failed: {e}")
 
     progress = ConsoleProgress()
     print("🚀 Start procesu: pobieranie danych i generowanie raportu HTML...")
     print("⚡ Zawsze pobieram świeże dane z API (cache wyłączony)")
 
-    # Zawsze pobieraj świeże dane z API - cache wyłączony
-    print("Pobieram świeże dane z API...")
+    # Always fetch fresh data from API - cache disabled
+    print("Fetching fresh data from API...")
     raw_data_dump: Dict[str, Any] = {}
     try:
         # Pobranie listy wojen
@@ -697,12 +698,12 @@ def run_html(output_dir: str = "reports", sections: dict = None) -> None:
         
         # Sprawdź czy mamy dane o wojnach w cache
         if not raw_data_dump['wars'] or not raw_data_dump['wars'].get('data'):
-            print("Brak danych o wojnach - pomijam pobieranie rund i uderzeń")
+            print("No war data - skipping rounds and hits fetching")
             raw_data_dump['hits'] = {}
-            progress.advance(note="Brak wojen - pominięto")
+            progress.advance(note="No wars - skipped")
             return
 
-        # Równoległe pobieranie rund i uderzeń (ograniczona liczba wątków)
+        # Parallel fetching of rounds and hits (limited number of threads)
         hits_result: Dict[str, Any] = {}
         if raw_data_dump['wars'] and raw_data_dump['wars'].get('data'):
                 yesterday = datetime.now() - timedelta(days=1)
@@ -783,9 +784,9 @@ def run_html(output_dir: str = "reports", sections: dict = None) -> None:
 
         if hits_result:
             raw_data_dump['hits'] = hits_result
-            print(f"Pobrano dane o {len(hits_result)} rundach z uderzeniami")
+            print(f"Fetched data for {len(hits_result)} rounds with hits")
         else:
-            print("Brak danych o uderzeniach - używam pustego cache")
+            print("No hit data - using empty cache")
             raw_data_dump['hits'] = {}
 
         # Ekonomia
@@ -795,7 +796,7 @@ def run_html(output_dir: str = "reports", sections: dict = None) -> None:
         
         # Sprawdź czy mamy dane ekonomiczne
         if not eco_countries or not currencies_map:
-                print("Brak danych ekonomicznych - pomijam dalsze pobieranie")
+                print("No economic data - skipping further fetching")
                 raw_data_dump['eco_countries'] = {}
                 raw_data_dump['currencies_map'] = {}
                 raw_data_dump['currency_codes_map'] = {}
@@ -816,7 +817,7 @@ def run_html(output_dir: str = "reports", sections: dict = None) -> None:
         except Exception:
             pass
         if eco_countries:
-                # Usunięto pobieranie items_map - nie jest potrzebne do raportów
+                # Removed items_map fetching - not needed for reports
                 # raw_data_dump['items_map'] = {}  # Pusty słownik zamiast pobierania
                 if not raw_data_dump.get('currency_rates') or os.getenv("REFRESH_RATES", "0") == "1":
                     progress.add_tasks(1)
@@ -879,13 +880,13 @@ def run_html(output_dir: str = "reports", sections: dict = None) -> None:
                 if regions_data:
                     raw_data_dump['regions_data'] = regions_data
                     raw_data_dump['regions_summary'] = regions_summary
-                    print(f"Pobrano dane o {len(regions_data)} regionach z bonusami")
+                    print(f"Fetched data for {len(regions_data)} regions with bonuses")
                     try:
                         save_regions_data_to_storage(regions_data, regions_summary)
                     except Exception as e:
-                        print(f"Błąd podczas zapisu danych o regionach do bazy: {e}")
+                        print(f"Error saving region data to database: {e}")
                 else:
-                    print("Brak danych o regionach - używam pustego cache")
+                    print("No region data - using empty cache")
                     raw_data_dump['regions_data'] = []
                     raw_data_dump['regions_summary'] = {}
                 progress.advance(note="Ekonomia: regiony z bonusami")
@@ -894,7 +895,7 @@ def run_html(output_dir: str = "reports", sections: dict = None) -> None:
         save_raw_api_output(raw_data_dump)
         raw_data_from_file = raw_data_dump
     except Exception as e:
-        print(f"❌ Wystąpił błąd przy pobieraniu danych: {e}")
+        print(f"❌ Error occurred while fetching data: {e}")
         import traceback
         traceback.print_exc()
         progress.finish(final_note="Przerwano z błędem")
@@ -904,8 +905,8 @@ def run_html(output_dir: str = "reports", sections: dict = None) -> None:
 
     # Sprawdź czy dane zostały pomyślnie pobrane
     if not raw_data_dump:
-        print("❌ Błąd: Nie można wczytać danych. Raport nie zostanie wygenerowany.")
-        progress.finish(final_note="Brak danych")
+        print("❌ Error: Cannot load data. Report will not be generated.")
+        progress.finish(final_note="No data")
         return
 
     # Uzupełnij brakujące dane ekonomiczne jeśli potrzeba
@@ -960,6 +961,7 @@ def run_html(output_dir: str = "reports", sections: dict = None) -> None:
             and (
                 os.getenv("RECALC_ECONOMY", "0") == "1"
                 or not raw_data_from_file.get('regions_data')
+                or sections.get('production', False)  # Need regions data for production analysis
             )
         )
 
@@ -997,7 +999,7 @@ def run_html(output_dir: str = "reports", sections: dict = None) -> None:
                 items_map_cache = fetch_all_items()
                 raw_data_from_file['items_map'] = items_map_cache
             
-            # Sprawdź czy kraje istnieją w API przed pobieraniem danych
+            # Check if countries exist in API before fetching data
             valid_countries_cache = {}
             for country_id, country_info in eco_countries_cache.items():
                 try:
@@ -1007,9 +1009,9 @@ def run_html(output_dir: str = "reports", sections: dict = None) -> None:
                     if test_response is not None and test_response.get("code") == 200:
                         valid_countries_cache[country_id] = country_info
                     else:
-                        print(f"Kraj {country_id} ({country_info.get('name', 'Unknown')}) nie istnieje w API - pomijam")
+                        print(f"Country {country_id} ({country_info.get('name', 'Unknown')}) does not exist in API - skipping")
                 except Exception as e:
-                    print(f"Błąd podczas sprawdzania kraju {country_id}: {e}")
+                    print(f"Error checking country {country_id}: {e}")
                     continue
             
             if valid_countries_cache:
@@ -1035,13 +1037,13 @@ def run_html(output_dir: str = "reports", sections: dict = None) -> None:
             regions_data, regions_summary = load_regions_data_from_storage()
             if not regions_data:
                 # If no cached data, fetch fresh data
-                print("Brak danych o regionach w cache - pobieranie świeżych danych...")
+                print("No region data in cache - fetching fresh data...")
                 regions_data, regions_summary = fetch_and_process_regions(eco_countries_cache)
                 if regions_data:
                     try:
                         save_regions_data_to_storage(regions_data, regions_summary)
                     except Exception as e:
-                        print(f"Błąd podczas zapisu danych o regionach do bazy (cache): {e}")
+                        print(f"Error saving region data to database (cache): {e}")
             
             if regions_data:
                 raw_data_from_file['regions_data'] = regions_data
@@ -1050,10 +1052,10 @@ def run_html(output_dir: str = "reports", sections: dict = None) -> None:
 
         if need_currency_extremes or need_regions_data or need_cheapest_items_all:
             save_raw_api_output(raw_data_from_file)
-            print("Zaktualizowano cache z nowymi danymi")
+            print("Cache updated with new data")
     except Exception as e:
         # Brakujące dane ekonomiczne w cache to nie-krytyczny błąd – kontynuujemy generowanie raportu
-        print(f"⚠️ Uwaga: problem z cache ekonomicznym: {e}")
+        print(f"⚠️ Warning: economic cache problem: {e}")
         pass
 
     historical_data = load_historical_data()
@@ -1137,7 +1139,7 @@ def run_html(output_dir: str = "reports", sections: dict = None) -> None:
                 economic_summary["lowest_npc_wage"] = lowest_npc_wage
                 print(f"Loaded NPC wages data for {len(lowest_npc_wage)} countries")
             except Exception as e:
-                print(f"Błąd podczas pobierania danych o najniższych NPC wage: {e}")
+                print(f"Error fetching lowest NPC wage data: {e}")
         
         # Dodaj dane o regionach z bonusami
         if raw_data_from_file.get('regions_data'):
@@ -1159,7 +1161,7 @@ def run_html(output_dir: str = "reports", sections: dict = None) -> None:
         }
 
         # Generuj tabele produktywności
-        if raw_data_from_file.get('regions_data') and raw_data_from_file.get('eco_countries'):
+        if raw_data_from_file.get('regions_data') and (raw_data_from_file.get('eco_countries') or sections.get('production', False)):
             try:
                 from production_analyzer_consolidated import ProductionAnalyzer
                 analyzer = ProductionAnalyzer()
@@ -1167,7 +1169,7 @@ def run_html(output_dir: str = "reports", sections: dict = None) -> None:
                 current_summary["production_data"] = production_data
                 print(f"Generated productivity data for {len(production_data)} regions")
             except Exception as e:
-                print(f"Błąd podczas generowania danych produktywności: {e}")
+                print(f"Error generating productivity data: {e}")
                 current_summary["production_data"] = []
 
         progress.add_tasks(1)
@@ -1213,11 +1215,11 @@ def run_html(output_dir: str = "reports", sections: dict = None) -> None:
         
         historical_data[today_key] = summary_for_save
         save_historical_data(historical_data)
-        print(f"\n✅ Raport HTML został pomyślnie wygenerowany: {report_file}")
-        print(f"📊 Dane historyczne zapisane dla: {today_key}")
-        progress.finish(final_note="Zakończono")
+        print(f"\n✅ HTML report successfully generated: {report_file}")
+        print(f"📊 Historical data saved for: {today_key}")
+        progress.finish(final_note="Completed")
     except Exception as e:
-        print(f"❌ Błąd podczas przetwarzania danych: {e}")
+        print(f"❌ Error processing data: {e}")
         import traceback
         traceback.print_exc()
         progress.finish(final_note="Przerwano z błędem")

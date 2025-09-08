@@ -38,9 +38,9 @@ def save_historical_data(data: Dict[str, Any]) -> None:
             for key, payload in data.items():
                 if isinstance(payload, dict) and key and key.startswith("20") and len(key) == 10:
                     save_historical_report(key, payload)
-        print("Dane historyczne zostały zapisane (DB).")
+        print("Historical data saved to database.")
     except Exception as e:
-        print(f"Błąd podczas zapisu historii do bazy: {e}")
+        print(f"Error saving history to database: {e}")
 
 
 def save_raw_api_output(data: Dict[str, Any]) -> None:
@@ -99,8 +99,8 @@ def save_regions_data_to_storage(regions_data: List[Dict[str, Any]], regions_sum
     """
     try:
         save_regions_data(regions_data, regions_summary)
-        print("Dane o regionach zostały zapisane do bazy danych.")
+        print("Region data saved to database.")
     except Exception as e:
-        print(f"Błąd podczas zapisu danych o regionach: {e}")
+        print(f"Error saving region data: {e}")
 
 

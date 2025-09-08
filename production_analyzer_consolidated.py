@@ -95,10 +95,10 @@ class ProductionAnalyzer:
                     # NPC wages z API są już w GOLD, nie trzeba przeliczać
                     self.npc_wages_cache[country_id] = local_wage
             
-            print(f"Załadowano dane NPC wages dla {len(self.npc_wages_cache)} krajów")
+            print(f"Loaded NPC wages data for {len(self.npc_wages_cache)} countries")
             
         except Exception as e:
-            print(f"Błąd podczas ładowania danych NPC wages: {e}")
+            print(f"Error loading NPC wages data: {e}")
             # Użyj domyślnych wartości
             self.npc_wages_cache = {}
     
