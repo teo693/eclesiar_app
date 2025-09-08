@@ -1,5 +1,8 @@
 """
 Factory Pattern implementation for report generators.
+
+Copyright (c) 2025 Teo693
+Licensed under the MIT License - see LICENSE file for details.
 """
 
 from abc import ABC, abstractmethod

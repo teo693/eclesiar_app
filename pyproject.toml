@@ -10,7 +10,10 @@ readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "MIT"}
 authors = [
-    {name = "Eclesiar Team", email = "team@eclesiar.com"},
+    {name = "Teo693", email = "teo693@example.com"},
+]
+maintainers = [
+    {name = "Teo693", email = "teo693@example.com"},
 ]
 keywords = ["eclesiar", "game", "analysis", "reports"]
 classifiers = [

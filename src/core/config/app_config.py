@@ -1,5 +1,8 @@
 """
 Application configuration with dependency injection.
+
+Copyright (c) 2025 Teo693
+Licensed under the MIT License - see LICENSE file for details.
 """
 
 import os

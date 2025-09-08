@@ -1,5 +1,8 @@
 """
 Refactored Orchestrator Service using design patterns.
+
+Copyright (c) 2025 Teo693
+Licensed under the MIT License - see LICENSE file for details.
 """
 
 from typing import Any, Dict, Optional

@@ -426,6 +426,15 @@ mypy src/
 
 ## 📝 Changelog
 
+### v3.2 - Open Source License (2025-01-09) 📄
+- ✅ **MIT License** - Released project under MIT License for open source community
+- ✅ **Copyright Attribution** - Updated all files with proper copyright attribution to Teo693
+- ✅ **Contributing Guidelines** - Added comprehensive CONTRIBUTING.md with development guidelines
+- ✅ **License Documentation** - Updated README with license information and usage rights
+- ✅ **Project Metadata** - Updated pyproject.toml with proper author and maintainer information
+- ✅ **Code Headers** - Added license headers to all key source files
+- ✅ **Community Guidelines** - Established guidelines for contributors and collaborators
+
 ### v3.1 - Design Patterns Implementation (2025-01-09) 🏗️
 - ✅ **Repository Pattern** - Implemented data access abstraction with interfaces and SQLite implementations
 - ✅ **Service Layer Pattern** - Created business services with dependency injection
@@ -500,4 +509,31 @@ In case of problems or questions:
 
 ## 📄 License
 
-Private project - for internal use only.
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+### MIT License Summary
+
+- ✅ **Commercial use** - You can use this software in commercial projects
+- ✅ **Modification** - You can modify the software
+- ✅ **Distribution** - You can distribute the software
+- ✅ **Private use** - You can use the software privately
+- ❌ **Liability** - The software is provided "as is" without warranty
+- ❌ **Warranty** - No warranty is provided
+
+### Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for detailed information on how to contribute to this project.
+
+**Quick Start:**
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes following our architecture guidelines
+4. Submit a pull request
+
+For major changes, please open an issue first to discuss what you would like to change.
+
+### Acknowledgments
+
+- Built by Teo693 for the Eclesiar game community
+- Uses clean architecture principles and design patterns
+- Open source for the benefit of the gaming community

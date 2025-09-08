@@ -2,6 +2,9 @@
 """
 Main entry point for the Eclesiar application.
 Provides a clean interface to all functionalities.
+
+Copyright (c) 2025 Teo693
+Licensed under the MIT License - see LICENSE file for details.
 """
 
 import os
