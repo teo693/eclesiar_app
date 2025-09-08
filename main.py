@@ -9,11 +9,13 @@ import sys
 import argparse
 from datetime import datetime
 
-from orchestrator import run as run_orchestrator
-from production_analyzer_consolidated import ProductionAnalyzer
-from arbitrage_analyzer_consolidated import CurrencyArbitrageAnalyzer
-from short_economic_report import generate_short_economic_report
-from production_calculator import ProductionCalculator
+from src.core.services.orchestrator_service import run as run_orchestrator
+from src.core.services.orchestrator_service_refactored import OrchestratorService
+from src.core.config.app_config import AppConfig
+from src.reports.generators.production_report import ProductionAnalyzer
+from src.reports.generators.arbitrage_report import CurrencyArbitrageAnalyzer
+from src.reports.generators.short_economic_report import generate_short_economic_report
+from src.core.services.calculator_service import ProductionCalculator
 
 
 def get_report_sections() -> dict:
@@ -66,47 +68,84 @@ def run_production_analysis(output_dir: str) -> None:
     """Run regional productivity analysis"""
     print("🏭 Regional productivity analysis...")
     try:
-        # Use optimized orchestrator with production data only
-        sections = {
-            'military': False,
-            'warriors': False, 
-            'economic': False,
-            'production': True
-        }
-        run_orchestrator(sections, "production")
-        print("✅ Productivity analysis completed using optimized data fetching")
+        # Use refactored orchestrator
+        config = AppConfig.from_env()
+        if not config.validate():
+            print("❌ Configuration validation failed")
+            return
+        
+        orchestrator = OrchestratorService(config)
+        orchestrator.run_production_analysis(output_dir)
+        print("✅ Productivity analysis completed using refactored orchestrator")
     except Exception as e:
         print(f"❌ Error during productivity analysis: {e}")
+        # Fallback to old orchestrator
+        try:
+            sections = {
+                'military': False,
+                'warriors': False, 
+                'economic': False,
+                'production': True
+            }
+            run_orchestrator(sections, "production")
+            print("✅ Productivity analysis completed using fallback orchestrator")
+        except Exception as fallback_e:
+            print(f"❌ Fallback orchestrator also failed: {fallback_e}")
 
 
 def run_arbitrage_analysis(output_dir: str, min_profit: float) -> None:
     """Run currency arbitrage analysis"""
     print("💰 Currency arbitrage analysis...")
     try:
-        # Use optimized orchestrator with economic data only
-        sections = {
-            'military': False,
-            'warriors': False, 
-            'economic': True,
-            'production': False
-        }
-        run_orchestrator(sections, "arbitrage")
-        print("✅ Arbitrage analysis completed using optimized data fetching")
+        # Use refactored orchestrator
+        config = AppConfig.from_env()
+        if not config.validate():
+            print("❌ Configuration validation failed")
+            return
+        
+        orchestrator = OrchestratorService(config)
+        orchestrator.run_arbitrage_analysis(output_dir, min_profit)
+        print("✅ Arbitrage analysis completed using refactored orchestrator")
     except Exception as e:
         print(f"❌ Error during arbitrage analysis: {e}")
+        # Fallback to old orchestrator
+        try:
+            sections = {
+                'military': False,
+                'warriors': False, 
+                'economic': True,
+                'production': False
+            }
+            run_orchestrator(sections, "arbitrage")
+            print("✅ Arbitrage analysis completed using fallback orchestrator")
+        except Exception as fallback_e:
+            print(f"❌ Fallback orchestrator also failed: {fallback_e}")
 
 
 def run_short_economic_report(output_dir: str) -> None:
     """Run short economic report generation"""
     print("📊 Generating short economic report...")
     try:
-        report_path = generate_short_economic_report(output_dir)
-        if report_path:
-            print(f"✅ Short economic report generated: {report_path}")
-        else:
-            print("❌ Failed to generate short economic report")
+        # Use refactored orchestrator
+        config = AppConfig.from_env()
+        if not config.validate():
+            print("❌ Configuration validation failed")
+            return
+        
+        orchestrator = OrchestratorService(config)
+        orchestrator.run_short_economic_report(output_dir)
+        print("✅ Short economic report completed using refactored orchestrator")
     except Exception as e:
-        print(f"❌ Error generating short economic report: {e}")
+        print(f"❌ Error during short economic report: {e}")
+        # Fallback to old method
+        try:
+            report_path = generate_short_economic_report(output_dir)
+            if report_path:
+                print(f"✅ Short economic report generated: {report_path}")
+            else:
+                print("❌ Failed to generate short economic report")
+        except Exception as fallback_e:
+            print(f"❌ Fallback method also failed: {fallback_e}")
 
 
 def run_production_calculator() -> None:
@@ -123,7 +162,7 @@ def run_quick_calculator() -> None:
     """Run quick production calculator with test scenarios"""
     print("⚡ Starting Quick Production Calculator...")
     try:
-        from quick_calculator import main as quick_main
+        from src.core.services.quick_calculator_service import main as quick_main
         quick_main()
     except Exception as e:
         print(f"❌ Error running quick calculator: {e}")
@@ -132,7 +171,7 @@ def run_quick_calculator() -> None:
 def run_orchestrator_html(output_dir: str, sections: dict = None) -> None:
     """Run orchestrator with HTML report generation"""
     print("🌐 Generating daily HTML report...")
-    from orchestrator import run_html as run_orchestrator_html_func
+    from src.core.services.orchestrator_service import run_html as run_orchestrator_html_func
     run_orchestrator_html_func(output_dir, sections)
 
 

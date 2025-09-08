@@ -5,36 +5,80 @@ Comprehensive application for analyzing data from the Eclesiar game, featuring d
 ## 🏗️ Project Structure
 
 ```
-eclesiar/
+eclesiar_app/
 ├── main.py                           # Main entry point with interactive menu
-├── orchestrator.py                   # Main application orchestrator
-├── reporting.py                      # Daily report generation
-├── production_analyzer_consolidated.py  # Regional productivity analysis
-├── arbitrage_analyzer_consolidated.py   # Currency arbitrage analysis
-├── production_calculator.py          # Interactive production calculator
-├── quick_calculator.py               # Quick production calculator (test scenarios)
-├── short_economic_report.py          # Short economic report generator
-├── api_client.py                     # API client
-├── economy.py                        # Economic functions
-├── military.py                       # Military functions
-├── regions.py                        # Regional functions
-├── storage.py                        # Data management
-├── db.py                            # SQLite database
-├── config.py                         # Configuration
-├── arbitrage_config.py               # Arbitrage configuration
-├── production_config.py              # Production analysis configuration
-├── requirements.txt                  # Python dependencies
-├── reports/                          # Daily reports (DOCX, HTML)
-├── production_analysis/              # Productivity analysis
-├── arbitrage_reports/                # Arbitrage reports
-└── CALCULATOR_README.md              # Production calculator documentation
+├── src/                              # Source code
+│   ├── core/                         # Business logic
+│   │   ├── services/                 # Business services
+│   │   │   ├── orchestrator_service.py      # Main application orchestrator
+│   │   │   ├── economy_service.py           # Economic functions
+│   │   │   ├── military_service.py          # Military functions
+│   │   │   ├── regions_service.py           # Regional functions
+│   │   │   ├── calculator_service.py        # Interactive production calculator
+│   │   │   └── quick_calculator_service.py  # Quick production calculator
+│   │   ├── models/                   # Data models
+│   │   └── utils/                    # Utility functions
+│   ├── data/                         # Data layer
+│   │   ├── api/                      # API client
+│   │   │   └── client.py             # API client implementation
+│   │   ├── database/                 # Database layer
+│   │   │   └── models.py             # SQLite database models
+│   │   └── storage/                  # Data management
+│   │       └── cache.py              # Cache and storage management
+│   ├── reports/                      # Report generation
+│   │   ├── generators/               # Report generators
+│   │   │   ├── daily_report.py       # Daily report generation
+│   │   │   ├── html_report.py        # HTML report generation
+│   │   │   ├── production_report.py  # Regional productivity analysis
+│   │   │   ├── arbitrage_report.py   # Currency arbitrage analysis
+│   │   │   └── short_economic_report.py # Short economic report generator
+│   │   ├── templates/                # Report templates
+│   │   └── exporters/                # Export to different formats
+│   │       ├── export_markdown.py    # Markdown export
+│   │       ├── export_plaintext.py   # Plain text export
+│   │       ├── export_rtf.py         # RTF export
+│   │       └── export_all_formats.py # All formats export
+│   └── cli/                          # Command line interface
+│       └── web_api.py                # Web API interface
+├── config/                           # Configuration
+│   ├── settings/                     # Application settings
+│   │   ├── base.py                   # Base configuration
+│   │   └── production.py             # Production configuration
+│   └── environments/                 # Environment configurations
+├── docs/                             # Documentation
+│   ├── api/                          # API documentation
+│   ├── user/                         # User documentation
+│   └── development/                  # Development documentation
+├── tests/                            # Tests
+│   ├── unit/                         # Unit tests
+│   ├── integration/                  # Integration tests
+│   └── fixtures/                     # Test data
+├── data/                             # Data files
+│   ├── eclesiar.db                   # SQLite database
+│   └── historia_raportow.json        # Report history
+├── logs/                             # Application logs
+├── requirements/                     # Dependencies
+│   └── base.txt                      # Base dependencies
+├── .env.example                      # Environment configuration example
+├── .gitignore                        # Git ignore file
+├── pyproject.toml                    # Project configuration
+└── README.md                         # This file
 ```
 
 ## 🚀 Getting Started
 
 ### Install dependencies
 ```bash
-pip install -r requirements.txt
+pip install -r requirements/base.txt
+```
+
+### Environment setup
+```bash
+# Copy environment configuration
+cp .env.example .env
+
+# Edit .env file with your API credentials
+nano .env
 ```
 
 ### Running the application
@@ -128,20 +172,38 @@ python main.py arbitrage-analysis --min-profit 2.0 --output-dir arbitrage_result
 
 ### .env file
 ```env
-API_KEY=your_api_key_here
+# API Configuration
 API_URL=https://api.eclesiar.com
-ECLESIAR_DB_PATH=eclesiar.db
+AUTH_TOKEN=your_token_here
+ECLESIAR_API_KEY=your_api_key_here
+
+# Database
+DATABASE_PATH=data/eclesiar.db
+
+# Workers
+API_WORKERS_MARKET=6
+API_WORKERS_REGIONS=8
+API_WORKERS_WAR=4
+API_WORKERS_HITS=4
+
+# Cache
+CACHE_TTL_MINUTES=5
+USE_CACHE=true
+
+# Logging
+LOG_LEVEL=INFO
+LOG_FILE=logs/eclesiar.log
+
+# Arbitrage Configuration
+TICKET_COST_GOLD=0.1
+MIN_PROFIT_THRESHOLD=0.5
+MIN_SPREAD_THRESHOLD=0.001
 ```
 
-### Arbitrage configuration (arbitrage_config.py)
-```python
-ARBITRAGE_CONFIG = {
-    'min_profit_threshold': 0.5,  # Minimum profit in %
-    'max_risk_score': 0.7,        # Maximum risk score
-    'ticket_cost_gold': 0.1,      # Ticket cost in gold
-    'max_execution_time': 300     # Maximum execution time in seconds
-}
-```
+### Configuration files
+- **Base configuration**: `config/settings/base.py` - Main application settings
+- **Production configuration**: `config/settings/production.py` - Production-specific settings
+- **Project configuration**: `pyproject.toml` - Python project metadata and dependencies
 
 ## 📁 Report Organization
 
@@ -151,12 +213,12 @@ ARBITRAGE_CONFIG = {
 - **Naming**: `raport_dzienny_YYYY-MM-DD_HH-MM.docx`
 
 ### Productivity analysis
-- **Location**: `production_analysis/`
+- **Location**: `reports/`
 - **Formats**: TXT
 - **Naming**: `production_analysis_YYYYMMDD_HHMMSS.txt`
 
 ### Arbitrage reports
-- **Location**: `arbitrage_reports/`
+- **Location**: `reports/`
 - **Formats**: CSV, TXT
 - **Naming**: `arbitrage_report_YYYYMMDD_HHMMSS.csv`
 
@@ -165,24 +227,86 @@ ARBITRAGE_CONFIG = {
 - **Formats**: DOCX
 - **Naming**: `skrocony_raport_ekonomiczny_YYYY-MM-DD_HH-MM.docx`
 
+## 📚 Documentation
+
+### User Documentation
+- **Installation**: `docs/user/installation.md` - Setup instructions
+- **Calculator**: `docs/user/calculator.md` - Production calculator guide
+- **Arbitrage**: `docs/user/arbitrage.md` - Arbitrage analysis guide
+
+### API Documentation
+- **API Guide**: `docs/api/README.md` - API usage guide
+- **Troubleshooting**: `docs/api/troubleshooting.md` - Common issues and solutions
+
+### Development Documentation
+- **Refactoring Plan**: `docs/development/refactoring_plan.md` - Project refactoring roadmap
+- **Security**: `docs/development/security.md` - Security considerations
+- **Production Analysis**: `docs/development/production_analysis.md` - Production analysis details
+
 ## 🔧 Development
 
+### Project Structure
+The project follows a clean architecture pattern with clear separation of concerns:
+
+- **`src/core/`** - Business logic and domain models
+- **`src/data/`** - Data access layer (API, database, storage)
+- **`src/reports/`** - Report generation and export functionality
+- **`src/cli/`** - Command line interface components
+- **`config/`** - Configuration management
+- **`tests/`** - Test suites (unit, integration, fixtures)
+
 ### Adding new modules
-1. Create new Python file in main directory
-2. Add import in `main.py`
-3. Add new command in argument parser
-4. Update documentation
+1. Create new Python file in appropriate directory under `src/`
+2. Add import in `main.py` or relevant service
+3. Add new command in argument parser if needed
+4. Update documentation in `docs/`
+5. Add tests in `tests/`
 
 ### Testing
 ```bash
 # Test single module
-python -c "from production_analyzer_consolidated import ProductionAnalyzer; print('OK')"
+python3 -c "from src.reports.generators.production_report import ProductionAnalyzer; print('OK')"
 
 # Test full application
-python main.py full-analysis
+python3 main.py full-analysis
+
+# Run tests (when implemented)
+pytest tests/
+```
+
+### Development setup
+```bash
+# Install development dependencies
+pip install -r requirements/base.txt
+
+# Install development tools
+pip install black flake8 mypy pytest
+
+# Format code
+black src/ tests/
+
+# Lint code
+flake8 src/ tests/
+
+# Type checking
+mypy src/
 ```
 
 ## 📝 Changelog
+
+### v3.0 - Major Refactoring (2025-01-09) 🚀
+- ✅ **Complete project reorganization** - Implemented clean architecture
+- ✅ **New project structure** - Separated concerns into logical layers
+- ✅ **30 Python files reorganized** - Moved to appropriate directories
+- ✅ **Updated all imports** - Fixed import paths throughout the project
+- ✅ **Removed backup files** - Cleaned up duplicate and backup files
+- ✅ **Added configuration management** - Centralized config in `config/` directory
+- ✅ **Enhanced documentation** - Organized docs into user/API/development sections
+- ✅ **Added project metadata** - `pyproject.toml` for modern Python packaging
+- ✅ **Environment configuration** - `.env.example` for easy setup
+- ✅ **Git configuration** - Comprehensive `.gitignore` file
+- ✅ **Package structure** - Added `__init__.py` files for proper Python packages
+- ✅ **Tested functionality** - Verified all imports and basic functionality work
 
 ### v2.3 - Production Calculator (2025-09-08)
 - ✅ Added interactive production calculator with full parameter configuration

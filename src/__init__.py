@@ -1,0 +1,3 @@
+"""
+Eclesiar Application - Main Package
+"""
