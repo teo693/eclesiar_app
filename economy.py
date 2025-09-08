@@ -90,6 +90,107 @@ def fetch_all_items() -> Dict[int, str]:
     return items
 
 
+def fetch_items_by_type(report_type: str = "daily") -> Dict[int, str]:
+    """
+    Fetch only the items needed for specific report types.
+    This optimizes API calls by fetching only relevant items.
+    """
+    if report_type == "production":
+        # For production analysis, only fetch items that can be produced
+        production_items = {
+            "grain": True,
+            "iron": True, 
+            "titanium": True,
+            "fuel": True,
+            "food": True,
+            "weapon": True,
+            "aircraft": True,
+            "airplane ticket": True,
+        }
+        return _fetch_filtered_items(production_items)
+    
+    elif report_type == "economic":
+        # For economic reports, fetch commonly traded items
+        economic_items = {
+            "grain": True,
+            "iron": True,
+            "titanium": True,
+            "fuel": True,
+            "food": True,
+            "weapon": True,
+            "aircraft": True,
+            "airplane ticket": True,
+            "coffee": True,
+            "hammer": True,
+            "focus": True,
+            "protein bar": True,
+        }
+        return _fetch_filtered_items(economic_items)
+    
+    elif report_type == "arbitrage":
+        # For arbitrage analysis, fetch commonly traded items
+        arbitrage_items = {
+            "grain": True,
+            "iron": True,
+            "titanium": True,
+            "fuel": True,
+            "food": True,
+            "weapon": True,
+            "aircraft": True,
+            "airplane ticket": True,
+            "coffee": True,
+            "hammer": True,
+            "focus": True,
+            "protein bar": True,
+        }
+        return _fetch_filtered_items(arbitrage_items)
+    
+    else:
+        # For daily reports or full analysis, fetch all items
+        return fetch_all_items()
+
+
+def _fetch_filtered_items(needed_items: Dict[str, bool]) -> Dict[int, str]:
+    """
+    Fetch only items that match the needed_items filter.
+    """
+    items: Dict[int, str] = {}
+    page = 1
+    while True:
+        url = f"server/items?page={page}"
+        res = fetch_data(url, f"przedmiotach (strona {page})")
+        if res and res.get("code") != 200:
+            break
+        data = res.get("data") or []
+        if not data:
+            break
+        for it in data:
+            iid = it.get("id")
+            base_name = it.get("name") or f"Item {iid}"
+            quality = it.get("quality") or it.get("q") or it.get("tier")
+            
+            # Normalize to lower-case for consistent display
+            display_name = str(base_name).lower()
+            try:
+                q_int = int(quality) if quality is not None else None
+            except Exception:
+                q_int = None
+            if q_int is not None and q_int > 0:
+                if f"q{q_int}" not in display_name:
+                    display_name = f"{display_name} q{q_int}"
+            
+            # Check if this item is needed
+            base_name_lower = str(base_name).lower()
+            if base_name_lower in needed_items:
+                items[iid] = display_name
+                print(f"✅ Found needed item: {display_name}")
+            else:
+                print(f"⏭️ Skipping unnecessary item: {display_name}")
+                
+        page += 1
+    return items
+
+
 def fetch_currency_to_gold_rate(currency_id: int) -> Optional[float]:
     # Używamy transaction=SELL - oferty kupna waluty za GOLD
     url = f"market/coin/get?currency_id={currency_id}&transaction=SELL"
@@ -233,7 +334,7 @@ def fetch_cheapest_items_from_all_countries(
             try:
                 # Pobierz ceny towaru w danym kraju
                 url = f"market/items/get?country_id={country_id}&item_id={item_id}"
-                res = fetch_data(url, f"cenach itemu {item_name} w kraju {country_info.get('name', country_id)}")
+                res = fetch_data(url, f"item price {item_name} in country{country_info.get('name', country_id)}")
                 
                 if res and res.get("code") == 200:
                     offers = res.get("data", [])

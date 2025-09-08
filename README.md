@@ -49,7 +49,12 @@ python main.py production-analysis
 python main.py arbitrage-analysis --min-profit 1.0
 ```
 
-#### 4. Full analysis (all modules)
+#### 4. Short economic report (DOCX)
+```bash
+python main.py short-economic-report
+```
+
+#### 5. Full analysis (all modules)
 ```bash
 python main.py full-analysis
 ```
@@ -81,6 +86,12 @@ python main.py arbitrage-analysis --min-profit 2.0 --output-dir arbitrage_result
 - Market liquidity assessment
 - CSV and TXT report generation
 - Strategy backtesting
+
+### 📈 Short Economic Report
+- All currency rates vs GOLD
+- Cheapest item of each type from all countries
+- Best production region for each product
+- Compact DOCX format for quick reference
 
 ## ⚙️ Configuration
 
@@ -118,6 +129,11 @@ ARBITRAGE_CONFIG = {
 - **Formats**: CSV, TXT
 - **Naming**: `arbitrage_report_YYYYMMDD_HHMMSS.csv`
 
+### Short economic reports
+- **Location**: `reports/`
+- **Formats**: DOCX
+- **Naming**: `skrocony_raport_ekonomiczny_YYYY-MM-DD_HH-MM.docx`
+
 ## 🔧 Development
 
 ### Adding new modules
@@ -136,6 +152,14 @@ python main.py full-analysis
 ```
 
 ## 📝 Changelog
+
+### v2.2 - Short Economic Report (2025-09-08)
+- ✅ Added short economic report generation (DOCX)
+- ✅ Includes all currency rates vs GOLD
+- ✅ Shows cheapest item of each type from all countries
+- ✅ Displays best production region for each product
+- ✅ Integrated with main application menu and CLI
+- ✅ Added new command: `python main.py short-economic-report`
 
 ### v2.1 - English Translation (2025-09-08)
 - ✅ Added NPC wages column to productivity table

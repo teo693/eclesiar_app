@@ -12,6 +12,7 @@ from datetime import datetime
 from orchestrator import run as run_orchestrator
 from production_analyzer_consolidated import ProductionAnalyzer
 from arbitrage_analyzer_consolidated import CurrencyArbitrageAnalyzer
+from short_economic_report import generate_short_economic_report
 
 
 def get_report_sections() -> dict:
@@ -63,26 +64,48 @@ def get_report_sections() -> dict:
 def run_production_analysis(output_dir: str) -> None:
     """Run regional productivity analysis"""
     print("🏭 Regional productivity analysis...")
-    analyzer = ProductionAnalyzer()
-    # Here you can add logic to fetch region data
-    print("✅ Productivity analysis completed")
+    try:
+        # Use optimized orchestrator with production data only
+        sections = {
+            'military': False,
+            'warriors': False, 
+            'economic': False,
+            'production': True
+        }
+        run_orchestrator(sections, "production")
+        print("✅ Productivity analysis completed using optimized data fetching")
+    except Exception as e:
+        print(f"❌ Error during productivity analysis: {e}")
 
 
 def run_arbitrage_analysis(output_dir: str, min_profit: float) -> None:
     """Run currency arbitrage analysis"""
     print("💰 Currency arbitrage analysis...")
-    analyzer = CurrencyArbitrageAnalyzer(min_profit_threshold=min_profit)
-    opportunities = analyzer.find_arbitrage_opportunities()
-    
-    if opportunities:
-        print(f"✅ Found {len(opportunities)} arbitrage opportunities")
-        # Generate reports
-        csv_result = analyzer.generate_arbitrage_report(opportunities, "csv")
-        txt_result = analyzer.generate_arbitrage_report(opportunities, "txt")
-        print(f"📊 {csv_result}")
-        print(f"📄 {txt_result}")
-    else:
-        print("❌ No arbitrage opportunities found")
+    try:
+        # Use optimized orchestrator with economic data only
+        sections = {
+            'military': False,
+            'warriors': False, 
+            'economic': True,
+            'production': False
+        }
+        run_orchestrator(sections, "arbitrage")
+        print("✅ Arbitrage analysis completed using optimized data fetching")
+    except Exception as e:
+        print(f"❌ Error during arbitrage analysis: {e}")
+
+
+def run_short_economic_report(output_dir: str) -> None:
+    """Run short economic report generation"""
+    print("📊 Generating short economic report...")
+    try:
+        report_path = generate_short_economic_report(output_dir)
+        if report_path:
+            print(f"✅ Short economic report generated: {report_path}")
+        else:
+            print("❌ Failed to generate short economic report")
+    except Exception as e:
+        print(f"❌ Error generating short economic report: {e}")
 
 
 def run_orchestrator_html(output_dir: str, sections: dict = None) -> None:
@@ -96,17 +119,18 @@ def run_full_analysis(output_dir: str, min_profit: float, sections: dict = None)
     """Run full analysis - all modules"""
     print("🔄 Full analysis - all modules...")
     
-    # 1. Daily report
-    print("\n📋 1/3 Generating daily report...")
-    run_orchestrator(sections)
+    # Use optimized orchestrator with all data
+    if sections is None:
+        sections = {
+            'military': True,
+            'warriors': True, 
+            'economic': True,
+            'production': True
+        }
     
-    # 2. Productivity analysis
-    print("\n🏭 2/3 Regional productivity analysis...")
-    run_production_analysis(output_dir)
-    
-    # 3. Arbitrage analysis
-    print("\n💰 3/3 Currency arbitrage analysis...")
-    run_arbitrage_analysis(output_dir, min_profit)
+    print("📊 Generating comprehensive report with all data...")
+    run_orchestrator(sections, "full")
+    print("✅ Full analysis completed using optimized data fetching")
 
 
 def interactive_menu():
@@ -120,16 +144,17 @@ def interactive_menu():
         print("2. 🌐 Generate daily report (HTML)")
         print("3. 🏭 Regional productivity analysis")
         print("4. 💰 Currency arbitrage analysis")
-        print("5. 🔄 Full analysis (everything)")
-        print("6. ❌ Exit")
+        print("5. 📈 Short economic report (DOCX)")
+        print("6. 🔄 Full analysis (everything)")
+        print("7. ❌ Exit")
         
-        choice = input("\nSelect option (1-6): ").strip()
+        choice = input("\nSelect option (1-7): ").strip()
         
         if choice == '1':
             output_dir = input("📁 Output directory (default: reports): ").strip() or 'reports'
             sections = get_report_sections()
             print("📋 Generating daily DOCX report...")
-            run_orchestrator(sections)
+            run_orchestrator(sections, "daily")
             
         elif choice == '2':
             output_dir = input("📁 Output directory (default: reports): ").strip() or 'reports'
@@ -152,6 +177,11 @@ def interactive_menu():
             
         elif choice == '5':
             output_dir = input("📁 Output directory (default: reports): ").strip() or 'reports'
+            print("📈 Generating short economic report...")
+            run_short_economic_report(output_dir)
+            
+        elif choice == '6':
+            output_dir = input("📁 Output directory (default: reports): ").strip() or 'reports'
             min_profit = input("💰 Minimum profit threshold in % (default: 0.5): ").strip()
             try:
                 min_profit = float(min_profit) if min_profit else 0.5
@@ -160,7 +190,7 @@ def interactive_menu():
             sections = get_report_sections()
             run_full_analysis(output_dir, min_profit, sections)
             
-        elif choice == '6':
+        elif choice == '7':
             print("👋 Thank you for using the Eclesiar application!")
             break
             
@@ -196,6 +226,7 @@ Usage examples:
   python main.py daily-report          # Generate daily report
   python main.py production-analysis   # Regional productivity analysis
   python main.py arbitrage-analysis    # Currency arbitrage analysis
+  python main.py short-economic-report # Short economic report (DOCX)
   python main.py full-analysis         # Full analysis (everything)
   python main.py                       # Interactive mode
             """
@@ -203,7 +234,7 @@ Usage examples:
         
         parser.add_argument(
             'command',
-            choices=['daily-report', 'production-analysis', 'arbitrage-analysis', 'full-analysis'],
+            choices=['daily-report', 'production-analysis', 'arbitrage-analysis', 'short-economic-report', 'full-analysis'],
             help='Command to execute'
         )
         
@@ -238,13 +269,16 @@ Usage examples:
                 print("📋 Generating daily report...")
                 # Use get_report_sections() function so user can select sections
                 sections = get_report_sections()
-                run_orchestrator(sections)
+                run_orchestrator(sections, "daily")
                 
             elif args.command == 'production-analysis':
                 run_production_analysis(args.output_dir)
                     
             elif args.command == 'arbitrage-analysis':
                 run_arbitrage_analysis(args.output_dir, args.min_profit)
+                    
+            elif args.command == 'short-economic-report':
+                run_short_economic_report(args.output_dir)
                     
             elif args.command == 'full-analysis':
                 # For command line mode, use all sections by default
