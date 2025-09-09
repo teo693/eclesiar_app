@@ -78,12 +78,177 @@ def quick_calculate(region_name: str, country_name: str, item_name: str,
         print(f"❌ Błąd obliczeń dla {region_name} - {item_name}")
 
 
+def interactive_quick_calculate():
+    """Interactive quick calculator with region name input"""
+    print("🚀 INTERAKTYWNY SZYBKI KALKULATOR PRODUKTYWNOŚCI")
+    print("=" * 60)
+    
+    # Load regions data
+    from src.data.database.models import load_regions_data
+    regions_data, summary = load_regions_data()
+    
+    if not regions_data:
+        print("❌ No region data available")
+        return
+    
+    # Display available regions
+    print("📍 Available regions:")
+    for i, region in enumerate(regions_data[:10], 1):  # Show first 10 regions
+        print(f"{i:2d}. {region['region_name']} ({region['country_name']})")
+    
+    if len(regions_data) > 10:
+        print(f"   ... and {len(regions_data) - 10} more regions")
+    
+    print(f"\n💡 You can:")
+    print(f"   • Enter a number (1-{min(10, len(regions_data))}) to select from the list")
+    print(f"   • Type region name directly (case insensitive)")
+    print(f"   • Type 'q' to quit")
+    
+    while True:
+        try:
+            choice = input(f"\nSelect region: ").strip()
+            
+            # Check if user wants to quit
+            if choice.lower() in ['q', 'quit', 'exit']:
+                print("👋 Goodbye!")
+                break
+            
+            # Try to parse as number first
+            try:
+                choice_num = int(choice)
+                if 1 <= choice_num <= min(10, len(regions_data)):
+                    selected_region = regions_data[choice_num - 1]
+                    region_name = selected_region['region_name']
+                    country_name = selected_region['country_name']
+                    print(f"✅ Selected: {region_name} ({country_name})")
+                else:
+                    print(f"❌ Select number from 1 to {min(10, len(regions_data))}")
+                    continue
+            except ValueError:
+                # Not a number, try to find by name
+                found_regions = []
+                choice_lower = choice.lower()
+                
+                for region in regions_data:
+                    region_name_lower = region['region_name'].lower()
+                    country_name_lower = region['country_name'].lower()
+                    
+                    # Check if input matches region name or country name
+                    if (choice_lower in region_name_lower or 
+                        choice_lower in country_name_lower or
+                        region_name_lower in choice_lower):
+                        found_regions.append(region)
+                
+                if len(found_regions) == 1:
+                    selected_region = found_regions[0]
+                    region_name = selected_region['region_name']
+                    country_name = selected_region['country_name']
+                    print(f"✅ Found: {region_name} ({country_name})")
+                elif len(found_regions) > 1:
+                    print(f"🔍 Found {len(found_regions)} matching regions:")
+                    for i, region in enumerate(found_regions[:5], 1):  # Show max 5 matches
+                        print(f"   {i}. {region['region_name']} ({region['country_name']})")
+                    
+                    if len(found_regions) > 5:
+                        print(f"   ... and {len(found_regions) - 5} more matches")
+                    
+                    # Ask user to be more specific
+                    while True:
+                        try:
+                            sub_choice = input(f"Select specific region (1-{min(5, len(found_regions))}): ").strip()
+                            sub_choice_num = int(sub_choice)
+                            if 1 <= sub_choice_num <= min(5, len(found_regions)):
+                                selected_region = found_regions[sub_choice_num - 1]
+                                region_name = selected_region['region_name']
+                                country_name = selected_region['country_name']
+                                print(f"✅ Selected: {region_name} ({country_name})")
+                                break
+                            else:
+                                print(f"❌ Select number from 1 to {min(5, len(found_regions))}")
+                        except ValueError:
+                            print("❌ Enter a valid number")
+                else:
+                    print(f"❌ No region found matching '{choice}'")
+                    print("💡 Try typing part of the region name or country name")
+                    continue
+            
+            # Get product selection
+            print("\n📦 Available products:")
+            products = ["grain", "iron", "titanium", "fuel", "food", "weapon", "aircraft", "airplane ticket"]
+            for i, product in enumerate(products, 1):
+                print(f"{i:2d}. {product}")
+            
+            while True:
+                try:
+                    product_choice = input(f"\nSelect product (1-{len(products)}): ").strip()
+                    product_num = int(product_choice)
+                    if 1 <= product_num <= len(products):
+                        item_name = products[product_num - 1]
+                        print(f"✅ Selected: {item_name}")
+                        break
+                    else:
+                        print(f"❌ Select number from 1 to {len(products)}")
+                except ValueError:
+                    print("❌ Enter a valid number")
+            
+            # Get company parameters
+            print("\n🏢 Company Parameters:")
+            try:
+                company_tier = int(input("Company tier (1-5, default 5): ").strip() or "5")
+                eco_skill = int(input("Eco skill (0-100, default 16): ").strip() or "16")
+                workers_today = int(input("Workers today (0-100, default 0): ").strip() or "0")
+                military_base_level = int(input("Military base level (0-5, default 0): ").strip() or "0")
+                building_level = int(input("Building level (0-5, default 0): ").strip() or "0")
+                
+                is_npc_owned_input = input("NPC owned? (y/n, default n): ").strip().lower()
+                is_npc_owned = is_npc_owned_input in ['y', 'yes', 't', 'tak']
+                
+                is_on_sale_input = input("On sale? (y/n, default n): ").strip().lower()
+                is_on_sale = is_on_sale_input in ['y', 'yes', 't', 'tak']
+                
+            except ValueError:
+                print("❌ Invalid input, using default values")
+                company_tier, eco_skill, workers_today = 5, 16, 0
+                military_base_level, building_level = 0, 0
+                is_npc_owned, is_on_sale = False, False
+            
+            # Calculate production
+            print(f"\n🔄 Calculating production for {region_name} ({country_name}) - {item_name}...")
+            quick_calculate(region_name, country_name, item_name, 
+                           company_tier=company_tier, eco_skill=eco_skill, 
+                           workers_today=workers_today, is_npc_owned=is_npc_owned,
+                           military_base_level=military_base_level, building_level=building_level,
+                           is_on_sale=is_on_sale)
+            
+            # Ask if continue
+            continue_choice = input("\n🔄 Calculate for another region? (y/n): ").strip().lower()
+            if continue_choice not in ['y', 'yes', 't', 'tak']:
+                break
+                
+        except KeyboardInterrupt:
+            print("\n👋 Goodbye!")
+            break
+        except Exception as e:
+            print(f"❌ Error: {e}")
+            continue
+
+
 def main():
     """Test różnych scenariuszy"""
     
     print("🚀 SZYBKI KALKULATOR PRODUKTYWNOŚCI")
     print("=" * 60)
+    print("Choose mode:")
+    print("1. 📊 Run test scenarios (default)")
+    print("2. 🎯 Interactive mode with region input")
     
+    choice = input("\nSelect mode (1-2, default 1): ").strip() or "1"
+    
+    if choice == "2":
+        interactive_quick_calculate()
+        return
+    
+    # Original test scenarios
     # Scenariusz 1: Podstawowy (eco skill 16)
     print("📊 SCENARIUSZ 1: Podstawowy (Eco Skill 16)")
     quick_calculate("Hurghada", "Slovenia", "weapon", 

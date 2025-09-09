@@ -173,7 +173,7 @@ def fetch_data_by_type(sections: dict, report_type: str = "daily", progress = No
                 # Cheapest items
                 progress.add_tasks(1)
                 if not raw_data_dump.get('items_map'):
-                    from economy import fetch_items_by_type
+                    from src.core.services.economy_service import fetch_items_by_type
                     raw_data_dump['items_map'] = fetch_items_by_type(report_type)
                     print(f"DEBUG: Pobrano {len(raw_data_dump['items_map'])} towarów dla raportu typu: {report_type}")
                 

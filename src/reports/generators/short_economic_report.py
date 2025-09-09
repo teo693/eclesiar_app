@@ -74,7 +74,7 @@ def generate_short_economic_report(
     
     # Get region data for productivity analysis
     print("🏭 Fetching region data...")
-    from regions import fetch_and_process_regions
+    from src.core.services.regions_service import fetch_and_process_regions
     regions_data, regions_summary = fetch_and_process_regions(eco_countries)
     
     # Create DOCX document

@@ -15,7 +15,11 @@ python3 production_calculator.py
 ```
 
 **Features:**
-- ✅ Region selection from available list
+- ✅ **Flexible region selection**:
+  - Select from numbered list
+  - **Type region name directly (case insensitive)**
+  - **Search by partial region or country name**
+  - Smart matching with multiple results handling
 - ✅ Product selection (grain, iron, weapon, aircraft, etc.)
 - ✅ Company parameter configuration:
   - Company tier (Q1-Q5)
@@ -37,7 +41,13 @@ python3 quick_calculator.py
 ```
 
 **Features:**
-- ✅ Automatic testing of different scenarios
+- ✅ **Two modes available**:
+  - **Test scenarios mode**: Automatic testing of different scenarios
+  - **Interactive mode**: Manual region and parameter selection
+- ✅ **Interactive region selection**:
+  - Type region name directly (case insensitive)
+  - Search by partial region or country name
+  - Smart matching with multiple results handling
 - ✅ Comparison of results for different parameters
 - ✅ Quick verification of different factor impacts
 
@@ -93,6 +103,43 @@ The calculator takes into account all 8 factors from the Eclesiar documentation:
 - **NPC Wages**: Operating costs in GOLD
 
 ## 🎯 Usage Examples
+
+### **Region Selection Examples**
+
+#### **Method 1: Number Selection**
+```
+Select region: 5
+✅ Selected: Warsaw (Poland)
+```
+
+#### **Method 2: Direct Name Input**
+```
+Select region: warsaw
+✅ Found: Warsaw (Poland)
+```
+
+#### **Method 3: Partial Name Search**
+```
+Select region: war
+🔍 Found 3 matching regions:
+   1. Warsaw (Poland)
+   2. Warwick (United Kingdom)  
+   3. Warmia (Poland)
+Select specific region (1-3): 1
+✅ Selected: Warsaw (Poland)
+```
+
+#### **Method 4: Country Name Search**
+```
+Select region: poland
+🔍 Found 5 matching regions:
+   1. Warsaw (Poland)
+   2. Krakow (Poland)
+   3. Gdansk (Poland)
+   ...
+Select specific region (1-5): 2
+✅ Selected: Krakow (Poland)
+```
 
 ### **Scenario 1: New Player**
 ```python

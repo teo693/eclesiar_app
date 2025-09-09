@@ -52,7 +52,7 @@ class ProductionCalculator:
         self.building_levels = [0, 1, 2, 3, 4, 5]
     
     def load_regions_data(self):
-        """Loads region data from API"""
+        """Loads region data from database"""
         try:
             print("🔄 Loading region data...")
             
@@ -60,11 +60,22 @@ class ProductionCalculator:
             countries, currencies, currency_codes, gold_id = fetch_countries_and_currencies()
             self.countries_data = countries
             
-            # Fetch region data (sample data - in reality from API)
-            # TODO: Implement fetching real region data
-            self.regions_data = self._get_sample_regions_data()
+            # Try to load real region data from database
+            try:
+                from src.data.database.models import load_regions_data
+                self.regions_data, summary = load_regions_data()
+                
+                if self.regions_data:
+                    print(f"✅ Loaded {len(self.regions_data)} regions from database")
+                else:
+                    print("⚠️ No regions in database, using sample data")
+                    self.regions_data = self._get_sample_regions_data()
+                    
+            except Exception as db_error:
+                print(f"⚠️ Database error: {db_error}, using sample data")
+                self.regions_data = self._get_sample_regions_data()
             
-            print(f"✅ Loaded {len(self.regions_data)} regions from {len(countries)} countries")
+            print(f"✅ Total regions available: {len(self.regions_data)}")
             
         except Exception as e:
             print(f"❌ Error loading data: {e}")
@@ -144,20 +155,78 @@ class ProductionCalculator:
             print(f"{i:2d}. {region['region_name']} ({region['country_name']})")
             print(f"     Bonus: {bonus:.1f}% | Pollution: {pollution:.1f}%")
         
+        print(f"\n💡 You can:")
+        print(f"   • Enter a number (1-{len(self.regions_data)}) to select from the list")
+        print(f"   • Type region name directly (case insensitive)")
+        print(f"   • Type 'q' to quit")
+        
         while True:
             try:
-                choice = input(f"\nSelect region (1-{len(self.regions_data)}): ").strip()
-                choice_num = int(choice)
+                choice = input(f"\nSelect region: ").strip()
                 
-                if 1 <= choice_num <= len(self.regions_data):
-                    selected_region = self.regions_data[choice_num - 1]
-                    print(f"✅ Selected: {selected_region['region_name']} ({selected_region['country_name']})")
-                    return selected_region
-                else:
-                    print(f"❌ Select number from 1 to {len(self.regions_data)}")
+                # Check if user wants to quit
+                if choice.lower() in ['q', 'quit', 'exit']:
+                    return None
+                
+                # Try to parse as number first
+                try:
+                    choice_num = int(choice)
+                    if 1 <= choice_num <= len(self.regions_data):
+                        selected_region = self.regions_data[choice_num - 1]
+                        print(f"✅ Selected: {selected_region['region_name']} ({selected_region['country_name']})")
+                        return selected_region
+                    else:
+                        print(f"❌ Select number from 1 to {len(self.regions_data)}")
+                        continue
+                except ValueError:
+                    # Not a number, try to find by name
+                    pass
+                
+                # Search for region by name (case insensitive)
+                found_regions = []
+                choice_lower = choice.lower()
+                
+                for region in self.regions_data:
+                    region_name_lower = region['region_name'].lower()
+                    country_name_lower = region['country_name'].lower()
                     
-            except ValueError:
-                print("❌ Enter a valid number")
+                    # Check if input matches region name or country name
+                    if (choice_lower in region_name_lower or 
+                        choice_lower in country_name_lower or
+                        region_name_lower in choice_lower):
+                        found_regions.append(region)
+                
+                if len(found_regions) == 1:
+                    selected_region = found_regions[0]
+                    print(f"✅ Found: {selected_region['region_name']} ({selected_region['country_name']})")
+                    return selected_region
+                elif len(found_regions) > 1:
+                    print(f"🔍 Found {len(found_regions)} matching regions:")
+                    for i, region in enumerate(found_regions, 1):
+                        bonus = region.get('bonus_score', 0)
+                        pollution = region.get('pollution', 0)
+                        print(f"   {i}. {region['region_name']} ({region['country_name']}) - Bonus: {bonus:.1f}% | Pollution: {pollution:.1f}%")
+                    
+                    # Ask user to be more specific
+                    while True:
+                        try:
+                            sub_choice = input(f"Select specific region (1-{len(found_regions)}): ").strip()
+                            sub_choice_num = int(sub_choice)
+                            if 1 <= sub_choice_num <= len(found_regions):
+                                selected_region = found_regions[sub_choice_num - 1]
+                                print(f"✅ Selected: {selected_region['region_name']} ({selected_region['country_name']})")
+                                return selected_region
+                            else:
+                                print(f"❌ Select number from 1 to {len(found_regions)}")
+                        except ValueError:
+                            print("❌ Enter a valid number")
+                else:
+                    print(f"❌ No region found matching '{choice}'")
+                    print("💡 Try typing part of the region name or country name")
+                    
+            except KeyboardInterrupt:
+                print("\n👋 Goodbye!")
+                return None
     
     def select_item(self) -> str:
         """Pozwala użytkownikowi wybrać produkt"""
