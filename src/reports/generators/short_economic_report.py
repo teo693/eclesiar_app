@@ -278,7 +278,7 @@ def generate_short_economic_report(
                     document.add_heading(f"Product: {product_name.title()}", level=2)
                     
                     # Table with one example of each quality
-                    table = document.add_table(rows=1, cols=9)
+                    table = document.add_table(rows=1, cols=10)
                     table.style = 'Table Grid'
                     
                     # Headers
@@ -286,12 +286,13 @@ def generate_short_economic_report(
                     hdr_cells[0].text = "Region"
                     hdr_cells[1].text = "Country"
                     hdr_cells[2].text = "Score"
-                    hdr_cells[3].text = "Bonus"
-                    hdr_cells[4].text = "Q1"
-                    hdr_cells[5].text = "Q2"
-                    hdr_cells[6].text = "Q3"
-                    hdr_cells[7].text = "Q4"
-                    hdr_cells[8].text = "Q5"
+                    hdr_cells[3].text = "Regional Bonus"
+                    hdr_cells[4].text = "Country Bonus"
+                    hdr_cells[5].text = "Q1"
+                    hdr_cells[6].text = "Q2"
+                    hdr_cells[7].text = "Q3"
+                    hdr_cells[8].text = "Q4"
+                    hdr_cells[9].text = "Q5"
                     
                     # Take the best region (it has all Q1-Q5 values)
                     best_region = items[0]
@@ -302,22 +303,24 @@ def generate_short_economic_report(
                         row_cells[0].text = best_region.region_name
                         row_cells[1].text = best_region.country_name
                         row_cells[2].text = f"{best_region.efficiency_score:.2f}"
-                        row_cells[3].text = f"{best_region.total_bonus:.1%}"
-                        row_cells[4].text = str(best_region.production_q1)
-                        row_cells[5].text = str(best_region.production_q2)
-                        row_cells[6].text = str(best_region.production_q3)
-                        row_cells[7].text = str(best_region.production_q4)
-                        row_cells[8].text = str(best_region.production_q5)
+                        row_cells[3].text = f"{best_region.regional_bonus:.1%}"
+                        row_cells[4].text = f"{best_region.country_bonus:.1f}%"
+                        row_cells[5].text = str(best_region.production_q1)
+                        row_cells[6].text = str(best_region.production_q2)
+                        row_cells[7].text = str(best_region.production_q3)
+                        row_cells[8].text = str(best_region.production_q4)
+                        row_cells[9].text = str(best_region.production_q5)
                     else:
                         row_cells[0].text = best_region.get('region_name', 'Unknown')
                         row_cells[1].text = best_region.get('country_name', 'Unknown')
                         row_cells[2].text = f"{best_region.get('efficiency_score', 0):.2f}"
-                        row_cells[3].text = f"{best_region.get('total_bonus', 0):.1%}"
-                        row_cells[4].text = str(best_region.get('production_q1', 0))
-                        row_cells[5].text = str(best_region.get('production_q2', 0))
-                        row_cells[6].text = str(best_region.get('production_q3', 0))
-                        row_cells[7].text = str(best_region.get('production_q4', 0))
-                        row_cells[8].text = str(best_region.get('production_q5', 0))
+                        row_cells[3].text = f"{best_region.get('regional_bonus', 0):.1%}"
+                        row_cells[4].text = f"{best_region.get('country_bonus', 0):.1f}%"
+                        row_cells[5].text = str(best_region.get('production_q1', 0))
+                        row_cells[6].text = str(best_region.get('production_q2', 0))
+                        row_cells[7].text = str(best_region.get('production_q3', 0))
+                        row_cells[8].text = str(best_region.get('production_q4', 0))
+                        row_cells[9].text = str(best_region.get('production_q5', 0))
                     
                     document.add_paragraph("")
         else:
@@ -350,13 +353,13 @@ def _group_items_by_type(cheapest_items: Dict[int, List[Dict[str, Any]]]) -> Dic
         
         if any(word in name_lower for word in ["grain", "zboże"]):
             return "Grain"
-        elif any(word in name_lower for word in ["iron", "żelazo"]):
+        elif any(word in name_lower for word in ["iron"]):
             return "Iron"
         elif any(word in name_lower for word in ["titanium", "tytan"]):
             return "Titanium"
         elif any(word in name_lower for word in ["fuel", "paliwo"]):
             return "Fuel"
-        elif any(word in name_lower for word in ["food", "żywność"]):
+        elif any(word in name_lower for word in ["food"]):
             return "Food"
         elif "weapon" in name_lower or "broń" in name_lower:
             return "Weapon"

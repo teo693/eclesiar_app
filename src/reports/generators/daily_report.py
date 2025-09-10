@@ -596,13 +596,13 @@ def generate_report(
                 
                 if any(word in base_name for word in ["grain", "zboże"]):
                     return "Grain", quality
-                elif any(word in base_name for word in ["iron", "żelazo"]):
+                elif any(word in base_name for word in ["iron"]):
                     return "Iron", quality
                 elif any(word in base_name for word in ["titanium", "tytan"]):
                     return "Titanium", quality
                 elif any(word in base_name for word in ["fuel", "paliwo"]):
                     return "Fuel", quality
-                elif any(word in base_name for word in ["food", "żywność"]):
+                elif any(word in base_name for word in ["food"]):
                     return "Food", quality
                 elif "weapon" in base_name or "broń" in base_name:
                     return "Weapon", quality
@@ -705,18 +705,19 @@ def generate_report(
                     document.add_heading(f"Product: {item_name.title()}", level=2)
                     
                     # Create table with all quality levels and NPC wages
-                    table = document.add_table(rows=1, cols=10)
+                    table = document.add_table(rows=1, cols=11)
                     hdr = table.rows[0].cells
                     hdr[0].text = "Region"
                     hdr[1].text = "Country"
                     hdr[2].text = "Score"
-                    hdr[3].text = "Bonus"
-                    hdr[4].text = "Q1"
-                    hdr[5].text = "Q2"
-                    hdr[6].text = "Q3"
-                    hdr[7].text = "Q4"
-                    hdr[8].text = "Q5"
-                    hdr[9].text = "NPC Wages (GOLD)"
+                    hdr[3].text = "Regional Bonus"
+                    hdr[4].text = "Country Bonus"
+                    hdr[5].text = "Q1"
+                    hdr[6].text = "Q2"
+                    hdr[7].text = "Q3"
+                    hdr[8].text = "Q4"
+                    hdr[9].text = "Q5"
+                    hdr[10].text = "NPC Wages (GOLD)"
                     
                     # Show top 10 from each item type
                     for item in items[:10]:
@@ -726,24 +727,26 @@ def generate_report(
                             row_cells[0].text = item.region_name
                             row_cells[1].text = item.country_name
                             row_cells[2].text = f"{item.efficiency_score:.2f}"
-                            row_cells[3].text = f"{item.total_bonus:.1%}"
-                            row_cells[4].text = str(item.production_q1)
-                            row_cells[5].text = str(item.production_q2)
-                            row_cells[6].text = str(item.production_q3)
-                            row_cells[7].text = str(item.production_q4)
-                            row_cells[8].text = str(item.production_q5)
-                            row_cells[9].text = f"{item.npc_wages:.2f}"
+                            row_cells[3].text = f"{item.regional_bonus:.1%}"
+                            row_cells[4].text = f"{item.country_bonus:.1f}%"
+                            row_cells[5].text = str(item.production_q1)
+                            row_cells[6].text = str(item.production_q2)
+                            row_cells[7].text = str(item.production_q3)
+                            row_cells[8].text = str(item.production_q4)
+                            row_cells[9].text = str(item.production_q5)
+                            row_cells[10].text = f"{item.npc_wages:.2f}"
                         else:
                             row_cells[0].text = item.get('region_name', 'Unknown')
                             row_cells[1].text = item.get('country_name', 'Unknown')
                             row_cells[2].text = f"{item.get('efficiency_score', 0):.2f}"
-                            row_cells[3].text = f"{item.get('total_bonus', 0):.1%}"
-                            row_cells[4].text = str(item.get('production_q1', 0))
-                            row_cells[5].text = str(item.get('production_q2', 0))
-                            row_cells[6].text = str(item.get('production_q3', 0))
-                            row_cells[7].text = str(item.get('production_q4', 0))
-                            row_cells[8].text = str(item.get('production_q5', 0))
-                            row_cells[9].text = f"{item.get('npc_wages', 0):.2f}"
+                            row_cells[3].text = f"{item.get('regional_bonus', 0):.1%}"
+                            row_cells[4].text = f"{item.get('country_bonus', 0):.1f}%"
+                            row_cells[5].text = str(item.get('production_q1', 0))
+                            row_cells[6].text = str(item.get('production_q2', 0))
+                            row_cells[7].text = str(item.get('production_q3', 0))
+                            row_cells[8].text = str(item.get('production_q4', 0))
+                            row_cells[9].text = str(item.get('production_q5', 0))
+                            row_cells[10].text = f"{item.get('npc_wages', 0):.2f}"
                     
                     document.add_paragraph("")  # Spacer
 

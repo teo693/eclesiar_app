@@ -46,9 +46,9 @@ def save_historical_data(data: Dict[str, Any]) -> None:
 def save_raw_api_output(data: Dict[str, Any]) -> None:
     try:
         save_raw_cache(data)
-        print("Surowe dane z API zostały zapisane do bazy (cache).")
+        print("Raw API data has been saved to database (cache).")
     except Exception as e:
-        print(f"Błąd podczas zapisu surowych danych do bazy: {e}")
+        print(f"Error saving raw data to database: {e}")
 
 
 def load_raw_api_output() -> Optional[Dict[str, Any]]:
@@ -80,12 +80,12 @@ def load_regions_data_from_storage() -> tuple[List[Dict[str, Any]], Dict[str, An
     try:
         regions_data, regions_summary = load_regions_data()
         if regions_data:
-            print(f"Załadowano {len(regions_data)} regionów z bazy danych.")
+            print(f"Loaded {len(regions_data)} regions from database.")
         else:
-            print("Brak danych o regionach w bazie danych.")
+            print("No region data in database.")
         return regions_data, regions_summary
     except Exception as e:
-        print(f"Błąd podczas ładowania danych o regionach: {e}")
+        print(f"Error loading region data: {e}")
         return [], {}
 
 

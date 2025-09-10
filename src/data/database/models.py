@@ -374,7 +374,7 @@ def load_regions_data() -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
             return regions_data, summary
             
     except Exception as e:
-        print(f"Błąd podczas ładowania danych o regionach z bazy: {e}")
+        print(f"Error loading region data from database: {e}")
         return [], {}
 
 

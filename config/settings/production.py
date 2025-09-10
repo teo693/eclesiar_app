@@ -114,17 +114,17 @@ def get_config(scenario: str = "default") -> dict:
     return configs.get(scenario, configs["default"])
 
 def print_available_scenarios():
-    """Wyświetla dostępne scenariusze konfiguracji"""
-    print("Dostępne scenariusze konfiguracji:")
-    print("1. default - Domyślne wartości (Q5 firma, eco skill 16, 1 pracownik)")
-    print("2. high_eco - Gracz z wysokim eco skill (16)")
-    print("3. new_player - Nowy gracz (Q1 firma, eco skill 0)")
-    print("4. npc_company - Firma NPC (produkcja / 3 dla produktów)")
-    print("5. on_sale - Firma na sprzedaż (produkcja / 2)")
+    """Displays available configuration scenarios"""
+    print("Available configuration scenarios:")
+    print("1. default - Default values (Q5 company, eco skill 16, 1 worker)")
+    print("2. high_eco - Player with high eco skill (16)")
+    print("3. new_player - New player (Q1 company, eco skill 0)")
+    print("4. npc_company - NPC company (production / 3 for products)")
+    print("5. on_sale - Company for sale (production / 2)")
 
 if __name__ == "__main__":
     print_available_scenarios()
-    print("\nPrzykład użycia:")
+    print("\nUsage example:")
     print("from production_config import get_config")
     print("config = get_config('high_eco')")
     print("analyzer.generate_production_report(regions_data, **config)")

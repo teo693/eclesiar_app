@@ -273,10 +273,10 @@ class ProductionCalculator:
                     print(f"✅ Wybrano: Q{params['company_tier']}")
                     break
                 else:
-                    print(f"❌ Wybierz liczbę od 1 do {len(self.company_tiers)}")
+                    print(f"❌ Choose a number from 1 to {len(self.company_tiers)}")
                     
             except ValueError:
-                print("❌ Wprowadź poprawną liczbę")
+                print("❌ Enter a valid number")
         
         # Eco skill
         while True:
@@ -289,10 +289,10 @@ class ProductionCalculator:
                     print(f"✅ Eco Skill: {eco_skill_num}")
                     break
                 else:
-                    print("❌ Eco Skill musi być między 0 a 100")
+                    print("❌ Eco Skill must be between 0 and 100")
                     
             except ValueError:
-                print("❌ Wprowadź poprawną liczbę")
+                print("❌ Enter a valid number")
         
         # Liczba pracowników
         while True:
@@ -305,24 +305,24 @@ class ProductionCalculator:
                     print(f"✅ Pracownicy: {workers_num}")
                     break
                 else:
-                    print("❌ Liczba pracowników musi być między 0 a 100")
+                    print("❌ Number of workers must be between 0 and 100")
                     
             except ValueError:
-                print("❌ Wprowadź poprawną liczbę")
+                print("❌ Enter a valid number")
         
         # Właściciel firmy
         while True:
             owner = input("\nCzy firma należy do NPC? (t/n): ").strip().lower()
             if owner in ['t', 'tak', 'y', 'yes']:
                 params['is_npc_owned'] = True
-                print("✅ Firma należy do NPC")
+                print("✅ Company belongs to NPC")
                 break
             elif owner in ['n', 'nie', 'no']:
                 params['is_npc_owned'] = False
-                print("✅ Firma należy do gracza")
+                print("✅ Company belongs to player")
                 break
             else:
-                print("❌ Wprowadź 't' (tak) lub 'n' (nie)")
+                print("❌ Enter 't' (yes) or 'n' (no)")
         
         # Poziom Military Base
         while True:
@@ -335,10 +335,10 @@ class ProductionCalculator:
                     print(f"✅ Military Base: poziom {military_num}")
                     break
                 else:
-                    print("❌ Poziom Military Base musi być między 0 a 5")
+                    print("❌ Military Base level must be between 0 and 5")
                     
             except ValueError:
-                print("❌ Wprowadź poprawną liczbę")
+                print("❌ Enter a valid number")
         
         # Poziom budynków produkcyjnych
         while True:
@@ -352,24 +352,24 @@ class ProductionCalculator:
                     print(f"✅ Poziom budynku: {building_num}")
                     break
                 else:
-                    print("❌ Poziom budynku musi być między 0 a 5")
+                    print("❌ Building level must be between 0 and 5")
                     
             except ValueError:
-                print("❌ Wprowadź poprawną liczbę")
+                print("❌ Enter a valid number")
         
         # Status firmy
         while True:
             sale = input("\nCzy firma jest na sprzedaż? (t/n): ").strip().lower()
             if sale in ['t', 'tak', 'y', 'yes']:
                 params['is_on_sale'] = True
-                print("✅ Firma jest na sprzedaż")
+                print("✅ Company is for sale")
                 break
             elif sale in ['n', 'nie', 'no']:
                 params['is_on_sale'] = False
-                print("✅ Firma nie jest na sprzedaż")
+                print("✅ Company is not for sale")
                 break
             else:
-                print("❌ Wprowadź 't' (tak) lub 'n' (nie)")
+                print("❌ Enter 't' (yes) or 'n' (no)")
         
         return params
     
@@ -396,17 +396,17 @@ class ProductionCalculator:
             return production_data
             
         except Exception as e:
-            print(f"❌ Błąd podczas obliczania: {e}")
+            print(f"❌ Error during calculation: {e}")
             return None
     
     def display_results(self, production_data: ProductionData, params: Dict[str, Any]):
-        """Wyświetla wyniki obliczeń"""
+        """Displays calculation results"""
         if not production_data:
-            print("❌ Nie udało się obliczyć produkcji")
+            print("❌ Failed to calculate production")
             return
         
         print("\n" + "=" * 60)
-        print("📊 WYNIKI OBLICZEŃ")
+        print("📊 CALCULATION RESULTS")
         print("=" * 60)
         
         # Podstawowe informacje
@@ -415,53 +415,53 @@ class ProductionCalculator:
         print(f"🏢 Poziom firmy: Q{params['company_tier']}")
         print(f"👥 Pracownicy: {params['workers_today']}")
         print(f"🎯 Eco Skill: {params['eco_skill']}")
-        print(f"🏭 Poziom budynku: {params['production_field_level']}")
+        print(f"🏭 Building level: {params['production_field_level']}")
         print(f"🏛️ Military Base: {params['military_base_level']}")
-        print(f"👤 Właściciel: {'NPC' if params['is_npc_owned'] else 'Gracz'}")
-        print(f"💰 Status: {'Na sprzedaż' if params['is_on_sale'] else 'Aktywna'}")
+        print(f"👤 Owner: {'NPC' if params['is_npc_owned'] else 'Player'}")
+        print(f"💰 Status: {'For sale' if params['is_on_sale'] else 'Active'}")
         
         print("\n" + "-" * 60)
-        print("📈 PRODUKCJA WEDŁUG JAKOŚCI")
+        print("📈 PRODUCTION BY QUALITY")
         print("-" * 60)
-        print(f"Q1: {production_data.production_q1:4d} jednostek")
-        print(f"Q2: {production_data.production_q2:4d} jednostek")
-        print(f"Q3: {production_data.production_q3:4d} jednostek")
-        print(f"Q4: {production_data.production_q4:4d} jednostek")
-        print(f"Q5: {production_data.production_q5:4d} jednostek")
+        print(f"Q1: {production_data.production_q1:4d} units")
+        print(f"Q2: {production_data.production_q2:4d} units")
+        print(f"Q3: {production_data.production_q3:4d} units")
+        print(f"Q4: {production_data.production_q4:4d} units")
+        print(f"Q5: {production_data.production_q5:4d} units")
         
         print("\n" + "-" * 60)
-        print("📊 STATYSTYKI REGIONU")
+        print("📊 REGION STATISTICS")
         print("-" * 60)
         print(f"🎯 Efficiency Score: {production_data.efficiency_score:.2f}")
-        print(f"📈 Bonus regionalny: {production_data.regional_bonus:.1%}")
-        print(f"🏭 Typ bonusu: {production_data.bonus_type}")
-        print(f"🌫️ Zanieczyszczenie: {production_data.pollution:.1f}%")
-        print(f"💰 Płace NPC: {production_data.npc_wages:.2f} GOLD")
+        print(f"📈 Regional bonus: {production_data.regional_bonus:.1%}")
+        print(f"🏭 Bonus type: {production_data.bonus_type}")
+        print(f"🌫️ Pollution: {production_data.pollution:.1f}%")
+        print(f"💰 NPC wages: {production_data.npc_wages:.2f} GOLD")
         
         # Analiza efektywności
         print("\n" + "-" * 60)
-        print("💡 ANALIZA EFEKTYWNOŚCI")
+        print("💡 EFFICIENCY ANALYSIS")
         print("-" * 60)
         
         if production_data.efficiency_score > 100:
-            print("🟢 Bardzo dobra efektywność!")
+            print("🟢 Very good efficiency!")
         elif production_data.efficiency_score > 80:
-            print("🟡 Dobra efektywność")
+            print("🟡 Good efficiency")
         elif production_data.efficiency_score > 60:
-            print("🟠 Średnia efektywność")
+            print("🟠 Average efficiency")
         else:
-            print("🔴 Niska efektywność")
+            print("🔴 Low efficiency")
         
         # Rekomendacje
-        print("\n💡 REKOMENDACJE:")
+        print("\n💡 RECOMMENDATIONS:")
         if production_data.pollution > 10:
-            print("   • Rozważ redukcję zanieczyszczenia")
+            print("   • Consider reducing pollution")
         if production_data.npc_wages > 5:
-            print("   • Wysokie płace NPC - rozważ inny region")
+            print("   • High NPC wages - consider another region")
         if params['eco_skill'] < 20:
-            print("   • Zwiększ Eco Skill dla lepszej produkcji")
+            print("   • Increase Eco Skill for better production")
         if params['workers_today'] == 0:
-            print("   • Zatrudnij pracowników dla lepszej produkcji")
+            print("   • Hire workers for better production")
     
     def run_calculator(self):
         """Uruchamia główną pętlę kalkulatora"""
@@ -495,13 +495,13 @@ class ProductionCalculator:
                     break
                     
             except KeyboardInterrupt:
-                print("\n\n👋 Dziękujemy za korzystanie z kalkulatora!")
+                print("\n\n👋 Thank you for using the calculator!")
                 break
             except Exception as e:
-                print(f"\n❌ Wystąpił błąd: {e}")
+                print(f"\n❌ An error occurred: {e}")
                 continue
         
-        print("\n👋 Dziękujemy za korzystanie z kalkulatora produktywności!")
+        print("\n👋 Thank you for using the productivity calculator!")
 
 
 def main():
@@ -510,7 +510,7 @@ def main():
         calculator = ProductionCalculator()
         calculator.run_calculator()
     except Exception as e:
-        print(f"❌ Błąd krytyczny: {e}")
+        print(f"❌ Critical error: {e}")
         sys.exit(1)
 
 

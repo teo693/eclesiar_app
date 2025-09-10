@@ -25,7 +25,7 @@ def fetch_regions_for_country(country_id: int) -> List[Dict[str, Any]]:
             return response.get("data", [])
         return []
     except Exception as e:
-        print(f"Błąd podczas pobierania regionów dla kraju {country_id}: {e}")
+        print(f"Error fetching regions for country {country_id}: {e}")
         return []
 
 
@@ -61,7 +61,7 @@ def fetch_all_regions_with_bonuses(eco_countries: Dict[int, Dict[str, Any]]) -> 
                 regions_with_bonuses.extend(country_regions)
             except Exception as e:
                 country_id = futures[future]
-                print(f"Błąd podczas pobierania regionów dla kraju {country_id}: {e}")
+                print(f"Error fetching regions for country {country_id}: {e}")
     
     return regions_with_bonuses
 
@@ -179,10 +179,10 @@ def fetch_and_process_regions(eco_countries: Dict[int, Dict[str, Any]]) -> Tuple
     regions = fetch_all_regions_with_bonuses(eco_countries)
     
     if not regions:
-        print("Nie znaleziono regionów z bonusami.")
+        print("No regions with bonuses found.")
         return [], {}
     
-    print(f"Znaleziono {len(regions)} regionów z bonusami.")
+    print(f"Found {len(regions)} regions with bonuses.")
     
     # Przetwórz dane
     processed_regions = process_regions_data(regions, eco_countries)

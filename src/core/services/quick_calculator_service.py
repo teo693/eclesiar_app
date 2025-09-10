@@ -31,7 +31,7 @@ def quick_calculate(region_name: str, country_name: str, item_name: str,
     
     # Jeśli nie znaleziono, użyj domyślnych danych
     if not region_data:
-        print(f"⚠️  Nie znaleziono regionu {region_name} ({country_name}) w bazie danych, używam domyślnych wartości")
+        print(f"⚠️  Region {region_name} ({country_name}) not found in database, using default values")
         region_data = {
             'region_name': region_name,
             'country_name': country_name,
@@ -72,15 +72,15 @@ def quick_calculate(region_name: str, country_name: str, item_name: str,
         print(f"👤 Owner: {'NPC' if is_npc_owned else 'Player'} | 💰 Sale: {'Yes' if is_on_sale else 'No'}")
         print("-" * 50)
         print(f"Q1: {production_data.production_q1:4d} | Q2: {production_data.production_q2:4d} | Q3: {production_data.production_q3:4d} | Q4: {production_data.production_q4:4d} | Q5: {production_data.production_q5:4d}")
-        print(f"🎯 Score: {production_data.efficiency_score:.2f} | 📈 Bonus: {production_data.regional_bonus:.1%} | 🌫️ Pollution: {production_data.pollution:.1f}%")
+        print(f"🎯 Score: {production_data.efficiency_score:.2f} | 📈 Regional Bonus: {production_data.regional_bonus:.1%} | 🏛️ Country Bonus: {production_data.country_bonus:.1f}% | 🌫️ Pollution: {production_data.pollution:.1f}%")
         print()
     else:
-        print(f"❌ Błąd obliczeń dla {region_name} - {item_name}")
+        print(f"❌ Calculation error for {region_name} - {item_name}")
 
 
 def interactive_quick_calculate():
     """Interactive quick calculator with region name input"""
-    print("🚀 INTERAKTYWNY SZYBKI KALKULATOR PRODUKTYWNOŚCI")
+    print("🚀 INTERACTIVE QUICK PRODUCTIVITY CALCULATOR")
     print("=" * 60)
     
     # Load regions data
@@ -236,7 +236,7 @@ def interactive_quick_calculate():
 def main():
     """Test różnych scenariuszy"""
     
-    print("🚀 SZYBKI KALKULATOR PRODUKTYWNOŚCI")
+    print("🚀 QUICK PRODUCTIVITY CALCULATOR")
     print("=" * 60)
     print("Choose mode:")
     print("1. 📊 Run test scenarios (default)")
@@ -275,13 +275,13 @@ def main():
                    company_tier=5, eco_skill=16, workers_today=0, is_npc_owned=True)
     
     # Scenariusz 6: Różne produkty
-    print("📊 SCENARIUSZ 6: Różne produkty")
+    print("📊 SCENARIO 6: Different products")
     for item in ["weapon", "iron", "grain", "aircraft"]:
         quick_calculate("Hurghada", "Slovenia", item, 
                        company_tier=5, eco_skill=16, workers_today=0)
     
     # Scenariusz 7: Różne poziomy firm
-    print("📊 SCENARIUSZ 7: Różne poziomy firm")
+    print("📊 SCENARIO 7: Different company levels")
     for tier in [1, 3, 5]:
         quick_calculate("Hurghada", "Slovenia", "weapon", 
                        company_tier=tier, eco_skill=16, workers_today=0)

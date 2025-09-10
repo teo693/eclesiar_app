@@ -309,7 +309,7 @@ def fetch_best_jobs_from_all_countries(
                         best_jobs.append(best_offer)
                         
         except Exception as e:
-            print(f"Błąd podczas pobierania ofert pracy z kraju {country_id}: {e}")
+            print(f"Error fetching job offers from country {country_id}: {e}")
             continue
     
     # Sortuj po wypłacie w gold (malejąco) i zwróć top 5
@@ -392,7 +392,7 @@ def fetch_cheapest_items_from_all_countries(
                         all_items_for_type.append(item_data)
                                     
             except Exception as e:
-                print(f"Błąd podczas pobierania cen itemu {item_name} z kraju {country_id}: {e}")
+                print(f"Error fetching prices for item {item_name} from country {country_id}: {e}")
                 continue
         
         # Sortuj wszystkie towary tego typu według ceny w GOLD i weź 5 najtańszych

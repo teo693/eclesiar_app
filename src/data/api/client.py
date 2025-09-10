@@ -68,7 +68,7 @@ def fetch_data(endpoint: str, description: str, params: Optional[Dict[str, Any]]
             print(f"Endpoint {endpoint} nie istnieje (404) - {description}")
             return None
         elif response.status_code >= 400:
-            print(f"Błąd HTTP {response.status_code} dla {endpoint}: {description}")
+            print(f"HTTP error {response.status_code} for {endpoint}: {description}")
             response.raise_for_status()
         
         data = response.json()

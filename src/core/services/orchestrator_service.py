@@ -80,7 +80,7 @@ def fetch_data_by_type(sections: dict, report_type: str = "daily", progress = No
                 # Limit wars for performance
                 max_wars_to_analyze = int(os.getenv("MAX_WARS_TO_ANALYZE", "20"))
                 if len(war_ids) > max_wars_to_analyze:
-                    print(f"Ograniczam analizę do {max_wars_to_analyze} wojen z {len(war_ids)} dostępnych")
+                    print(f"Limiting analysis to {max_wars_to_analyze} wars out of {len(war_ids)} available")
                     war_ids = war_ids[:max_wars_to_analyze]
 
                 # Fetch hits for recent rounds (simplified)
@@ -175,17 +175,17 @@ def fetch_data_by_type(sections: dict, report_type: str = "daily", progress = No
                 if not raw_data_dump.get('items_map'):
                     from src.core.services.economy_service import fetch_items_by_type
                     raw_data_dump['items_map'] = fetch_items_by_type(report_type)
-                    print(f"DEBUG: Pobrano {len(raw_data_dump['items_map'])} towarów dla raportu typu: {report_type}")
+                    print(f"DEBUG: Fetched {len(raw_data_dump['items_map'])} goods for report type: {report_type}")
                 
                 if eco_countries:
-                    print(f"Pobieranie najtańszych towarów dla {len(eco_countries)} krajów i {len(raw_data_dump.get('items_map', {}))} towarów...")
+                    print(f"Fetching cheapest goods for {len(eco_countries)} countries and {len(raw_data_dump.get('items_map', {}))} goods...")
                     raw_data_dump['cheapest_items_all_countries'] = fetch_cheapest_items_from_all_countries(
                         eco_countries, raw_data_dump.get('items_map', {}), raw_data_dump.get('currency_rates', {}), raw_data_dump['gold_id']
                     )
-                    print(f"Pobrano {len(raw_data_dump['cheapest_items_all_countries'])} najtańszych towarów")
+                    print(f"Fetched {len(raw_data_dump['cheapest_items_all_countries'])} cheapest goods")
                     progress.advance(note="Ekonomia: najtańsze towary ze wszystkich krajów")
                 else:
-                    print("Brak krajów do pobrania najtańszych towarów")
+                    print("No countries to fetch cheapest goods")
                     raw_data_dump['cheapest_items_all_countries'] = {}
                     progress.advance(note="Ekonomia: brak krajów")
                 

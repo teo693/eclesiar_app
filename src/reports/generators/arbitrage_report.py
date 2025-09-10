@@ -144,7 +144,7 @@ class RiskAnalyzer:
             return min(1.0, risk_score)
             
         except Exception as e:
-            print(f"Błąd podczas obliczania score ryzyka: {e}")
+            print(f"Error calculating risk score: {e}")
             return 1.0  # Maximum risk on error
 
 
@@ -255,7 +255,7 @@ class CurrencyArbitrageAnalyzer:
             )
             
         except Exception as e:
-            print(f"Błąd podczas pobierania danych rynkowych dla {currency_name}: {e}")
+            print(f"Error fetching market data for {currency_name}: {e}")
             return None
     
     def find_arbitrage_opportunities(self) -> List[ArbitrageOpportunity]:
@@ -267,7 +267,7 @@ class CurrencyArbitrageAnalyzer:
             self.eco_countries, self.currencies_map, self.currency_codes_map, self.gold_id = fetch_countries_and_currencies()
             
             if not self.eco_countries or not self.currencies_map:
-                print("Błąd: Nie można pobrać danych o krajach i walutach")
+                print("Error: Cannot fetch countries and currencies data")
                 return []
             
             # Pobierz kursy walut
@@ -292,9 +292,9 @@ class CurrencyArbitrageAnalyzer:
                         if market:
                             markets[currency_id] = market
                     except Exception as e:
-                        print(f"Błąd podczas pobierania danych dla waluty {currency_id}: {e}")
+                        print(f"Error fetching data for currency {currency_id}: {e}")
             
-            print(f"Pobrano dane rynkowe dla {len(markets)} walut")
+            print(f"Fetched market data for {len(markets)} currencies")
             
             # Znajdź okazje arbitrażowe
             for from_currency_id, from_market in markets.items():
@@ -352,7 +352,7 @@ class CurrencyArbitrageAnalyzer:
             return opportunities
             
         except Exception as e:
-            print(f"Błąd podczas wyszukiwania okazji arbitrażowych: {e}")
+            print(f"Error searching for arbitrage opportunities: {e}")
             return []
     
     def generate_arbitrage_report(self, opportunities: List[ArbitrageOpportunity], 
@@ -404,7 +404,7 @@ class CurrencyArbitrageAnalyzer:
                     })
                     
         except Exception as e:
-            print(f"Błąd podczas zapisywania raportu CSV: {e}")
+            print(f"Error saving CSV report: {e}")
     
     def _save_txt_report(self, opportunities: List[ArbitrageOpportunity], filename: str):
         """Zapisuje raport w formacie TXT"""
@@ -426,18 +426,18 @@ class CurrencyArbitrageAnalyzer:
                     f.write("-" * 40 + "\n")
                     
         except Exception as e:
-            print(f"Błąd podczas zapisywania raportu TXT: {e}")
+            print(f"Error saving TXT report: {e}")
 
 
 def main():
     """Główna funkcja do testowania"""
     analyzer = CurrencyArbitrageAnalyzer(min_profit_threshold=0.5)
     
-    print("🔍 Wyszukiwanie okazji arbitrażowych...")
+    print("🔍 Searching for arbitrage opportunities...")
     opportunities = analyzer.find_arbitrage_opportunities()
     
     if opportunities:
-        print(f"✅ Znaleziono {len(opportunities)} okazji arbitrażowych")
+        print(f"✅ Found {len(opportunities)} arbitrage opportunities")
         
         # Generuj raporty
         csv_result = analyzer.generate_arbitrage_report(opportunities, "csv")
@@ -447,7 +447,7 @@ def main():
         print(f"📄 {txt_result}")
         
         # Pokaż top 5 okazji
-        print("\n🏆 TOP 5 OKAZJI ARBITRAŻOWYCH:")
+        print("\n🏆 TOP 5 ARBITRAGE OPPORTUNITIES:")
         print("-" * 60)
         for i, opp in enumerate(opportunities[:5], 1):
             print(f"{i}. {opp.from_currency} → {opp.to_currency}")
@@ -455,7 +455,7 @@ def main():
             print(f"   Szacowany zysk: {opp.estimated_profit_gold:.6f} GOLD")
             print()
     else:
-        print("❌ Nie znaleziono okazji arbitrażowych spełniających kryteria.")
+        print("❌ No arbitrage opportunities found meeting the criteria.")
 
 
 if __name__ == "__main__":
