@@ -1,176 +1,176 @@
-# Aplikacja Arbitrażu Walutowego dla Eclesiar
+# Eclesiar Currency Arbitrage Application
 
-## Opis
+## Description
 
-Aplikacja do analizy i wykrywania okazji arbitrażowych na rynku walutowym gry Eclesiar. Aplikacja analizuje ceny kupna i sprzedaży wszystkich walut, uwzględnia koszty transakcji (bilety) i sugeruje najlepsze strategie zarobkowe.
+Application for analyzing and detecting arbitrage opportunities in the Eclesiar game currency market. The application analyzes buy and sell prices of all currencies, takes into account transaction costs (tickets) and suggests the best profit strategies.
 
-## Funkcjonalności
+## Features
 
-### 🎯 Główne funkcje
-- **Analiza arbitrażu prostego** - Gold ↔ Waluta
-- **Analiza arbitrażu krzyżowego** - Waluta A ↔ Waluta B
-- **Analiza arbitrażu trójkątnego** - A→B→C→A
-- **Analiza ryzyka** - ocena zmienności i płynności rynków
-- **Optymalizacja portfela** - inteligentny wybór najlepszych okazji
-- **Backtesting** - testowanie strategii na danych historycznych
-- **Raporty** - szczegółowe analizy w formatach TXT i CSV
+### 🎯 Main Functions
+- **Simple arbitrage analysis** - Gold ↔ Currency
+- **Cross arbitrage analysis** - Currency A ↔ Currency B
+- **Triangular arbitrage analysis** - A→B→C→A
+- **Risk analysis** - assessment of market volatility and liquidity
+- **Portfolio optimization** - intelligent selection of best opportunities
+- **Backtesting** - testing strategies on historical data
+- **Reports** - detailed analyses in TXT and CSV formats
 
-### 📊 Metryki analizy
-- **Zysk procentowy** - potencjalny zysk z transakcji
-- **Score ryzyka** - ocena ryzyka transakcji (0-1)
-- **Poziom pewności** - pewność wykonania transakcji
-- **Score wolumenu** - ocena płynności rynku
-- **Score płynności** - ocena dostępności ofert
-- **Czas wykonania** - szacowany czas realizacji
+### 📊 Analysis Metrics
+- **Profit percentage** - potential profit from transaction
+- **Risk score** - transaction risk assessment (0-1)
+- **Confidence level** - transaction execution confidence
+- **Volume score** - market liquidity assessment
+- **Liquidity score** - offer availability assessment
+- **Execution time** - estimated execution time
 
-### 🔧 Konfiguracja
-- **Koszt biletu** - koszt transakcji w złocie
-- **Minimalny próg zysku** - minimalny zysk do rozważenia
-- **Limity API** - kontrola liczby wywołań API
-- **Parametry cache** - zarządzanie danymi w pamięci
-- **Opcje optymalizacji** - preferencje analizy
+### 🔧 Configuration
+- **Ticket cost** - transaction cost in gold
+- **Minimum profit threshold** - minimum profit to consider
+- **API limits** - control of API call count
+- **Cache parameters** - memory data management
+- **Optimization options** - analysis preferences
 
-## Instalacja
+## Installation
 
-### Wymagania
+### Requirements
 - Python 3.8+
-- Token autoryzacyjny Eclesiar API
-- Dostęp do internetu
+- Eclesiar API authorization token
+- Internet access
 
-### Instalacja zależności
+### Install dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-### Konfiguracja
-1. Skopiuj plik `.env.example` do `.env`
-2. Ustaw swój token autoryzacyjny:
+### Configuration
+1. Copy `.env.example` to `.env`
+2. Set your authorization token:
 ```bash
 AUTH_TOKEN=your_token_here
 ```
 
-## Użytkowanie
+## Usage
 
-### Podstawowa aplikacja
+### Basic application
 ```bash
 python currency_arbitrage.py
 ```
 
-### Zaawansowana aplikacja
+### Advanced application
 ```bash
 python advanced_currency_arbitrage.py
 ```
 
-### Konfiguracja parametrów
+### Parameter configuration
 ```bash
-# Ustaw koszt biletu
+# Set ticket cost
 export TICKET_COST_GOLD=0.1
 
-# Ustaw minimalny próg zysku
+# Set minimum profit threshold
 export MIN_PROFIT_THRESHOLD=1.0
 
-# Ustaw liczbę wątków API
+# Set API thread count
 export API_WORKERS_MARKET=8
 
-# Uruchom aplikację
+# Run application
 python advanced_currency_arbitrage.py
 ```
 
-## Strategie Zarobkowe
+## Profit Strategies
 
-### 1. Arbitraż Prosty (Gold ↔ Waluta)
-- **Opis**: Kup walutę za złoto po niskiej cenie, sprzedaj po wysokiej
-- **Zalety**: Najniższe ryzyko, najszybsze wykonanie
-- **Wady**: Mniejszy potencjalny zysk
-- **Koszt**: 2 bilety (kupno + sprzedaż)
+### 1. Simple Arbitrage (Gold ↔ Currency)
+- **Description**: Buy currency for gold at low price, sell at high price
+- **Advantages**: Lowest risk, fastest execution
+- **Disadvantages**: Lower potential profit
+- **Cost**: 2 tickets (buy + sell)
 
-### 2. Arbitraż Krzyżowy (Waluta A ↔ Waluta B)
-- **Opis**: Kup walutę A za złoto → wymień na walutę B → sprzedaj walutę B za złoto
-- **Zalety**: Większy potencjalny zysk
-- **Wady**: Większe ryzyko, więcej kosztów
-- **Koszt**: 3 bilety (kupno + wymiana + sprzedaż)
+### 2. Cross Arbitrage (Currency A ↔ Currency B)
+- **Description**: Buy currency A for gold → exchange for currency B → sell currency B for gold
+- **Advantages**: Higher potential profit
+- **Disadvantages**: Higher risk, more costs
+- **Cost**: 3 tickets (buy + exchange + sell)
 
-### 3. Arbitraż Czasowy
-- **Opis**: Wykorzystaj wahania cen w czasie
-- **Zalety**: Może generować duże zyski
-- **Wady**: Wymaga monitorowania, większe ryzyko
-- **Koszt**: Zmienny (zależy od strategii)
+### 3. Time Arbitrage
+- **Description**: Exploit price fluctuations over time
+- **Advantages**: Can generate large profits
+- **Disadvantages**: Requires monitoring, higher risk
+- **Cost**: Variable (depends on strategy)
 
-### 4. Arbitraż Trójkątny
-- **Opis**: Wykorzystaj różnice kursów między trzema walutami
-- **Zalety**: Może generować zyski bez użycia złota
-- **Wady**: Bardzo skomplikowany, wysokie ryzyko
-- **Koszt**: 3+ bilety
+### 4. Triangular Arbitrage
+- **Description**: Exploit exchange rate differences between three currencies
+- **Advantages**: Can generate profits without using gold
+- **Disadvantages**: Very complex, high risk
+- **Cost**: 3+ tickets
 
-## Analiza Ryzyka
+## Risk Analysis
 
-### Czynniki ryzyka
-1. **Zmienność rynku** - wahania cen
-2. **Płynność** - dostępność ofert
-3. **Spread** - różnica między ceną kupna a sprzedaży
-4. **Wolumen** - ilość dostępnych ofert
-5. **Czas wykonania** - szybkość realizacji transakcji
+### Risk factors
+1. **Market volatility** - price fluctuations
+2. **Liquidity** - offer availability
+3. **Spread** - difference between buy and sell price
+4. **Volume** - amount of available offers
+5. **Execution time** - transaction execution speed
 
-### Score ryzyka (0-1)
-- **0.0-0.3**: Niskie ryzyko - bezpieczne transakcje
-- **0.3-0.6**: Średnie ryzyko - umiarkowane transakcje
-- **0.6-1.0**: Wysokie ryzyko - ryzykowne transakcje
+### Risk score (0-1)
+- **0.0-0.3**: Low risk - safe transactions
+- **0.3-0.6**: Medium risk - moderate transactions
+- **0.6-1.0**: High risk - risky transactions
 
-## Konfiguracja zaawansowana
+## Advanced Configuration
 
-### Parametry środowiskowe
+### Environment parameters
 ```bash
-# Koszty i progi
-TICKET_COST_GOLD=0.1                    # Koszt biletu w złocie
-MIN_PROFIT_THRESHOLD=0.5                # Minimalny zysk w %
-MIN_SPREAD_THRESHOLD=0.001              # Minimalny spread
+# Costs and thresholds
+TICKET_COST_GOLD=0.1                    # Ticket cost in gold
+MIN_PROFIT_THRESHOLD=0.5                # Minimum profit in %
+MIN_SPREAD_THRESHOLD=0.001              # Minimum spread
 
-# Limity transakcji
-MAX_TRANSACTION_AMOUNT=10000            # Maksymalna ilość w transakcji
-MIN_TRANSACTION_AMOUNT=1                # Minimalna ilość w transakcji
+# Transaction limits
+MAX_TRANSACTION_AMOUNT=10000            # Maximum amount in transaction
+MIN_TRANSACTION_AMOUNT=1                # Minimum amount in transaction
 
-# Parametry API
-API_WORKERS_MARKET=6                    # Liczba wątków do pobierania danych
-API_WORKERS_ANALYSIS=4                  # Liczba wątków do analizy
-API_RATE_LIMIT_DELAY=1.0               # Opóźnienie między wywołaniami API
+# API parameters
+API_WORKERS_MARKET=6                    # Number of threads for data fetching
+API_WORKERS_ANALYSIS=4                  # Number of threads for analysis
+API_RATE_LIMIT_DELAY=1.0               # Delay between API calls
 
-# Parametry analizy
-MAX_OPPORTUNITIES_TO_ANALYZE=1000      # Maksymalna liczba okazji
-CONFIDENCE_THRESHOLD=0.3               # Minimalny poziom pewności
-RISK_THRESHOLD=0.5                     # Maksymalny poziom ryzyka
+# Analysis parameters
+MAX_OPPORTUNITIES_TO_ANALYZE=1000      # Maximum number of opportunities
+CONFIDENCE_THRESHOLD=0.3               # Minimum confidence level
+RISK_THRESHOLD=0.5                     # Maximum risk level
 
-# Parametry raportowania
-REPORT_TOP_OPPORTUNITIES=20             # Liczba najlepszych okazji w raporcie
-EXPORT_FORMATS=txt,csv                  # Format eksportu raportów
+# Reporting parameters
+REPORT_TOP_OPPORTUNITIES=20             # Number of best opportunities in report
+EXPORT_FORMATS=txt,csv                  # Report export format
 
-# Parametry cache
-CACHE_DURATION_MINUTES=5                # Czas ważności cache
-USE_CACHE=true                          # Włącz/wyłącz cache
+# Cache parameters
+CACHE_DURATION_MINUTES=5                # Cache validity time
+USE_CACHE=true                          # Enable/disable cache
 
-# Parametry optymalizacji
-OPTIMIZE_FOR_VOLUME=true                # Optymalizuj pod kątem wolumenu
-OPTIMIZE_FOR_SPREAD=true                # Optymalizuj pod kątem spreadu
-OPTIMIZE_FOR_RISK=false                 # Optymalizuj pod kątem ryzyka
+# Optimization parameters
+OPTIMIZE_FOR_VOLUME=true                # Optimize for volume
+OPTIMIZE_FOR_SPREAD=true                # Optimize for spread
+OPTIMIZE_FOR_RISK=false                 # Optimize for risk
 
-# Parametry monitorowania
-MONITORING_INTERVAL_SECONDS=300         # Interwał monitorowania
-ENABLE_REAL_TIME_MONITORING=false       # Monitorowanie w czasie rzeczywistym
+# Monitoring parameters
+MONITORING_INTERVAL_SECONDS=300         # Monitoring interval
+ENABLE_REAL_TIME_MONITORING=false       # Real-time monitoring
 ```
 
-## Struktura plików
+## File Structure
 
 ```
-├── currency_arbitrage.py           # Podstawowa aplikacja arbitrażu
-├── advanced_currency_arbitrage.py  # Zaawansowana aplikacja z analizą ryzyka
-├── arbitrage_config.py             # Konfiguracja aplikacji
-├── README_ARBITRAGE.md             # Ten plik
-├── requirements.txt                 # Zależności Python
-└── .env                           # Zmienne środowiskowe (do utworzenia)
+├── currency_arbitrage.py           # Basic arbitrage application
+├── advanced_currency_arbitrage.py  # Advanced application with risk analysis
+├── arbitrage_config.py             # Application configuration
+├── README_ARBITRAGE.md             # This file
+├── requirements.txt                 # Python dependencies
+└── .env                           # Environment variables (to create)
 ```
 
-## Przykłady użycia
+## Usage Examples
 
-### Analiza podstawowa
+### Basic analysis
 ```python
 from currency_arbitrage import CurrencyArbitrageAnalyzer
 
@@ -182,7 +182,7 @@ analyzer = CurrencyArbitrageAnalyzer(
 analyzer.run_analysis()
 ```
 
-### Analiza zaawansowana
+### Advanced analysis
 ```python
 from advanced_currency_arbitrage import AdvancedCurrencyArbitrageAnalyzer
 from arbitrage_config import get_config
@@ -195,7 +195,7 @@ analyzer = AdvancedCurrencyArbitrageAnalyzer(config)
 analyzer.run_advanced_analysis()
 ```
 
-### Własna konfiguracja
+### Custom configuration
 ```python
 custom_config = {
     'ticket_cost_gold': 0.15,
@@ -209,94 +209,98 @@ analyzer = AdvancedCurrencyArbitrageAnalyzer(custom_config)
 analyzer.run_advanced_analysis()
 ```
 
-## Interpretacja wyników
+## Results Interpretation
 
-### Raport tekstowy
-- **TOP OKAZJE**: Lista najlepszych okazji do arbitrażu
-- **ANALIZA RYZYKA**: Metryki ryzyka dla wszystkich okazji
-- **STRATEGIE ZAROBKOWE**: Opis różnych strategii
-- **WSKAZÓWKI**: Praktyczne porady
+### Text report
+- **TOP OPPORTUNITIES**: List of best arbitrage opportunities
+- **RISK ANALYSIS**: Risk metrics for all opportunities
+- **PROFIT STRATEGIES**: Description of different strategies
+- **TIPS**: Practical advice
 
-### Raport CSV
-- **from_currency**: Waluta źródłowa
-- **to_currency**: Waluta docelowa
-- **profit_percentage**: Zysk w procentach
-- **risk_score**: Score ryzyka (0-1)
-- **confidence**: Poziom pewności (0-1)
-- **volume_score**: Score wolumenu (0-1)
-- **liquidity_score**: Score płynności (0-1)
+### CSV report
+- **from_currency**: Source currency
+- **to_currency**: Target currency
+- **profit_percentage**: Profit in percentage
+- **risk_score**: Risk score (0-1)
+- **confidence**: Confidence level (0-1)
+- **volume_score**: Volume score (0-1)
+- **liquidity_score**: Liquidity score (0-1)
 
-## Wskazówki praktyczne
+## Practical Tips
 
-### 1. Rozpoczęcie
-- Zacznij od arbitrażu prostego (Gold ↔ Waluta)
-- Ustaw niski próg zysku (0.5-1.0%)
-- Monitoruj ryzyko (score < 0.5)
+### 1. Getting Started
+- Start with simple arbitrage (Gold ↔ Currency)
+- Set low profit threshold (0.5-1.0%)
+- Monitor risk (score < 0.5)
 
-### 2. Optymalizacja
-- Używaj cache dla oszczędności API
-- Dostosuj liczbę wątków do swojego łącza
-- Monitoruj limity API
+### 2. Optimization
+- Use cache for API savings
+- Adjust thread count to your connection
+- Monitor API limits
 
-### 3. Zarządzanie ryzykiem
-- Dywersyfikuj między różne waluty
-- Uwzględnij koszty transakcji
-- Monitoruj zmiany cen w czasie
+### 3. Risk Management
+- Diversify between different currencies
+- Consider transaction costs
+- Monitor price changes over time
 
-### 4. Skalowanie
-- Zwiększaj próg zysku z doświadczeniem
-- Eksperymentuj z różnymi strategiami
-- Używaj backtestingu do testowania
+### 4. Scaling
+- Increase profit threshold with experience
+- Experiment with different strategies
+- Use backtesting for testing
 
-## Rozwiązywanie problemów
+## Troubleshooting
 
-### Błąd autoryzacji
+### Authorization error
 ```
-Błąd: Token autoryzacyjny nie został załadowany z pliku .env.
+Error: Authorization token not loaded from .env file.
 ```
-**Rozwiązanie**: Sprawdź czy plik `.env` istnieje i zawiera poprawny `AUTH_TOKEN`
+**Solution**: Check if `.env` file exists and contains correct `AUTH_TOKEN`
 
-### Błąd API
+### API error
 ```
-Błąd podczas pobierania danych rynkowych
+Error fetching market data
 ```
-**Rozwiązanie**: 
-- Sprawdź połączenie internetowe
-- Zmniejsz liczbę wątków API
-- Zwiększ opóźnienie między wywołaniami
+**Solution**: 
+- Check internet connection
+- Reduce API thread count
+- Increase delay between calls
 
-### Brak okazji
+### No opportunities
 ```
-Znaleziono 0 okazji do arbitrażu
+Found 0 arbitrage opportunities
 ```
-**Rozwiązanie**:
-- Zmniejsz minimalny próg zysku
-- Sprawdź czy rynki są aktywne
-- Sprawdź koszty biletu
+**Solution**:
+- Reduce minimum profit threshold
+- Check if markets are active
+- Check ticket costs
 
-## Wsparcie
+## Support
 
-### Dokumentacja API
+### API Documentation
 - [Eclesiar API Documentation](https://api.eclesiar.com/)
 - [Market Endpoint](https://api.eclesiar.com/market/coin/get)
 
-### Logi
-- Aplikacja generuje szczegółowe logi
-- Sprawdź konsolę w przypadku błędów
-- Użyj `LOG_TO_FILE=true` dla zapisu do pliku
+### Logs
+- Application generates detailed logs
+- Check console for errors
+- Use `LOG_TO_FILE=true` for file logging
 
 ### Monitoring
-- Użyj `ENABLE_REAL_TIME_MONITORING=true` dla ciągłego monitorowania
-- Ustaw `MONITORING_INTERVAL_SECONDS` dla interwału
+- Use `ENABLE_REAL_TIME_MONITORING=true` for continuous monitoring
+- Set `MONITORING_INTERVAL_SECONDS` for interval
 
-## Licencja
+## License
 
-Ten projekt jest przeznaczony do użytku edukacyjnego i osobistego. Używaj odpowiedzialnie i zgodnie z regulaminem gry Eclesiar.
+This project is intended for educational and personal use. Use responsibly and in accordance with Eclesiar game rules.
 
-## Autor
+## Author
 
-Aplikacja została stworzona na podstawie istniejącego kodu `orchestrator.py` z rozszerzeniami o funkcjonalności arbitrażu walutowego.
+Application created based on existing `orchestrator.py` code with extensions for currency arbitrage functionality.
 
 ---
 
-**Uwaga**: Arbitraż walutowy wiąże się z ryzykiem. Zawsze analizuj transakcje przed wykonaniem i nie inwestuj więcej niż możesz stracić.
+**Note**: Currency arbitrage involves risk. Always analyze transactions before execution and don't invest more than you can afford to lose.
+
+**Version**: 2.0  
+**Date**: 2025-09-10  
+**Features**: English translation, enhanced functionality, improved documentation

@@ -71,8 +71,11 @@ The calculator takes into account all 8 factors from the Eclesiar documentation:
 - Rounded down
 
 ### 5. **Region and Country Bonus**
-- Region bonus from API (bonus_score)
-- Country bonus (TODO: implement when available)
+- **Regional Bonus**: Region-specific production bonus from API (bonus_score)
+- **Country Bonus**: Dynamic calculation based on regional bonuses within a country
+  - Formula: `sum of regional bonuses of same type in country / 5`
+  - Automatically calculated for each production type
+  - Deduplication logic prevents counting duplicate regions
 
 ### 6. **Pollution Debuff**
 - `production = production - ((production - (production*0.1)) * pollution_value)`
@@ -99,6 +102,7 @@ The calculator takes into account all 8 factors from the Eclesiar documentation:
 
 ### **Region Statistics**
 - **Regional Bonus**: Production bonus of the region
+- **Country Bonus**: Dynamic country bonus calculation
 - **Pollution**: Impact on production
 - **NPC Wages**: Operating costs in GOLD
 
@@ -192,7 +196,7 @@ Values are defined in `production_analyzer_consolidated.py`:
 👤 Owner: Player | 💰 Sale: No
 --------------------------------------------------
 Q1:  337 | Q2:  245 | Q3:  180 | Q4:  132 | Q5:   96
-🎯 Score: 105.56 | 📈 Bonus: 0.0% | 🌫️ Pollution: 0.0%
+🎯 Score: 105.56 | 📈 Regional Bonus: 0.0% | 🌍 Country Bonus: 0.0% | 🌫️ Pollution: 0.0%
 ```
 
 ## 🚨 Troubleshooting
@@ -232,6 +236,7 @@ In case of problems:
 
 ---
 
-**Version**: 1.0  
-**Date**: 2025-09-08  
+**Version**: 2.0  
+**Date**: 2025-09-10  
 **Compatibility**: Eclesiar API v1.0+
+**Features**: Country bonus system, English translation, enhanced tables

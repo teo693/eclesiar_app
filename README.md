@@ -220,10 +220,12 @@ The project follows **Clean Architecture** principles with clear separation of c
 - DOCX format generation
 
 ### 🏭 Regional Productivity Analysis
-- Production efficiency calculations
-- Regional and national bonuses consideration
+- Production efficiency calculations with all 8 production factors
+- **Regional bonuses** - Region-specific production bonuses
+- **Country bonuses** - Dynamic calculation based on regional bonuses within a country
 - Pollution and NPC wages analysis
 - Regional ranking by efficiency score
+- **Enhanced tables** - Separate columns for regional and country bonuses
 
 ### 💰 Currency Arbitrage Analysis
 - Arbitrage opportunity detection
@@ -245,6 +247,7 @@ The project follows **Clean Architecture** principles with clear separation of c
 - **Parameter Configuration**: Company tier, eco skill, workers, building levels, military base, ownership type
 - **Efficiency Analysis**: Detailed scoring and recommendations for optimization
 - **Multiple Products**: Support for all production types (weapon, iron, grain, aircraft, etc.)
+- **Country Bonus Integration**: Automatic calculation and display of country bonuses in results
 
 ## ⚙️ Configuration
 
@@ -288,12 +291,14 @@ MIN_SPREAD_THRESHOLD=0.001
 ### Daily reports
 - **Location**: `reports/`
 - **Formats**: DOCX, HTML
-- **Naming**: `raport_dzienny_YYYY-MM-DD_HH-MM.docx`
+- **Naming**: `daily_report_YYYY-MM-DD_HH-MM.docx`
+- **Features**: Enhanced tables with regional and country bonus columns
 
 ### Productivity analysis
 - **Location**: `reports/`
 - **Formats**: TXT
 - **Naming**: `production_analysis_YYYYMMDD_HHMMSS.txt`
+- **Features**: Includes regional and country bonus analysis
 
 ### Arbitrage reports
 - **Location**: `reports/`
@@ -303,7 +308,8 @@ MIN_SPREAD_THRESHOLD=0.001
 ### Short economic reports
 - **Location**: `reports/`
 - **Formats**: DOCX
-- **Naming**: `skrocony_raport_ekonomiczny_YYYY-MM-DD_HH-MM.docx`
+- **Naming**: `short_economic_report_YYYY-MM-DD_HH-MM.docx`
+- **Features**: Enhanced tables with regional and country bonus columns
 
 ## 📚 Documentation
 
@@ -426,6 +432,16 @@ mypy src/
 
 ## 📝 Changelog
 
+### v3.3 - Country Bonus & English Translation (2025-09-10) 🌍
+- ✅ **Country Bonus System** - Implemented dynamic country bonus calculation based on regional bonuses
+- ✅ **Enhanced Report Tables** - Added separate columns for regional and country bonuses in all reports
+- ✅ **Formula Implementation** - Country bonus = sum of regional bonuses of same type in country / 5
+- ✅ **Deduplication Logic** - Fixed duplicate region counting in country bonus calculations
+- ✅ **Complete English Translation** - Translated all user-facing text, error messages, and code comments
+- ✅ **Internationalization** - Application now fully supports English-speaking users
+- ✅ **Code Documentation** - All docstrings and comments translated to English
+- ✅ **User Interface** - All console menus, prompts, and output messages in English
+
 ### v3.2 - Open Source License (2025-01-09) 📄
 - ✅ **MIT License** - Released project under MIT License for open source community
 - ✅ **Copyright Attribution** - Updated all files with proper copyright attribution to Teo693
@@ -479,6 +495,16 @@ mypy src/
 - ✅ Integrated with main application menu and CLI
 - ✅ Added new command: `python main.py short-economic-report`
 
+### v2.4 - Country Bonus Implementation & English Translation (2025-09-10)
+- ✅ **Country Bonus System** - Implemented dynamic country bonus calculation based on regional bonuses
+- ✅ **Enhanced Tables** - Added separate columns for regional and country bonuses in all reports
+- ✅ **Formula Implementation** - Country bonus = sum of regional bonuses of same type in country / 5
+- ✅ **Deduplication Logic** - Fixed duplicate region counting in country bonus calculations
+- ✅ **Complete English Translation** - Translated all user-facing text, error messages, and code comments
+- ✅ **Internationalization** - Application now fully supports English-speaking users
+- ✅ **Code Documentation** - All docstrings and comments translated to English
+- ✅ **User Interface** - All console menus, prompts, and output messages in English
+
 ### v2.1 - English Translation (2025-09-08)
 - ✅ Added NPC wages column to productivity table
 - ✅ Translated entire application to English
@@ -499,6 +525,16 @@ mypy src/
 - Regional productivity analysis
 - Currency arbitrage analysis
 
+## 🌍 Internationalization
+
+The application is fully translated to English and supports international users:
+
+- **User Interface**: All menus, prompts, and messages in English
+- **Error Messages**: All error messages and warnings in English
+- **Code Documentation**: All docstrings and comments in English
+- **Reports**: All generated reports use English terminology
+- **Console Output**: All console output and logging in English
+
 ## 🤝 Support
 
 In case of problems or questions:
@@ -506,6 +542,7 @@ In case of problems or questions:
 2. Make sure all dependencies are installed
 3. Check API configuration in `.env` file
 4. Check write permissions in output directories
+5. All error messages are now in English for easier troubleshooting
 
 ## 📄 License
 
@@ -537,3 +574,5 @@ For major changes, please open an issue first to discuss what you would like to 
 - Built by Teo693 for the Eclesiar game community
 - Uses clean architecture principles and design patterns
 - Open source for the benefit of the gaming community
+- Fully internationalized for global accessibility
+- Enhanced with dynamic country bonus calculations

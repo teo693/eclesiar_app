@@ -1,108 +1,136 @@
-# Instrukcje konfiguracji Eclesiar App
+# Eclesiar App Installation Guide
 
-## 🔐 Konfiguracja API
+## 🔐 API Configuration
 
-### **1. Skopiuj plik konfiguracyjny:**
+### **1. Copy configuration file:**
 ```bash
 cp .env.example .env
 ```
 
-### **2. Edytuj plik .env:**
+### **2. Edit .env file:**
 ```bash
 nano .env
 ```
 
-### **3. Uzupełnij klucz API:**
+### **3. Set your API key:**
 ```bash
-# Zamień YOUR_API_KEY_HERE na swój prawdziwy klucz API
-AUTH_TOKEN="eclesiar_prod_TWOJ_PRAWDZIWY_KLUCZ_API"
+# Replace YOUR_API_KEY_HERE with your real API key
+AUTH_TOKEN="eclesiar_prod_YOUR_REAL_API_KEY"
 ```
 
-### **4. Sprawdź konfigurację:**
+### **4. Test configuration:**
 ```bash
-# Test połączenia z API
-curl -H "Authorization: Bearer eclesiar_prod_TWOJ_KLUCZ" https://api.eclesiar.com/countries
+# Test API connection
+curl -H "Authorization: Bearer eclesiar_prod_YOUR_KEY" https://api.eclesiar.com/countries
 ```
 
-## 🚀 Uruchomienie aplikacji
+## 🚀 Running the Application
 
-### **Tryb interaktywny:**
+### **Interactive Mode:**
 ```bash
 python3 main.py
 ```
 
-### **Tryb komend:**
+### **Command Mode:**
 ```bash
-# Skrócony raport ekonomiczny
+# Short economic report
 python3 main.py short-economic-report
 
-# Analiza produktywności regionów
+# Regional productivity analysis
 python3 main.py production-analysis
 
-# Analiza arbitrażu walutowego
+# Currency arbitrage analysis
 python3 main.py arbitrage-analysis
 
-# Pełna analiza
+# Interactive production calculator
+python3 main.py production-calculator
+
+# Quick production calculator
+python3 main.py quick-calculator
+
+# Full analysis
 python3 main.py full-analysis
 ```
 
-## 📁 Struktura plików
+## 📁 File Structure
 
-### **Pliki konfiguracyjne:**
-- `.env.example` - przykładowa konfiguracja (bezpieczna do commitowania)
-- `.env` - rzeczywista konfiguracja (ignorowana przez Git)
+### **Configuration files:**
+- `.env.example` - example configuration (safe to commit)
+- `.env` - actual configuration (ignored by Git)
 
-### **Pliki ignorowane przez Git:**
-- `.env` - zawiera wrażliwe dane (klucze API)
-- `*.db` - bazy danych
-- `__pycache__/` - cache Pythona
-- `reports/` - wygenerowane raporty
-- `*.log` - pliki logów
+### **Files ignored by Git:**
+- `.env` - contains sensitive data (API keys)
+- `*.db` - databases
+- `__pycache__/` - Python cache
+- `reports/` - generated reports
+- `*.log` - log files
 
-## ⚠️ Bezpieczeństwo
+## ⚠️ Security
 
-### **Nigdy nie commituj:**
-- Pliku `.env` z prawdziwymi kluczami API
-- Plików z wrażliwymi danymi
-- Kluczy autoryzacji
+### **Never commit:**
+- `.env` file with real API keys
+- Files with sensitive data
+- Authorization keys
 
-### **Zawsze commituj:**
-- Plik `.env.example` (bez prawdziwych kluczy)
-- Plik `.gitignore`
-- Kod źródłowy
+### **Always commit:**
+- `.env.example` file (without real keys)
+- `.gitignore` file
+- Source code
 
-## 🔧 Rozwiązywanie problemów
+## 🔧 Troubleshooting
 
-### **Błąd 401 Unauthorized:**
-1. Sprawdź czy klucz API jest kompletny
-2. Sprawdź czy klucz nie wygasł
-3. Sprawdź format: `eclesiar_prod_TWOJ_KLUCZ`
+### **401 Unauthorized Error:**
+1. Check if API key is complete
+2. Check if key hasn't expired
+3. Check format: `eclesiar_prod_YOUR_KEY`
 
-### **Brak dostępu do API:**
-- Użyj przykładowego raportu do testowania
-- Skontaktuj się z administracją Eclesiar
+### **No API access:**
+- Use sample report for testing
+- Contact Eclesiar administration
 
-## 📊 Funkcje aplikacji
+## 📊 Application Features
 
-### **Skrócony raport ekonomiczny:**
-- Kursy walut vs GOLD
-- Najtańsze przedmioty
-- Przykłady produkcji (Q1-Q5) dla każdego produktu
+### **Short Economic Report:**
+- Currency rates vs GOLD
+- Cheapest items by type
+- Production examples (Q1-Q5) for each product
+- **Enhanced tables** with regional and country bonus columns
 
-### **Analiza produktywności:**
-- 8 czynników wpływających na produkcję
-- Porównanie regionów
-- Optymalizacja lokalizacji firm
+### **Regional Productivity Analysis:**
+- All 8 production factors
+- **Regional bonuses** - region-specific production bonuses
+- **Country bonuses** - dynamic calculation based on regional bonuses
+- Regional comparison
+- Company location optimization
 
-### **Analiza arbitrażu:**
-- Wykrywanie okazji arbitrażowych
-- Analiza ryzyka
-- Optymalizacja zysków
+### **Production Calculator:**
+- **Interactive Calculator**: Full-featured with region selection and parameter configuration
+- **Quick Calculator**: Fast testing of different scenarios
+- **Country Bonus Integration**: Automatic calculation and display of country bonuses
+- Real-time data from API
 
-## 📞 Wsparcie
+### **Currency Arbitrage Analysis:**
+- Arbitrage opportunity detection
+- Risk analysis
+- Profit optimization
 
-Jeśli masz problemy z konfiguracją:
-1. Sprawdź plik `API_TROUBLESHOOTING.md`
-2. Sprawdź logi aplikacji
-3. Skontaktuj się z administracją Eclesiar
+## 🌍 Internationalization
 
+The application is fully translated to English:
+- **User Interface**: All menus, prompts, and messages in English
+- **Error Messages**: All error messages and warnings in English
+- **Reports**: All generated reports use English terminology
+- **Console Output**: All console output and logging in English
+
+## 📞 Support
+
+If you have configuration problems:
+1. Check `API_TROUBLESHOOTING.md`
+2. Check application logs
+3. Contact Eclesiar administration
+
+---
+
+**Version**: 2.0  
+**Date**: 2025-09-10  
+**Features**: Country bonus system, English translation, enhanced functionality
