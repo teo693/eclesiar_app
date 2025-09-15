@@ -193,7 +193,7 @@ class SheetsFormatter:
             ["📊 ECLESIAR REPORT - SUMMARY", ""],
             ["", ""],
             ["📅 Report Information", ""],
-            ["Generated at", data.get('fetched_at', datetime.now().strftime(self.date_format))],
+            ["Generated at", datetime.now().strftime(self.date_format)],
             ["Report type", data.get('report_type', 'N/A')],
             ["", ""],
             ["📈 General Statistics", ""],
@@ -213,8 +213,10 @@ class SheetsFormatter:
         sheets_data["Summary"].extend([
             ["", ""],
             ["💰 Currency rates", ""],
-            ["Most expensive currency", f"ID {most_expensive[0]}: {most_expensive[1]:.6f} GOLD"],
-            ["Cheapest currency", f"ID {cheapest[0]}: {cheapest[1]:.6f} GOLD"],
+            ["Most expensive currency", f"ID {most_expensive[0]}: {most_expensive[1]:.6f}"],
+            ["Currency name", currencies_map.get(str(most_expensive[0]), f'Currency {most_expensive[0]}')],
+            ["Cheapest currency", f"ID {cheapest[0]}: {cheapest[1]:.6f}"],
+            ["Currency name", currencies_map.get(str(cheapest[0]), f'Currency {cheapest[0]}')],
             ["", ""],
             ["📊 Best production regions", ""],
         ])
@@ -260,7 +262,23 @@ class SheetsFormatter:
                     
                     sheets_data["Summary"].append([
                         f"{item_name}",
-                        f"{price:.6f} GOLD ({country}, {currency}) - Amount: {amount}, 5-day avg: {avg5:.6f}"
+                        f"{price:.6f}"
+                    ])
+                    sheets_data["Summary"].append([
+                        "Currency",
+                        f"{currency}"
+                    ])
+                    sheets_data["Summary"].append([
+                        "Country",
+                        f"{country}"
+                    ])
+                    sheets_data["Summary"].append([
+                        "Amount",
+                        f"{amount}"
+                    ])
+                    sheets_data["Summary"].append([
+                        "5-day average",
+                        f"{avg5:.6f}"
                     ])
         
         # Sheet 2: Currency Rates (with growth indicators)
@@ -322,10 +340,10 @@ class SheetsFormatter:
         # Usunięto duplikację - kursy walut już są wcześniej
         
         
-        # Sheet 6: Najlepsze Oferty Pracy
+        # Sheet 6: Best Job Offers
         best_jobs = data.get('best_jobs', [])
         if best_jobs:
-            jobs_data = [["Kraj", "Stanowisko", "Płaca (GOLD)", "Waluta", "Region"]]
+            jobs_data = [["Country", "Position", "Salary (GOLD)", "Currency", "Region"]]
             for job in best_jobs[:20]:  # Top 20
                 jobs_data.append([
                     job.get('country', 'N/A'),
@@ -334,9 +352,9 @@ class SheetsFormatter:
                     job.get('currency', 'N/A'),
                     job.get('region', 'N/A')
                 ])
-            sheets_data["Najlepsze Prace"] = jobs_data
+            sheets_data["Best Jobs"] = jobs_data
         
-        # Sheet 4: Regiony Produkcyjne - GRAIN (posortowane według produktywności)
+        # Sheet 4: Production Regions - GRAIN (sorted by productivity)
         regions_data = data.get('regions', [])
         country_map = data.get('country_map', {})
         
@@ -360,7 +378,7 @@ class SheetsFormatter:
             grain_regions = list(unique_grain_regions.values())
             
             if grain_regions:
-                regions_sheet = [["Region", "Kraj", "Bonus Regionalny", "Zanieczyszczenie", "Typ Bonusu", "Bonus Krajowy", "Produktywność", "Q1", "Q2", "Q3", "Q4", "Q5"]]
+                regions_sheet = [["Region", "Country", "Regional Bonus", "Pollution", "Bonus Type", "Country Bonus", "Productivity", "Q1", "Q2", "Q3", "Q4", "Q5"]]
                 
                 # Oblicz produktywność dla każdego regionu GRAIN
                 regions_with_productivity = []
@@ -442,7 +460,7 @@ class SheetsFormatter:
                         f"{q5:.1f}"
                     ])
                 
-                sheets_data["Regiony Produkcyjne - GRAIN"] = regions_sheet
+                sheets_data["Production Regions - GRAIN"] = regions_sheet
         
         # Dodaj arkusze dla innych typów towarów
         item_types = [
@@ -470,7 +488,7 @@ class SheetsFormatter:
             type_regions = list(unique_type_regions.values())
             
             if type_regions:
-                regions_sheet = [["Region", "Kraj", "Bonus Regionalny", "Zanieczyszczenie", "Typ Bonusu", "Bonus Krajowy", "Produktywność", "Q1", "Q2", "Q3", "Q4", "Q5"]]
+                regions_sheet = [["Region", "Country", "Regional Bonus", "Pollution", "Bonus Type", "Country Bonus", "Productivity", "Q1", "Q2", "Q3", "Q4", "Q5"]]
                 
                 # Oblicz produktywność dla każdego regionu
                 regions_with_productivity = []
@@ -552,24 +570,24 @@ class SheetsFormatter:
                         f"{q5:.1f}"
                     ])
                 
-                sheets_data[f"Regiony Produkcyjne - {bonus_type}"] = regions_sheet
+                sheets_data[f"Production Regions - {bonus_type}"] = regions_sheet
         
-        # Sheet 8: Ranking Wojenny
+        # Sheet 8: Military Ranking
         military_summary = data.get('military_summary', {})
         if military_summary:
-            military_data = [["Kraj", "Uszkodzenia", "Pozycja", "Status"]]
+            military_data = [["Country", "Damage", "Position", "Status"]]
             sorted_military = sorted(military_summary.items(), key=lambda x: x[1], reverse=True)
             for i, (country, damage) in enumerate(sorted_military[:20], 1):
                 military_data.append([
                     country,
                     f"{damage:,}",
                     i,
-                    "Aktywny" if damage > 0 else "Nieaktywny"
+                    "Active" if damage > 0 else "Inactive"
                 ])
-            sheets_data["Ranking Wojenny"] = military_data
+            sheets_data["Military Ranking"] = military_data
         
-        # Sheet 9: Top Wojownicy (przeniesione na koniec)
-        warriors_data = [["Pozycja", "Nazwa", "Kraj", "Poziom", "Punkty"]]
+        # Sheet 9: Top Warriors (moved to end)
+        warriors_data = [["Position", "Name", "Country", "Level", "Points"]]
         top_warriors = data.get('top_warriors', [])
         
         for i, warrior in enumerate(top_warriors[:20], 1):  # Top 20
@@ -590,7 +608,7 @@ class SheetsFormatter:
                 warrior.get('points', 0)
             ])
         
-        sheets_data["Top Wojownicy"] = warriors_data
+        sheets_data["Top Warriors"] = warriors_data
         
         return sheets_data
     
@@ -598,7 +616,7 @@ class SheetsFormatter:
         """Format economic report data for Google Sheets with only 2 main tabs"""
         sheets_data = {}
         
-        # Sheet 1: Najtańsze towary - wszystkie produkty w jednej karcie
+        # Sheet 1: Cheapest items - all products in one sheet
         cheapest_items = data.get('cheapest_items', {})
         items_map = data.get('items', {})
         
@@ -663,25 +681,26 @@ class SheetsFormatter:
             for product_type, items in product_groups.items():
                 if items:
                     # Header for this product type
-                    cheapest_sheet.append([f"🛒 {product_type.upper()}", "", "", "", "", ""])
-                    cheapest_sheet.append(["Product", "Price (GOLD)", "Country", "Currency", "Amount", "5-day Average"])
+                    cheapest_sheet.append([f"🛒 {product_type.upper()}", "", "", "", "", "", ""])
+                    cheapest_sheet.append(["Product", "Price (GOLD)", "Country", "Currency", "Original Price", "Amount", "5-day Average"])
                     
                     # Sortuj według ceny (najtańsze pierwsze)
                     items.sort(key=lambda x: x[1])
                     
-                    # Dodaj wiersze z danymi
+                    # Add data rows
                     for item_name, price, country, currency, amount, avg5, price_original in items:
                         cheapest_sheet.append([
                             item_name,
                             f"{price:.6f}",
                             country,
-                            f"{price_original:.2f} {currency}",
+                            currency,
+                            f"{price_original:.2f}",
                             f"{amount}",
                             f"{avg5:.6f}"
                         ])
                     
-                    # Dodaj pusty wiersz między grupami
-                    cheapest_sheet.append(["", "", "", "", "", ""])
+                    # Add empty row between groups
+                    cheapest_sheet.append(["", "", "", "", "", "", ""])
         
         sheets_data["Cheapest Items"] = cheapest_sheet
         
@@ -850,8 +869,8 @@ class SheetsFormatter:
         
         production_data = data.get('production_data', [])
         
-        # Sheet 1: Ranking Regionów
-        ranking_data = [["Pozycja", "Region", "Kraj", "Efektywność", "Zanieczyszczenie", "Bonus"]]
+        # Sheet 1: Regions Ranking
+        ranking_data = [["Position", "Region", "Country", "Efficiency", "Pollution", "Bonus"]]
         
         for i, item in enumerate(production_data[:30], 1):  # Top 30
             ranking_data.append([
@@ -863,6 +882,6 @@ class SheetsFormatter:
                 item.get('total_bonus', 0)
             ])
         
-        sheets_data["Ranking Regionów"] = ranking_data
+        sheets_data["Regions Ranking"] = ranking_data
         
         return sheets_data
