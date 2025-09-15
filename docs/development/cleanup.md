@@ -1,140 +1,140 @@
-# Podsumowanie Porządkowania Aplikacji Eclesiar
+# Eclesiar Application Cleanup Summary
 
-## 🎯 Cel
-Uporządkowanie całej aplikacji, usunięcie duplikatów, organizacja raportów w osobne foldery oraz konsolidacja kodu.
+## 🎯 Objective
+Organizing the entire application, removing duplicates, organizing reports into separate folders, and consolidating code.
 
-## ✅ Wykonane Zadania
+## ✅ Completed Tasks
 
-### 1. 🗂️ Organizacja Struktury Folderów
-- **Utworzono folder `reports/`** - dla wszystkich raportów dziennych (DOCX, HTML)
-- **Utworzono folder `production_analysis/`** - dla analiz produktywności regionów
-- **Utworzono folder `arbitrage_reports/`** - dla raportów arbitrażowych
+### 1. 🗂️ Folder Structure Organization
+- **Created `reports/` folder** - for all daily reports (DOCX, HTML)
+- **Created `production_analysis/` folder** - for regional productivity analyses
+- **Created `arbitrage_reports/` folder** - for arbitrage reports
 
-### 2. 🧹 Usunięcie Duplikatów
-- **Usunięto pliki duplikaty:**
-  - `eclesiar (copy).db` → zachowano `eclesiar.db`
-  - `historia_raportow (copy).json` → zachowano `historia_raportow.json`
-  - `raw_api_output (copy).json` → zachowano `raw_api_output.json`
+### 2. 🧹 Duplicate Removal
+- **Removed duplicate files:**
+  - `eclesiar (copy).db` → kept `eclesiar.db`
+  - `historia_raportow (copy).json` → kept `historia_raportow.json`
+  - `raw_api_output (copy).json` → kept `raw_api_output.json`
 
-### 3. 🔄 Konsolidacja Kodów
-- **Skonsolidowano analizatory produkcji:**
-  - `production_analyzer.py` (499 linii) ❌
-  - `production_analyzer_final.py` (431 linii) ❌
-  - `production_analyzer_v2.py` (391 linii) ❌
-  - **→ `production_analyzer_consolidated.py` (350 linii) ✅**
+### 3. 🔄 Code Consolidation
+- **Consolidated production analyzers:**
+  - `production_analyzer.py` (499 lines) ❌
+  - `production_analyzer_final.py` (431 lines) ❌
+  - `production_analyzer_v2.py` (391 lines) ❌
+  - **→ `production_analyzer_consolidated.py` (350 lines) ✅**
 
-- **Skonsolidowano analizatory arbitrażu:**
-  - `currency_arbitrage.py` (552 linii) ❌
-  - `advanced_currency_arbitrage.py` (803 linii) ❌
-  - **→ `arbitrage_analyzer_consolidated.py` (400 linii) ✅**
+- **Consolidated arbitrage analyzers:**
+  - `currency_arbitrage.py` (552 lines) ❌
+  - `advanced_currency_arbitrage.py` (803 lines) ❌
+  - **→ `arbitrage_analyzer_consolidated.py` (400 lines) ✅**
 
-### 4. 🗑️ Usunięcie Niepotrzebnych Plików
-- **Pliki testowe:** `test.py`, `testv2.py`, `test_regions.py`
-- **Pliki debugowania:** `debug_pln_calculation.py`, `check_pln_rate.py`
-- **Pliki tymczasowe:** `reporting_backup.py`, `generate_production_tables.py`
-- **Pliki konfiguracyjne:** `consol output`, `raport generator.zip`
-- **Pliki cache:** `__pycache__/`, `*.pyc`
+### 4. 🗑️ Unnecessary File Removal
+- **Test files:** `test.py`, `testv2.py`, `test_regions.py`
+- **Debug files:** `debug_pln_calculation.py`, `check_pln_rate.py`
+- **Temporary files:** `reporting_backup.py`, `generate_production_tables.py`
+- **Configuration files:** `consol output`, `raport generator.zip`
+- **Cache files:** `__pycache__/`, `*.pyc`
 
-### 5. 🚀 Utworzenie Głównego Punktu Wejścia
-- **Nowy plik `main.py`** - centralny interfejs aplikacji
-- **Obsługiwane komendy:**
-  - `daily-report` - generowanie dziennego raportu
-  - `production-analysis` - analiza produktywności regionów
-  - `arbitrage-analysis` - analiza arbitrażu walutowego
-  - `full-analysis` - pełna analiza wszystkich modułów
+### 5. 🚀 Main Entry Point Creation
+- **New `main.py` file** - central application interface
+- **Supported commands:**
+  - `daily-report` - generate daily report
+  - `production-analysis` - regional productivity analysis
+  - `arbitrage-analysis` - currency arbitrage analysis
+  - `full-analysis` - complete analysis of all modules
 
-### 6. 📁 Przeniesienie Raportów
-- **Raporty dzienne:** 67 plików → `reports/`
-- **Analizy produktywności:** 23 pliki → `production_analysis/`
-- **Raporty arbitrażowe:** 3 pliki → `arbitrage_reports/`
+### 6. 📁 Report Migration
+- **Daily reports:** 67 files → `reports/`
+- **Productivity analyses:** 23 files → `production_analysis/`
+- **Arbitrage reports:** 3 files → `arbitrage_reports/`
 
-### 7. 📚 Aktualizacja Dokumentacji
-- **Zaktualizowano `README.md`** - nowa struktura, instrukcje użycia
-- **Zachowano `README_ARBITRAGE.md`** - specyficzne informacje o arbitrażu
-- **Zachowano `API_README.md`** - dokumentacja API
+### 7. 📚 Documentation Update
+- **Updated `README.md`** - new structure, usage instructions
+- **Kept `README_ARBITRAGE.md`** - specific arbitrage information
+- **Kept `API_README.md`** - API documentation
 
-## 📊 Statystyki Przed i Po
+## 📊 Before and After Statistics
 
-### Przed porządkowaniem:
-- **Liczba plików:** ~140
-- **Duplikaty:** 6 plików
-- **Rozproszone raporty:** w głównym katalogu
-- **Duplikaty kodu:** 3 wersje analizatorów produkcji, 2 wersje arbitrażu
-- **Rozmiar kodu:** ~2000 linii duplikowanego kodu
+### Before cleanup:
+- **Number of files:** ~140
+- **Duplicates:** 6 files
+- **Scattered reports:** in main directory
+- **Code duplicates:** 3 versions of production analyzers, 2 versions of arbitrage
+- **Code size:** ~2000 lines of duplicated code
 
-### Po porządkowaniu:
-- **Liczba plików:** ~30 (główne pliki)
-- **Duplikaty:** 0
-- **Organizacja raportów:** 3 dedykowane foldery
-- **Kod skonsolidowany:** 1 wersja każdego analizatora
-- **Rozmiar kodu:** ~750 linii (zredukowany o ~60%)
+### After cleanup:
+- **Number of files:** ~30 (main files)
+- **Duplicates:** 0
+- **Report organization:** 3 dedicated folders
+- **Consolidated code:** 1 version of each analyzer
+- **Code size:** ~750 lines (reduced by ~60%)
 
-## 🎯 Korzyści z Porządkowania
+## 🎯 Benefits of Cleanup
 
-### 1. **Łatwiejsze Utrzymanie**
-- Jeden plik do każdej funkcjonalności
-- Brak duplikatów kodu
-- Czytelna struktura projektu
+### 1. **Easier Maintenance**
+- One file per functionality
+- No code duplicates
+- Clear project structure
 
-### 2. **Lepsze Zarządzanie Raportami**
-- Raporty organizowane automatycznie
-- Łatwe archiwizowanie
-- Czytelna struktura folderów
+### 2. **Better Report Management**
+- Reports organized automatically
+- Easy archiving
+- Clear folder structure
 
-### 3. **Uproszczone Uruchamianie**
-- Jeden punkt wejścia (`main.py`)
-- Czytelne komendy
-- Spójny interfejs
+### 3. **Simplified Launch**
+- Single entry point (`main.py`)
+- Clear commands
+- Consistent interface
 
-### 4. **Redukcja Rozmiaru**
-- Mniej plików do zarządzania
-- Mniejszy rozmiar kodu
-- Szybsze wyszukiwanie
+### 4. **Size Reduction**
+- Fewer files to manage
+- Smaller code size
+- Faster searching
 
-## 🚀 Jak Używać
+## 🚀 How to Use
 
-### Uruchomienie aplikacji:
+### Application launch:
 ```bash
-# Generowanie dziennego raportu
+# Generate daily report
 python3 main.py daily-report
 
-# Analiza produktywności
+# Productivity analysis
 python3 main.py production-analysis
 
-# Analiza arbitrażu
+# Arbitrage analysis
 python3 main.py arbitrage-analysis
 
-# Pełna analiza
+# Full analysis
 python3 main.py full-analysis
 ```
 
-### Opcje dodatkowe:
+### Additional options:
 ```bash
-# Własny katalog wyjściowy
+# Custom output directory
 python3 main.py daily-report --output-dir custom_reports
 
-# Własny próg zysku dla arbitrażu
+# Custom profit threshold for arbitrage
 python3 main.py arbitrage-analysis --min-profit 2.0
 ```
 
-## 🔮 Następne Kroki
+## 🔮 Next Steps
 
-### Możliwe ulepszenia:
-1. **Automatyzacja** - cron jobs do regularnych analiz
-2. **Dashboard** - interfejs webowy do przeglądania raportów
-3. **Alerty** - powiadomienia o ważnych zmianach
-4. **Backup** - automatyczne archiwizowanie starych raportów
-5. **Monitoring** - śledzenie wydajności aplikacji
+### Possible improvements:
+1. **Automation** - cron jobs for regular analyses
+2. **Dashboard** - web interface for browsing reports
+3. **Alerts** - notifications about important changes
+4. **Backup** - automatic archiving of old reports
+5. **Monitoring** - application performance tracking
 
-## 📝 Uwagi Techniczne
+## 📝 Technical Notes
 
-- **Zachowano wszystkie funkcjonalności** z oryginalnych plików
-- **Zaktualizowano ścieżki** w `reporting.py` do zapisywania w folderze `reports/`
-- **Zachowano kompatybilność** z istniejącymi skryptami
-- **Dodano obsługę błędów** w głównym interfejsie
+- **Preserved all functionality** from original files
+- **Updated paths** in `reporting.py` to save in `reports/` folder
+- **Maintained compatibility** with existing scripts
+- **Added error handling** in main interface
 
 ## ✅ Status
-**PORZĄDKOWANIE ZAKOŃCZONE POMYŚLNIE**
+**CLEANUP SUCCESSFULLY COMPLETED**
 
-Aplikacja jest teraz zorganizowana, zoptymalizowana i gotowa do użycia.
+The application is now organized, optimized, and ready to use.
 

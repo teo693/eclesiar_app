@@ -1,0 +1,74 @@
+# Eclesiar App Docker Compose Configuration
+# Copyright (c) 2025 Teo693
+# Licensed under the MIT License - see LICENSE file for details.
+
+version: '3.8'
+
+services:
+  eclesiar-scheduler:
+    build: .
+    container_name: eclesiar-scheduler
+    restart: unless-stopped
+    
+    # Environment variables
+    env_file:
+      - .env
+    
+    # Volume mounts for persistent data
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./reports:/app/reports
+      - ./cred:/app/cred
+    
+    # Network configuration
+    networks:
+      - eclesiar-network
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "pgrep", "cron"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+
+  # Optional: Web interface for monitoring (future enhancement)
+  # eclesiar-web:
+  #   build: .
+  #   container_name: eclesiar-web
+  #   restart: unless-stopped
+  #   ports:
+  #     - "8000:8000"
+  #   command: ["python", "src/cli/web_api.py"]
+  #   env_file:
+  #     - .env
+  #   volumes:
+  #     - ./data:/app/data
+  #     - ./logs:/app/logs
+  #   networks:
+  #     - eclesiar-network
+  #   depends_on:
+  #     - eclesiar-scheduler
+
+networks:
+  eclesiar-network:
+    driver: bridge
+
+volumes:
+  eclesiar-data:
+    driver: local
+  eclesiar-logs:
+    driver: local
+  eclesiar-reports:
+    driver: local

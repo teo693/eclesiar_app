@@ -1,57 +1,57 @@
-# Aktualizacja Skróconego Raportu Ekonomicznego
+# Short Economic Report Update
 
-## Zmiany w skróconym raporcie
+## Changes in the short report
 
-### **Przed aktualizacją:**
-- Raport pokazywał tylko **najlepszy region** dla każdego produktu
-- Tytuł: "Best Regions for Production"
-- Jedna tabela na produkt z najlepszym regionem
+### **Before update:**
+- Report showed only **best region** for each product
+- Title: "Best Regions for Production"
+- One table per product with the best region
 
-### **Po aktualizacji:**
-- Raport pokazuje **po jednym przykładzie z każdego produktu i każdej jakości (Q1-Q5)**
-- Tytuł: "Production Examples by Product and Quality"
-- Jedna tabela na produkt z wszystkimi jakościami Q1-Q5
+### **After update:**
+- Report shows **one example from each product and each quality (Q1-Q5)**
+- Title: "Production Examples by Product and Quality"
+- One table per product with all qualities Q1-Q5
 
-## Struktura raportu
+## Report structure
 
-### **Sekcja 3: Production Examples by Product and Quality**
+### **Section 3: Production Examples by Product and Quality**
 
-Dla każdego produktu pokazuje:
-- **Region** - najlepszy region dla tego produktu
-- **Country** - kraj regionu
-- **Score** - score efektywności
-- **Bonus** - bonus regionalny
-- **Q1-Q5** - produkcja dla każdej jakości
+For each product it shows:
+- **Region** - best region for this product
+- **Country** - region's country
+- **Score** - efficiency score
+- **Bonus** - regional bonus
+- **Q1-Q5** - production for each quality
 
-### **Przykład tabeli:**
+### **Table example:**
 
 | Region | Country | Score | Bonus | Q1 | Q2 | Q3 | Q4 | Q5 |
 |--------|---------|-------|-------|----|----|----|----|----|
 | Sample Region 2 | Sample Country | 64.47 | 20.0% | 213 | 155 | 113 | 83 | 60 |
 
-## Produkty w raporcie
+## Products in the report
 
-1. **Weapon** - broń lądowa
-2. **Grain** - zboże (surowiec)
-3. **Iron** - żelazo (surowiec)
-4. **Titanium** - tytan (surowiec)
-5. **Fuel** - paliwo (surowiec)
-6. **Aircraft** - broń lotnicza
-7. **Food** - jedzenie
-8. **Airplane Ticket** - bilety lotnicze
+1. **Weapon** - land weapon
+2. **Grain** - grain (raw material)
+3. **Iron** - iron (raw material)
+4. **Titanium** - titanium (raw material)
+5. **Fuel** - fuel (raw material)
+6. **Aircraft** - air weapon
+7. **Food** - food
+8. **Airplane Ticket** - airplane tickets
 
-## Korzyści
+## Benefits
 
-- **Kompletny przegląd** wszystkich produktów i jakości
-- **Łatwe porównanie** produkcji Q1-Q5
-- **Najlepsze regiony** dla każdego produktu
-- **Zwięzły format** - jeden wiersz na produkt
+- **Complete overview** of all products and qualities
+- **Easy comparison** of Q1-Q5 production
+- **Best regions** for each product
+- **Concise format** - one row per product
 
-## Użycie
+## Usage
 
 ```bash
 python3 main.py short-economic-report
 ```
 
-Raport zostanie zapisany w katalogu `reports/` jako plik DOCX.
+The report will be saved in the `reports/` directory as a DOCX file.
 

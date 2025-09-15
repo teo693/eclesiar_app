@@ -1,33 +1,33 @@
-# Plan Integracji Google Sheets z Aplikacją Eclesiar
+# Google Sheets Integration Plan for Eclesiar Application
 
-## 📋 **Status Implementacji**
+## 📋 **Implementation Status**
 - ✅ **Google Cloud Project**: `your-project-id`
 - ✅ **Service Account**: `your-service-account@your-project.iam.gserviceaccount.com`
 - ✅ **Credentials File**: `cred/google_credentials.json`
-- ✅ **Google Sheets API**: Włączone
-- ✅ **Google Drive API**: Włączone
+- ✅ **Google Sheets API**: Enabled
+- ✅ **Google Drive API**: Enabled
 
-## 🎯 **Cel**
-Dodanie opcji "Google Sheets Report" do menu aplikacji, która będzie generować raporty bezpośrednio do Google Sheets.
+## 🎯 **Objective**
+Adding "Google Sheets Report" option to the application menu that will generate reports directly to Google Sheets.
 
-## 📁 **Struktura Plików do Utworzenia**
+## 📁 **File Structure to Create**
 
 ```
 src/reports/exporters/
-├── google_sheets_exporter.py      # Główny eksporter
-├── sheets_formatter.py            # Formatowanie danych
-├── sheets_auth.py                 # Autoryzacja Google API
-└── sheets_templates.py            # Szablony arkuszy
+├── google_sheets_exporter.py      # Main exporter
+├── sheets_formatter.py            # Data formatting
+├── sheets_auth.py                 # Google API authorization
+└── sheets_templates.py            # Sheet templates
 
 config/
-├── google_credentials.json        # ✅ GOTOWE
+├── google_credentials.json        # ✅ READY
 └── settings/
-    └── google_sheets.py           # Konfiguracja Google Sheets
+    └── google_sheets.py           # Google Sheets configuration
 ```
 
-## 🔧 **Krok 1: Aktualizacja Zależności**
+## 🔧 **Step 1: Dependencies Update**
 
-### 1.1. Dodaj do `requirements/base.txt`
+### 1.1. Add to `requirements/base.txt`
 ```txt
 # Google Sheets API
 google-api-python-client>=2.0.0
@@ -36,14 +36,14 @@ google-auth-oauthlib>=1.0.0
 google-auth-httplib2>=0.1.0
 ```
 
-### 1.2. Zainstaluj zależności
+### 1.2. Install dependencies
 ```bash
 pip install -r requirements/base.txt
 ```
 
-## 🔧 **Krok 2: Rozszerzenie Modeli**
+## 🔧 **Step 2: Model Extension**
 
-### 2.1. Aktualizuj `src/core/models/entities.py`
+### 2.1. Update `src/core/models/entities.py`
 ```python
 class ReportType(Enum):
     """Report types"""
@@ -52,7 +52,7 @@ class ReportType(Enum):
     ARBITRAGE = "arbitrage"
     SHORT_ECONOMIC = "short_economic"
     HTML = "html"
-    GOOGLE_SHEETS = "google_sheets"  # NOWY TYP
+    GOOGLE_SHEETS = "google_sheets"  # NEW TYPE
 ```
 
 ## 🔧 **Krok 3: Tworzenie Google Sheets Exporter**

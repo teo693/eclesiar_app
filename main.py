@@ -326,6 +326,7 @@ Usage examples:
   python main.py production-analysis   # Regional productivity analysis
   python main.py arbitrage-analysis    # Currency arbitrage analysis
   python main.py short-economic-report # Short economic report (DOCX)
+  python main.py google-sheets-report  # Generate Google Sheets report
   python main.py full-analysis         # Full analysis (everything)
   python main.py production-calculator # Interactive production calculator
   python main.py quick-calculator      # Quick production calculator (test scenarios)
@@ -335,7 +336,7 @@ Usage examples:
         
         parser.add_argument(
             'command',
-            choices=['daily-report', 'production-analysis', 'arbitrage-analysis', 'short-economic-report', 'full-analysis', 'production-calculator', 'quick-calculator'],
+            choices=['daily-report', 'production-analysis', 'arbitrage-analysis', 'short-economic-report', 'google-sheets-report', 'full-analysis', 'production-calculator', 'quick-calculator'],
             help='Command to execute'
         )
         
@@ -380,6 +381,16 @@ Usage examples:
                     
             elif args.command == 'short-economic-report':
                 run_short_economic_report(args.output_dir)
+                
+            elif args.command == 'google-sheets-report':
+                # For command line mode, use all sections by default
+                sections = {
+                    'military': True,
+                    'warriors': True, 
+                    'economic': True,
+                    'production': True
+                }
+                run_google_sheets_report(args.output_dir, sections)
                     
             elif args.command == 'full-analysis':
                 # For command line mode, use all sections by default

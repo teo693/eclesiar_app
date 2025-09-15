@@ -171,8 +171,10 @@ class SheetsFormatter:
         total_item_prices = sum(len(items_list) for items_list in cheapest_items.values())
         
         # Znajdź najaktywniejsze kraje (z największą liczbą regionów)
+        # Użyj regions_data jeśli dostępne (ma przetworzone nazwy krajów), w przeciwnym razie regions
+        regions_for_counting = data.get('regions_data', regions)
         country_region_count = {}
-        for region in regions:
+        for region in regions_for_counting:
             country_name = region.get('country_name', 'N/A')
             country_region_count[country_name] = country_region_count.get(country_name, 0) + 1
         
@@ -291,11 +293,10 @@ class SheetsFormatter:
                 yesterday_rates = {}
             
             # Sortuj waluty alfabetycznie według nazwy
-            sorted_rates = sorted(currency_rates.items(), key=lambda x: currencies_map.get(str(x[0]), {}).get('name', f'Currency {x[0]}'))
+            sorted_rates = sorted(currency_rates.items(), key=lambda x: currencies_map.get(str(x[0]), f'Currency {x[0]}'))
             
             for currency_id, rate in sorted_rates:
-                currency_info = currencies_map.get(str(currency_id), {})
-                currency_name = currency_info.get('name', f'Currency {currency_id}') if isinstance(currency_info, dict) else f'Currency {currency_id}'
+                currency_name = currencies_map.get(str(currency_id), f'Currency {currency_id}')
                 
                 # Oblicz wskaźnik wzrostu na podstawie wczorajszych kursów
                 growth_text = "—"
@@ -336,7 +337,7 @@ class SheetsFormatter:
             sheets_data["Najlepsze Prace"] = jobs_data
         
         # Sheet 4: Regiony Produkcyjne - GRAIN (posortowane według produktywności)
-        regions_data = data.get('regions_data', [])
+        regions_data = data.get('regions', [])
         country_map = data.get('country_map', {})
         
         if regions_data:
@@ -575,7 +576,11 @@ class SheetsFormatter:
             country_name = "N/A"
             if 'nationality_id' in warrior:
                 country_info = country_map.get(warrior['nationality_id'], {})
-                country_name = country_info.get('name', 'N/A')
+                if isinstance(country_info, dict):
+                    country_name = country_info.get('name', 'N/A')
+                else:
+                    # Fallback: country_map might be simple {id: name} dict
+                    country_name = str(country_info) if country_info else 'N/A'
             
             warriors_data.append([
                 i,
@@ -710,11 +715,10 @@ class SheetsFormatter:
                 yesterday_rates = {}
             
             # Sortuj waluty alfabetycznie według nazwy
-            sorted_rates = sorted(currency_rates.items(), key=lambda x: currencies_map.get(str(x[0]), {}).get('name', f'Currency {x[0]}'))
+            sorted_rates = sorted(currency_rates.items(), key=lambda x: currencies_map.get(str(x[0]), f'Currency {x[0]}'))
             
             for currency_id, rate in sorted_rates:
-                currency_info = currencies_map.get(str(currency_id), {})
-                currency_name = currency_info.get('name', f'Currency {currency_id}') if isinstance(currency_info, dict) else f'Currency {currency_id}'
+                currency_name = currencies_map.get(str(currency_id), f'Currency {currency_id}')
                 
                 # Oblicz wskaźnik wzrostu na podstawie wczorajszych kursów
                 growth_text = "—"
@@ -738,7 +742,7 @@ class SheetsFormatter:
             sheets_data["Currency Rates"] = rates_data
         
         # Sheet 3: Production Regions - all products in one sheet
-        regions_data = data.get('regions_data', [])
+        regions_data = data.get('regions', [])
         if not regions_data:
             # Fallback to regions if regions_data is not available
             raw_regions = data.get('regions', [])

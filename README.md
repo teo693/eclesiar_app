@@ -148,6 +148,47 @@ python main.py production-calculator
 python main.py quick-calculator
 ```
 
+##### 8. Google Sheets Report
+```bash
+python main.py google-sheets-report
+```
+
+## 🐳 Docker Setup (Automated Reports)
+
+For automated Google Sheets reports every 6 hours:
+
+### Quick Start with Docker
+```bash
+# 1. Copy environment template
+cp docker.env.template .env
+
+# 2. Edit .env with your credentials
+nano .env
+
+# 3. Place Google credentials in cred/ directory
+# cred/google_credentials.json
+
+# 4. Start automated reporting
+./start-docker.sh
+```
+
+### Docker Commands
+```bash
+# Start automated reports
+docker-compose up -d
+
+# View logs
+docker-compose logs -f eclesiar-scheduler
+
+# Stop reports
+docker-compose down
+
+# Manual report generation
+docker-compose exec eclesiar-scheduler python main.py google-sheets-report
+```
+
+See [docs/docker/DOCKER_QUICK_START.md](docs/docker/DOCKER_QUICK_START.md) for quick setup or [docs/docker/DOCKER_SETUP.md](docs/docker/DOCKER_SETUP.md) for detailed configuration.
+
 ### Additional options
 ```bash
 python main.py daily-report --output-dir custom_reports
@@ -248,6 +289,14 @@ The project follows **Clean Architecture** principles with clear separation of c
 - Cheapest item of each type from all countries
 - Best production region for each product
 - Compact DOCX format for quick reference
+
+### 🐳 Docker Automation
+- **Automated Scheduling** - Reports generated every 6 hours via cron
+- **Google Sheets Integration** - Direct upload to Google Sheets
+- **Container Health Monitoring** - Automatic restart and health checks
+- **Persistent Storage** - Data, logs, and reports preserved across restarts
+- **Easy Deployment** - One-command setup with docker-compose
+- **Production Ready** - Resource limits, logging, and error handling
 
 ### 🧮 Production Calculator
 - **Interactive Calculator**: Full-featured calculator with region selection, company parameters, and detailed analysis
@@ -504,6 +553,17 @@ mypy src/
 - ✅ Integrated with main application menu and CLI
 - ✅ Added new command: `python main.py short-economic-report`
 
+### v2.5 - Docker Automation & Google Sheets Integration (2025-09-12)
+- ✅ **Docker Containerization** - Complete Docker setup with automated scheduling
+- ✅ **Automated Reports** - Google Sheets reports generated every 6 hours via cron
+- ✅ **Docker Compose** - Easy deployment with docker-compose.yml configuration
+- ✅ **Volume Mounts** - Persistent data, logs, and reports storage
+- ✅ **Health Checks** - Container health monitoring and automatic restart
+- ✅ **Google Sheets CLI** - Added `google-sheets-report` command to main.py
+- ✅ **Production Ready** - Resource limits, logging, and error handling
+- ✅ **Easy Setup** - Automated startup scripts and comprehensive documentation
+- ✅ **Environment Templates** - Docker configuration templates and examples
+
 ### v2.4 - Country Bonus Implementation & English Translation (2025-09-10)
 - ✅ **Country Bonus System** - Implemented dynamic country bonus calculation based on regional bonuses
 - ✅ **Enhanced Tables** - Added separate columns for regional and country bonuses in all reports
@@ -556,6 +616,10 @@ In case of problems or questions:
 ## 📄 License
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+## 📋 Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for a detailed history of changes and new features.
 
 ### MIT License Summary
 
