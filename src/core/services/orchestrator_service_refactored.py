@@ -42,6 +42,7 @@ class OrchestratorService:
         
         print(f"🚀 Starting refactored orchestrator...")
         print(f"📊 Report type: {report_type}")
+        
         print(f"🔧 Strategy: {self.data_fetching_context.get_strategy_name()}")
         
         try:
@@ -54,6 +55,12 @@ class OrchestratorService:
             if not data:
                 print("❌ Error: Cannot load data. Report will not be generated.")
                 return
+            
+            # Load historical data for Google Sheets reports (needed for currency growth indicators)
+            if report_type == "google_sheets":
+                from src.data.storage.cache import load_historical_data
+                historical_data = load_historical_data()
+                data['historical_data'] = historical_data
             
             # Generate report using factory pattern
             report_path = self._generate_report(data, sections, report_type)
@@ -184,7 +191,9 @@ class OrchestratorService:
     def _initialize_database(self) -> None:
         """Initialize database"""
         try:
-            # This would initialize the database using the repository
+            # Initialize database with new tables
+            from src.data.database.models import init_db
+            init_db()
             print("🗄️ Database initialized")
         except Exception as e:
             print(f"⚠️ Warning: database initialization failed: {e}")
@@ -210,7 +219,8 @@ class OrchestratorService:
                 "html": ReportType.HTML,
                 "production": ReportType.PRODUCTION,
                 "arbitrage": ReportType.ARBITRAGE,
-                "short_economic": ReportType.SHORT_ECONOMIC
+                "short_economic": ReportType.SHORT_ECONOMIC,
+                "google_sheets": ReportType.GOOGLE_SHEETS
             }
             
             if report_type not in report_type_mapping:

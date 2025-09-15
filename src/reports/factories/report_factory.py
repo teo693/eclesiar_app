@@ -149,6 +149,24 @@ class ShortEconomicReportGenerator(ReportGenerator):
         return ReportType.SHORT_ECONOMIC
 
 
+class GoogleSheetsExporter(ReportGenerator):
+    """Google Sheets report generator"""
+    
+    def generate(self, data: Dict[str, Any], sections: Dict[str, bool], output_dir: str) -> Optional[str]:
+        """Generate Google Sheets report"""
+        try:
+            from ..exporters.google_sheets_exporter import GoogleSheetsExporter as GSExporter
+            
+            exporter = GSExporter(self.deps)
+            return exporter.generate(data, sections, output_dir)
+        except Exception as e:
+            print(f"Error generating Google Sheets report: {e}")
+            return None
+    
+    def get_report_type(self) -> ReportType:
+        return ReportType.GOOGLE_SHEETS
+
+
 class ReportFactory:
     """Factory for creating report generators"""
     
@@ -158,6 +176,7 @@ class ReportFactory:
         ReportType.PRODUCTION: ProductionReportGenerator,
         ReportType.ARBITRAGE: ArbitrageReportGenerator,
         ReportType.SHORT_ECONOMIC: ShortEconomicReportGenerator,
+        ReportType.GOOGLE_SHEETS: GoogleSheetsExporter,
     }
     
     @classmethod

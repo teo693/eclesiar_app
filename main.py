@@ -151,6 +151,25 @@ def run_short_economic_report(output_dir: str) -> None:
             print(f"❌ Fallback method also failed: {fallback_e}")
 
 
+def run_google_sheets_report(output_dir: str, sections: dict) -> None:
+    """Run Google Sheets report generation"""
+    print("📊 Generating Google Sheets report...")
+    try:
+        # Use refactored orchestrator
+        config = AppConfig.from_env()
+        if not config.validate():
+            print("❌ Configuration validation failed")
+            return
+        
+        orchestrator = OrchestratorService(config)
+        
+        # Use the run method which fetches data first
+        orchestrator.run(sections, "google_sheets")
+            
+    except Exception as e:
+        print(f"❌ Error generating Google Sheets report: {e}")
+
+
 def run_production_calculator() -> None:
     """Run interactive production calculator"""
     print("🏭 Starting Production Calculator...")
@@ -208,12 +227,13 @@ def interactive_menu():
         print("3. 🏭 Regional productivity analysis")
         print("4. 💰 Currency arbitrage analysis")
         print("5. 📈 Short economic report (DOCX)")
-        print("6. 🔄 Full analysis (everything)")
-        print("7. 🧮 Production Calculator (Interactive)")
-        print("8. ⚡ Quick Production Calculator (Test scenarios)")
-        print("9. ❌ Exit")
+        print("6. 📊 Generate Google Sheets report")
+        print("7. 🔄 Full analysis (everything)")
+        print("8. 🧮 Production Calculator (Interactive)")
+        print("9. ⚡ Quick Production Calculator (Test scenarios)")
+        print("10. ❌ Exit")
         
-        choice = input("\nSelect option (1-9): ").strip()
+        choice = input("\nSelect option (1-10): ").strip()
         
         if choice == '1':
             output_dir = input("📁 Output directory (default: reports): ").strip() or 'reports'
@@ -247,6 +267,12 @@ def interactive_menu():
             
         elif choice == '6':
             output_dir = input("📁 Output directory (default: reports): ").strip() or 'reports'
+            sections = get_report_sections()
+            print("📊 Generating Google Sheets report...")
+            run_google_sheets_report(output_dir, sections)
+            
+        elif choice == '7':
+            output_dir = input("📁 Output directory (default: reports): ").strip() or 'reports'
             min_profit = input("💰 Minimum profit threshold in % (default: 0.5): ").strip()
             try:
                 min_profit = float(min_profit) if min_profit else 0.5
@@ -255,15 +281,15 @@ def interactive_menu():
             sections = get_report_sections()
             run_full_analysis(output_dir, min_profit, sections)
             
-        elif choice == '7':
+        elif choice == '8':
             print("🧮 Starting Interactive Production Calculator...")
             run_production_calculator()
             
-        elif choice == '8':
+        elif choice == '9':
             print("⚡ Starting Quick Production Calculator...")
             run_quick_calculator()
             
-        elif choice == '9':
+        elif choice == '10':
             print("👋 Thank you for using the Eclesiar Application!")
             break
             

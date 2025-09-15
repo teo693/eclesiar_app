@@ -1,3 +1,41 @@
+python3 main.py 
+🚀 Welcome to Eclesiar Application!
+==================================================
+
+📋 What would you like to do?
+1. 📊 Generate daily report (DOCX)
+2. 🌐 Generate daily report (HTML)
+3. 🏭 Regional productivity analysis
+4. 💰 Currency arbitrage analysis
+5. 📈 Short economic report (DOCX)
+6. 📊 Generate Google Sheets report
+7. 🔄 Full analysis (everything)
+8. 🧮 Production Calculator (Interactive)
+9. ⚡ Quick Production Calculator (Test scenarios)
+10. ❌ Exit
+
+Select option (1-10): 6
+📁 Output directory (default: reports): 
+
+📋 Select sections to include in the report:
+1. ⚔️ Military section (war statistics, wars)
+2. 🏆 Warriors section (heroes ranking)
+3. 💰 Economic section (currency rates, job offers, goods)
+4. 🏭 Regional productivity analysis
+5. ✅ All sections (default)
+6. ❌ Military section only
+
+Select option (1-6): 5
+✅ Selected sections: ⚔️ Military, 🏆 Warriors, 💰 Economic, 🏭 Productivity
+📊 Generating Google Sheets report...
+📊 Generating Google Sheets report...
+❌ Error generating Google Sheets report: 'country_repo'
+
+✅ Operation completed successfully!
+⏰ End time: 2025-09-12 10:01:07
+
+
+
 # Podstawowe zależności
 requests>=2.28.0
 python-dotenv>=0.19.0
@@ -6,8 +44,7 @@ python-dotenv>=0.19.0
 pandas>=1.5.0
 numpy>=1.21.0
 
-# Współbieżność
-concurrent-futures>=3.1.1
+# Współbieżność (concurrent.futures is built-in in Python 3.2+)
 
 # Eksport danych
 openpyxl>=3.0.10
@@ -31,6 +68,12 @@ configparser>=5.2.0
 # Testy (opcjonalnie)
 pytest>=7.0.0
 pytest-asyncio>=0.20.0
+
+# Google Sheets API
+google-api-python-client>=2.0.0
+google-auth>=2.0.0
+google-auth-oauthlib>=1.0.0
+google-auth-httplib2>=0.1.0
 
 # Narzędzia deweloperskie (opcjonalnie)
 black>=22.0.0

@@ -395,10 +395,12 @@ def fetch_cheapest_items_from_all_countries(
                 print(f"Error fetching prices for item {item_name} from country {country_id}: {e}")
                 continue
         
-        # Sortuj wszystkie towary tego typu według ceny w GOLD i weź 5 najtańszych
+        # Sortuj wszystkie towary tego typu według ceny w GOLD i weź więcej najtańszych
         if all_items_for_type:
             all_items_for_type.sort(key=lambda x: x["price_gold"])
-            cheapest_items[item_id] = all_items_for_type[:5]
+            # Weź minimum 10, maksimum 20 najtańszych
+            num_items = min(20, max(10, len(all_items_for_type)))
+            cheapest_items[item_id] = all_items_for_type[:num_items]
     
     print(f"DEBUG: Finished fetching cheapest goods. Found {len(cheapest_items)} item types")
     return cheapest_items

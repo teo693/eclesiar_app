@@ -2,6 +2,15 @@
 
 Comprehensive application for analyzing data from the Eclesiar game, featuring daily reports, regional productivity analysis, currency arbitrage analysis, and interactive production calculators.
 
+## 🔐 Security Notice
+
+**IMPORTANT**: This application contains sensitive configuration data. Please read [SECURITY.md](SECURITY.md) before setting up the application.
+
+**Quick Setup:**
+1. Copy `env.example` to `.env` and fill in your API keys
+2. Never commit `.env` files or credential files to Git
+3. See [GOOGLE_SHEETS_SETUP.md](GOOGLE_SHEETS_SETUP.md) for Google Sheets integration
+
 ## 🏗️ Project Structure
 
 ```

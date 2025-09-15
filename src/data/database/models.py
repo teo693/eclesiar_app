@@ -122,6 +122,44 @@ def init_db() -> None:
             else:
                 print(f"Error adding bonus_by_type column: {e}")
         
+        # Add new tables for repository system
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS countries (
+                id INTEGER PRIMARY KEY,
+                name TEXT NOT NULL,
+                currency_id INTEGER NOT NULL,
+                currency_name TEXT NOT NULL,
+                is_available BOOLEAN DEFAULT 1
+            )
+            """
+        )
+        
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS currencies (
+                id INTEGER PRIMARY KEY,
+                name TEXT NOT NULL,
+                code TEXT NOT NULL,
+                gold_rate REAL DEFAULT 0.0
+            )
+            """
+        )
+        
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS regions (
+                id INTEGER PRIMARY KEY,
+                name TEXT NOT NULL,
+                country_id INTEGER NOT NULL,
+                country_name TEXT NOT NULL,
+                pollution REAL DEFAULT 0.0,
+                bonus_score INTEGER DEFAULT 0,
+                population INTEGER DEFAULT 0
+            )
+            """
+        )
+        
         conn.commit()
 
 

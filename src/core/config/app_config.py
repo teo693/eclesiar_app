@@ -233,6 +233,10 @@ class DependencyContainer:
             FullDataFetchingStrategy, OptimizedDataFetchingStrategy, CachedDataFetchingStrategy
         )
         
+        # Ensure repositories are initialized first
+        if not self._repositories:
+            self._initialize_repositories()
+        
         # Create service dependencies for strategies
         deps = ServiceDependencies(
             country_repo=self._repositories['country_repo'],

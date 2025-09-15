@@ -143,6 +143,24 @@ arbitrage_reports/
 raw_api_output.json
 historia_raportow.json
 
+# Google Sheets credentials
+cred/google_credentials.json
+cred/oauth2_credentials.json
+config/google_sheets_config.py
+
+# Environment variables and secrets
+.env
+.env.local
+.env.production
+.env.staging
+*.env
+
+# API keys and tokens
+*.key
+*.token
+auth_token.txt
+api_key.txt
+
 # IDE
 .vscode/
 .idea/

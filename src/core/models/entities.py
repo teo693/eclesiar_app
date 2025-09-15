@@ -24,6 +24,7 @@ class ReportType(Enum):
     ARBITRAGE = "arbitrage"
     SHORT_ECONOMIC = "short_economic"
     HTML = "html"
+    GOOGLE_SHEETS = "google_sheets"
 
 
 @dataclass
