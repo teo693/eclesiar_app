@@ -263,7 +263,21 @@ class SheetsFormatter:
                     item_name = item_names.get(item_id, f"Item {item_id}")
                     country = cheapest_item.get('country', 'N/A')
                     price = cheapest_item.get('price_gold', 0)
-                    currency = cheapest_item.get('currency_name', 'N/A')
+                    
+                    # Poprawne mapowanie nazwy waluty
+                    currency_id = cheapest_item.get('currency_id')
+                    if currency_id and currencies_map:
+                        # Sprawdź różne formaty mapowania walut
+                        currency_data = currencies_map.get(str(currency_id)) or currencies_map.get(currency_id)
+                        if isinstance(currency_data, dict):
+                            currency = currency_data.get('name', cheapest_item.get('currency_name', 'N/A'))
+                        elif isinstance(currency_data, str):
+                            currency = currency_data
+                        else:
+                            currency = cheapest_item.get('currency_name', 'N/A')
+                    else:
+                        currency = cheapest_item.get('currency_name', 'N/A')
+                    
                     amount = cheapest_item.get('amount', 0)
                     avg5 = cheapest_item.get('avg5_in_gold', 0)
                     
@@ -655,6 +669,7 @@ class SheetsFormatter:
         # Sheet 1: Cheapest items - all products in one sheet
         cheapest_items = data.get('cheapest_items', {})
         items_map = data.get('items', {})
+        currencies_map = data.get('currencies_map', {})
         
         # Mapowanie ID towarów na nazwy
         item_names = {
@@ -690,7 +705,21 @@ class SheetsFormatter:
                     item_name = item_names.get(item_id, f"Item {item_id}")
                     country = cheapest_item.get('country', 'N/A')
                     price = cheapest_item.get('price_gold', 0)
-                    currency = cheapest_item.get('currency_name', 'N/A')
+                    
+                    # Poprawne mapowanie nazwy waluty
+                    currency_id = cheapest_item.get('currency_id')
+                    if currency_id and currencies_map:
+                        # Sprawdź różne formaty mapowania walut
+                        currency_data = currencies_map.get(str(currency_id)) or currencies_map.get(currency_id)
+                        if isinstance(currency_data, dict):
+                            currency = currency_data.get('name', cheapest_item.get('currency_name', 'N/A'))
+                        elif isinstance(currency_data, str):
+                            currency = currency_data
+                        else:
+                            currency = cheapest_item.get('currency_name', 'N/A')
+                    else:
+                        currency = cheapest_item.get('currency_name', 'N/A')
+                    
                     amount = cheapest_item.get('amount', 0)
                     avg5 = cheapest_item.get('avg5_in_gold', 0)
                     price_original = cheapest_item.get('price_currency', cheapest_item.get('price_in_currency', 0))
@@ -742,7 +771,6 @@ class SheetsFormatter:
         
         # Sheet 2: Currency Rates with growth indicators
         currency_rates = data.get('currency_rates', {})
-        currencies_map = data.get('currencies_map', {})
         historical_data = data.get('historical_data', {})
         
         if currency_rates:
