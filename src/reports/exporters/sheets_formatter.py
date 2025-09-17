@@ -223,7 +223,14 @@ class SheetsFormatter:
         
         # Top 5 regions by bonus
         if regions:
-            top_regions = sorted(regions, key=lambda x: x.get('bonus_score', 0), reverse=True)[:5]
+            def get_bonus_score(x):
+                score = x.get('bonus_score', 0)
+                try:
+                    return float(score) if score is not None else 0
+                except (ValueError, TypeError):
+                    return 0
+            
+            top_regions = sorted(regions, key=get_bonus_score, reverse=True)[:5]
             for i, region in enumerate(top_regions, 1):
                 sheets_data["Summary"].append([
                     f"{i}. {region.get('region_name', region.get('name', 'N/A'))}",
@@ -290,7 +297,7 @@ class SheetsFormatter:
             rates_data = [["Currency", "Rate vs GOLD", "Previous Rate", "Change %"]]
             
             # Pobierz wczorajsze kursy z danych historycznych
-            from datetime import datetime, timedelta
+            from datetime import timedelta
             yesterday_key = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
             yesterday_rates = {}
             
@@ -311,10 +318,22 @@ class SheetsFormatter:
                 yesterday_rates = {}
             
             # Sortuj waluty alfabetycznie według nazwy
-            sorted_rates = sorted(currency_rates.items(), key=lambda x: currencies_map.get(str(x[0]), f'Currency {x[0]}'))
+            def get_currency_name(x):
+                currency_id = str(x[0])
+                currency_data = currencies_map.get(currency_id, {})
+                if isinstance(currency_data, dict):
+                    return currency_data.get('name', f'Currency {currency_id}')
+                else:
+                    return str(currency_data)
+            
+            sorted_rates = sorted(currency_rates.items(), key=get_currency_name)
             
             for currency_id, rate in sorted_rates:
-                currency_name = currencies_map.get(str(currency_id), f'Currency {currency_id}')
+                currency_data = currencies_map.get(str(currency_id), {})
+                if isinstance(currency_data, dict):
+                    currency_name = currency_data.get('name', f'Currency {currency_id}')
+                else:
+                    currency_name = str(currency_data)
                 
                 # Oblicz wskaźnik wzrostu na podstawie wczorajszych kursów
                 growth_text = "—"
@@ -406,7 +425,7 @@ class SheetsFormatter:
                     
                     # Debug: sprawdź czy total_productivity jest liczbą
                     if not isinstance(total_productivity, (int, float)):
-                        print(f"Warning: total_productivity is not a number: {total_productivity} (type: {type(total_productivity)})")
+                        print(f"Warning: total_productivity is not a number: {total_productivity} (type: {type(total_productivity)}) for region {region.get('region_name', 'N/A')}")
                         total_productivity = 0.0
                     
                     # Oblicz produkcję Q1-Q5 na podstawie produktywności
@@ -430,7 +449,16 @@ class SheetsFormatter:
                     })
                 
                 # Posortuj regiony według produktywności dla GRAIN
-                sorted_regions = sorted(regions_with_productivity, key=lambda x: x.get('total_productivity', 0) if isinstance(x, dict) else 0, reverse=True)
+                def get_productivity_key(x):
+                    if not isinstance(x, dict):
+                        return 0
+                    productivity = x.get('total_productivity', 0)
+                    try:
+                        return float(productivity) if productivity is not None else 0
+                    except (ValueError, TypeError):
+                        return 0
+                
+                sorted_regions = sorted(regions_with_productivity, key=get_productivity_key, reverse=True)
                 
                 for region_data in sorted_regions[:max(10, len(sorted_regions))]:  # Minimum 10, maksimum wszystkie dostępne
                     if not isinstance(region_data, dict):
@@ -516,7 +544,7 @@ class SheetsFormatter:
                     
                     # Debug: sprawdź czy total_productivity jest liczbą
                     if not isinstance(total_productivity, (int, float)):
-                        print(f"Warning: total_productivity is not a number: {total_productivity} (type: {type(total_productivity)})")
+                        print(f"Warning: total_productivity is not a number: {total_productivity} (type: {type(total_productivity)}) for region {region.get('region_name', 'N/A')}")
                         total_productivity = 0.0
                     
                     # Oblicz produkcję Q1-Q5 na podstawie produktywności
@@ -540,7 +568,15 @@ class SheetsFormatter:
                     })
                 
                 # Posortuj regiony według produktywności dla danego typu
-                sorted_regions = sorted(regions_with_productivity, key=lambda x: x.get('total_productivity', 0) if isinstance(x, dict) else 0, reverse=True)
+                def get_productivity_key(x):
+                    if not isinstance(x, dict):
+                        return 0
+                    productivity = x.get('total_productivity', 0)
+                    try:
+                        return float(productivity) if productivity is not None else 0
+                    except (ValueError, TypeError):
+                        return 0
+                sorted_regions = sorted(regions_with_productivity, key=get_productivity_key, reverse=True)
                 
                 for region_data in sorted_regions[:max(10, len(sorted_regions))]:  # Minimum 10, maksimum wszystkie dostępne
                     if not isinstance(region_data, dict):
@@ -713,7 +749,7 @@ class SheetsFormatter:
             rates_data = [["Currency", "Rate vs GOLD", "Previous Rate", "Change %"]]
             
             # Pobierz wczorajsze kursy z danych historycznych
-            from datetime import datetime, timedelta
+            from datetime import timedelta
             yesterday_key = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
             yesterday_rates = {}
             
@@ -734,10 +770,22 @@ class SheetsFormatter:
                 yesterday_rates = {}
             
             # Sortuj waluty alfabetycznie według nazwy
-            sorted_rates = sorted(currency_rates.items(), key=lambda x: currencies_map.get(str(x[0]), f'Currency {x[0]}'))
+            def get_currency_name(x):
+                currency_id = str(x[0])
+                currency_data = currencies_map.get(currency_id, {})
+                if isinstance(currency_data, dict):
+                    return currency_data.get('name', f'Currency {currency_id}')
+                else:
+                    return str(currency_data)
+            
+            sorted_rates = sorted(currency_rates.items(), key=get_currency_name)
             
             for currency_id, rate in sorted_rates:
-                currency_name = currencies_map.get(str(currency_id), f'Currency {currency_id}')
+                currency_data = currencies_map.get(str(currency_id), {})
+                if isinstance(currency_data, dict):
+                    currency_name = currency_data.get('name', f'Currency {currency_id}')
+                else:
+                    currency_name = str(currency_data)
                 
                 # Oblicz wskaźnik wzrostu na podstawie wczorajszych kursów
                 growth_text = "—"

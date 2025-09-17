@@ -214,17 +214,25 @@ class GoogleSheetsExporter(ReportGenerator):
             sheet = next(s for s in spreadsheet['sheets'] if s['properties']['sheetId'] == sheet_id)
             sheet_name = sheet['properties']['title']
             
+            print(f"📊 Adding {len(sheet_data)} rows to sheet '{sheet_name}'")
+            if sheet_data:
+                print(f"   First row: {sheet_data[0]}")
+            
             # Add data
             body = {'values': sheet_data}
-            service.spreadsheets().values().update(
+            result = service.spreadsheets().values().update(
                 spreadsheetId=spreadsheet_id,
                 range=f"{sheet_name}!A1",
                 valueInputOption='RAW',
                 body=body
             ).execute()
             
+            print(f"✅ Successfully updated {result.get('updatedCells', 0)} cells in sheet '{sheet_name}'")
+            
         except Exception as e:
             print(f"⚠️ Warning: Could not add data to sheet: {e}")
+            import traceback
+            traceback.print_exc()
     
     def _format_spreadsheet(self, spreadsheet_id: str, service) -> None:
         """Apply formatting to the spreadsheet"""
