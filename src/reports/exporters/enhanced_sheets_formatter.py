@@ -23,6 +23,20 @@ class EnhancedSheetsFormatter:
         self.market_calc = MarketCalculationService()
         self.currency_calc = CurrencyCalculationService()
         self.region_calc = RegionCalculationService()
+        
+        # Mapowanie flag państw (shared across all sheets)
+        self.country_flags = {
+            "United Kingdom": "🇬🇧", "United States of America": "🇺🇸", "Mexico": "🇲🇽", "Colombia": "🇨🇴",
+            "Peru": "🇵🇪", "Brazil": "🇧🇷", "Chile": "🇨🇱", "Argentina": "🇦🇷", "Ireland": "🇮🇪",
+            "France": "🇫🇷", "Portugal": "🇵🇹", "Spain": "🇪🇸", "Germany": "🇩🇪", "Sweden": "🇸🇪",
+            "Italy": "🇮🇹", "Poland": "🇵🇱", "Lithuania": "🇱🇹", "Slovenia": "🇸🇮", "Croatia": "🇭🇷",
+            "Bosnia and Herzegovina": "🇧🇦", "Serbia": "🇷🇸", "North Macedonia": "🇲🇰", "Albania": "🇦🇱",
+            "Greece": "🇬🇷", "Hungary": "🇭🇺", "Romania": "🇷🇴", "Bulgaria": "🇧🇬", "Turkey": "🇹🇷",
+            "Ukraine": "🇺🇦", "Russia": "🇷🇺", "Georgia": "🇬🇪", "Israel": "🇮🇱", "Egypt": "🇪🇬",
+            "South Africa": "🇿🇦", "Iraq": "🇮🇶", "Saudi Arabia": "🇸🇦", "Iran": "🇮🇷", "Pakistan": "🇵🇰",
+            "India": "🇮🇳", "China": "🇨🇳", "Japan": "🇯🇵", "South Korea": "🇰🇷", "Indonesia": "🇮🇩",
+            "Australia": "🇦🇺", "Philippines": "🇵🇭"
+        }
     
     def format_comprehensive_economic_report(self, data: Dict[str, Any]) -> Dict[str, List[List]]:
         """
@@ -40,49 +54,74 @@ class EnhancedSheetsFormatter:
         cheapest_items = data.get('cheapest_items', {})
         regions_data = data.get('regions_data', [])
         gold_id = data.get('gold_id')
+        fetched_at = data.get('fetched_at')
+        
+        # Format last update time
+        last_update = self._format_last_update_time(fetched_at)
         
         
         # 1. 💰 Currency Analysis - Kompleksowa analiza walut
         sheets_data["💰 Currency Analysis"] = self._create_currency_analysis_sheet(
-            currency_rates, currencies_map, currency_codes_map, historical_data, gold_id
+            currency_rates, currencies_map, currency_codes_map, historical_data, gold_id, country_map, last_update
         )
         
         # 2. 🚀 Premium Job Opportunities - Najlepsze oferty pracy (NOWY ARKUSZ)
         sheets_data["🚀 Premium Job Opportunities"] = self._create_premium_jobs_sheet(
-            best_jobs, country_map, currency_rates, gold_id
+            best_jobs, country_map, currency_rates, gold_id, last_update
         )
         
         # 3. 🛒 Market Opportunities - Okazje zakupowe
         sheets_data["🛒 Market Opportunities"] = self._create_market_opportunities_sheet(
-            cheapest_items, currencies_map
+            cheapest_items, currencies_map, last_update
         )
         
         # 4. 🏭 Production Hubs - Lokalizacje produkcyjne
         sheets_data["🏭 Production Hubs"] = self._create_production_hubs_sheet(
-            regions_data
+            regions_data, last_update
         )
         
         # 5. 📊 Economic Overview - Przegląd gospodarczy
         sheets_data["📊 Economic Overview"] = self._create_economic_overview_sheet(
-            country_map, currency_rates, currencies_map, regions_data, best_jobs
+            country_map, currency_rates, currencies_map, regions_data, best_jobs, last_update
         )
         
         # 6. ⚡ Investment Alerts - Alerty inwestycyjne
         sheets_data["⚡ Investment Alerts"] = self._create_investment_alerts_sheet(
-            currency_rates, cheapest_items, best_jobs, regions_data, historical_data
+            currency_rates, cheapest_items, best_jobs, regions_data, historical_data, last_update
         )
         
         return sheets_data
     
+    def _format_last_update_time(self, fetched_at) -> str:
+        """Format last update time for display"""
+        if not fetched_at:
+            return f"📅 Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}"
+        
+        try:
+            # Parse ISO format timestamp
+            if isinstance(fetched_at, str):
+                # Remove Z suffix and parse
+                clean_timestamp = fetched_at.replace('Z', '+00:00')
+                dt = datetime.fromisoformat(clean_timestamp)
+            else:
+                dt = fetched_at
+            
+            # Format as readable string
+            formatted_time = dt.strftime('%Y-%m-%d %H:%M UTC')
+            return f"📅 Last updated: {formatted_time}"
+        except Exception:
+            return f"📅 Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}"
+    
     def _create_currency_analysis_sheet(self, currency_rates: Dict, currencies_map: Dict, 
                                       currency_codes_map: Dict, historical_data: Dict, 
-                                      gold_id: int) -> List[List]:
+                                      gold_id: int, country_map: Dict, last_update: str) -> List[List]:
         """Arkusz 1: Kompleksowa analiza walut"""
         
         sheet = [
             ["💰 CURRENCY ANALYSIS - COMPREHENSIVE MARKET DATA", "", "", "", "", "", "", ""],
+            [last_update, "", "", "", "", "", "", ""],
             ["", "", "", "", "", "", "", ""],
-            ["Currency Name", "Code", "Rate vs GOLD", "Previous Rate", "Change %", 
+            ["Currency", "Code", "Rate vs GOLD", "Previous Rate", "Change %", 
              "Strength Rank", "Volatility", "Investment Grade"]
         ]
         
@@ -110,6 +149,14 @@ class EnhancedSheetsFormatter:
             print(f"⚠️ Error loading historical currency data: {e}")
             pass
         
+        # Stwórz mapowanie walut do krajów
+        currency_to_country = {}
+        for country_id, country_info in country_map.items():
+            currency_id = country_info.get('currency_id')
+            country_name = country_info.get('name', '')
+            if currency_id and country_name:
+                currency_to_country[currency_id] = country_name
+        
         # Przygotuj dane do analizy
         currency_analysis = []
         
@@ -121,6 +168,11 @@ class EnhancedSheetsFormatter:
                 currency_name = str(currency_data)
             
             currency_code = currency_codes_map.get(currency_id, "")
+            
+            # Znajdź kraj dla tej waluty
+            country_name = currency_to_country.get(currency_id, "Unknown")
+            country_flag = self.country_flags.get(country_name, "🏳️")
+            currency_with_flag = f"{currency_name} ({country_flag} {country_name})"
             
             # Oblicz zmianę
             prev_rate = yesterday_rates.get(str(currency_id))
@@ -146,14 +198,15 @@ class EnhancedSheetsFormatter:
                 investment_grade = "❌ WEAK"
             
             currency_analysis.append({
-                'name': currency_name,
+                'name': currency_with_flag,
                 'code': currency_code,
                 'rate': rate,
                 'prev_rate': prev_rate or 0,
                 'change_pct': change_pct,
                 'change_text': change_text,
                 'volatility': volatility_score,
-                'investment_grade': investment_grade
+                'investment_grade': investment_grade,
+                'country': f"{country_flag} {country_name}"
             })
         
         # Sortuj według siły (rate)
@@ -162,7 +215,7 @@ class EnhancedSheetsFormatter:
         # Dodaj rankingi
         for i, currency in enumerate(currency_analysis, 1):
             sheet.append([
-                currency['name'],
+                currency['name'],  # Already contains flag and country name: "GBP (🇬🇧 United Kingdom)"
                 currency['code'],
                 f"{currency['rate']:.6f}",
                 f"{currency['prev_rate']:.6f}" if currency['prev_rate'] > 0 else "—",
@@ -175,11 +228,12 @@ class EnhancedSheetsFormatter:
         return sheet
     
     def _create_premium_jobs_sheet(self, best_jobs: List, country_map: Dict, 
-                                 currency_rates: Dict, gold_id: int) -> List[List]:
+                                 currency_rates: Dict, gold_id: int, last_update: str) -> List[List]:
         """Arkusz 2: Szczegółowa analiza najlepszych ofert pracy - GŁÓWNY ARKUSZ PRACY"""
         
         sheet = [
             ["🚀 PREMIUM JOB OPPORTUNITIES - DETAILED SALARY ANALYSIS", "", "", "", "", "", "", "", "", "", "", ""],
+            [last_update, "", "", "", "", "", "", "", "", "", "", ""],
             ["", "", "", "", "", "", "", "", "", "", "", ""],
             ["Business", "Country", "Salary GOLD", "Salary Local", "Currency", "Eco Skill", 
              "Global Rank", "Country Rank", "Efficiency", "Weekly Estimate", "Monthly Estimate", "Action"]
@@ -314,12 +368,13 @@ class EnhancedSheetsFormatter:
         return sheet
     
     def _create_market_opportunities_sheet(self, cheapest_items: Dict, 
-                                         currencies_map: Dict) -> List[List]:
+                                         currencies_map: Dict, last_update: str) -> List[List]:
         """Arkusz 3: Okazje zakupowe na rynku"""
         
         sheet = [
-            ["🛒 MARKET OPPORTUNITIES - BEST DEALS BY PRODUCT", "", "", "", "", "", "", "", ""],
-            ["", "", "", "", "", "", "", "", ""],
+            ["🛒 MARKET OPPORTUNITIES - BEST DEALS BY PRODUCT", "", "", "", "", "", "", "", "", ""],
+            [last_update, "", "", "", "", "", "", "", "", ""],
+            ["", "", "", "", "", "", "", "", "", ""],
             ["Product", "Quality", "Best Price (GOLD)", "Country", "Price (Local)", 
              "Currency", "Stock", "5-Day Avg", "Discount %", "Deal Rating"]
         ]
@@ -328,15 +383,38 @@ class EnhancedSheetsFormatter:
             sheet.append(["No market data available", "", "", "", "", "", "", "", "", ""])
             return sheet
         
-        # Mapowanie nazw produktów
+        
+        # Mapowanie nazw produktów z ikonami
         item_names = {
-            1: "Grain", 2: "Food Q1", 3: "Food Q2", 4: "Food Q3", 5: "Food Q4", 6: "Food Q5",
-            7: "Iron", 8: "Weapon Q1", 9: "Weapon Q2", 10: "Weapon Q3", 11: "Weapon Q4", 12: "Weapon Q5",
-            13: "Fuel", 14: "Tickets Q1", 15: "Tickets Q2", 16: "Tickets Q3", 17: "Tickets Q4", 18: "Tickets Q5",
-            19: "Titanium", 20: "Aircraft Q1", 21: "Aircraft Q2", 22: "Aircraft Q3", 23: "Aircraft Q4", 24: "Aircraft Q5"
+            1: "🌾 Grain", 2: "🍞 Food Q1", 3: "🍞 Food Q2", 4: "🍞 Food Q3", 5: "🍞 Food Q4", 6: "🍞 Food Q5",
+            7: "⚒️ Iron", 8: "⚔️ Weapon Q1", 9: "⚔️ Weapon Q2", 10: "⚔️ Weapon Q3", 11: "⚔️ Weapon Q4", 12: "⚔️ Weapon Q5",
+            13: "⛽ Fuel", 14: "🎫 Tickets Q1", 15: "🎫 Tickets Q2", 16: "🎫 Tickets Q3", 17: "🎫 Tickets Q4", 18: "🎫 Tickets Q5",
+            19: "🔩 Titanium", 20: "✈️ Aircraft Q1", 21: "✈️ Aircraft Q2", 22: "✈️ Aircraft Q3", 23: "✈️ Aircraft Q4", 24: "✈️ Aircraft Q5"
         }
         
-        # Zbierz wszystkie oferty
+        # Mapowanie flag państw
+        country_flags = {
+            "United Kingdom": "🇬🇧", "United States of America": "🇺🇸", "Mexico": "🇲🇽", "Colombia": "🇨🇴",
+            "Peru": "🇵🇪", "Brazil": "🇧🇷", "Chile": "🇨🇱", "Argentina": "🇦🇷", "Ireland": "🇮🇪",
+            "France": "🇫🇷", "Portugal": "🇵🇹", "Spain": "🇪🇸", "Germany": "🇩🇪", "Sweden": "🇸🇪",
+            "Italy": "🇮🇹", "Poland": "🇵🇱", "Lithuania": "🇱🇹", "Slovenia": "🇸🇮", "Croatia": "🇭🇷",
+            "Bosnia and Herzegovina": "🇧🇦", "Serbia": "🇷🇸", "North Macedonia": "🇲🇰", "Albania": "🇦🇱",
+            "Greece": "🇬🇷", "Hungary": "🇭🇺", "Romania": "🇷🇴", "Bulgaria": "🇧🇬", "Turkey": "🇹🇷",
+            "Ukraine": "🇺🇦", "Russia": "🇷🇺", "Georgia": "🇬🇪", "Israel": "🇮🇱", "Egypt": "🇪🇬",
+            "South Africa": "🇿🇦", "Iraq": "🇮🇶", "Saudi Arabia": "🇸🇦", "Iran": "🇮🇷", "Pakistan": "🇵🇰",
+            "India": "🇮🇳", "China": "🇨🇳", "Japan": "🇯🇵", "South Korea": "🇰🇷", "Indonesia": "🇮🇩",
+            "Australia": "🇦🇺", "Philippines": "🇵🇭"
+        }
+        
+        # Mapowanie ikon walut
+        currency_icons = {
+            "USD": "💵", "EUR": "💶", "GBP": "💷", "GOLD": "🪙",
+            "PLN": "💰", "CZK": "💰", "HUF": "💰", "SEK": "💰", "TRY": "💰",
+            "RUB": "💰", "UAH": "💰", "CNY": "💰", "JPY": "💰", "KRW": "💰",
+            "INR": "💰", "IDR": "💰", "AUD": "💰", "PHP": "💰", "CAD": "💰"
+        }
+        
+        # Zbierz TOP 3 oferty dla WSZYSTKICH towarów
         all_opportunities = []
         
         for item_id, items_list in cheapest_items.items():
@@ -347,51 +425,60 @@ class EnhancedSheetsFormatter:
             quality = "Q1" if "Q" not in item_name else item_name.split()[-1]
             product_base = item_name.replace(f" {quality}", "") if quality != "Q1" else item_name
             
-            # Znajdź najlepszą ofertę
-            best_item = min(items_list, key=lambda x: x.get('price_gold', float('inf')))
+            # Sortuj oferty w tym produkcie od najniższej ceny i weź TOP 3
+            sorted_items = sorted(items_list, key=lambda x: x.get('price_gold', float('inf')))[:3]
             
-            price_gold = best_item.get('price_gold', 0)
-            country = best_item.get('country', 'Unknown')
-            price_local = best_item.get('price_currency', best_item.get('price_in_currency', 0))
-            currency = best_item.get('currency_name', 'N/A')
-            stock = best_item.get('amount', 0)
-            avg5 = best_item.get('avg5_in_gold', 0)
-            
-            # Oblicz rabat względem średniej
-            discount_pct = 0
-            if avg5 > 0:
-                discount_pct = ((avg5 - price_gold) / avg5) * 100
-            
-            # Ocena okazji
-            if discount_pct > 20:
-                deal_rating = "💎 AMAZING"
-            elif discount_pct > 10:
-                deal_rating = "🔥 GREAT"
-            elif discount_pct > 5:
-                deal_rating = "✅ GOOD"
-            elif discount_pct > 0:
-                deal_rating = "👍 FAIR"
-            else:
-                deal_rating = "📊 MARKET"
-            
-            all_opportunities.append({
-                'product': product_base,
-                'quality': quality,
-                'price_gold': price_gold,
-                'country': country,
-                'price_local': price_local,
-                'currency': currency,
-                'stock': stock,
-                'avg5': avg5,
-                'discount_pct': discount_pct,
-                'deal_rating': deal_rating
-            })
+            for rank, item in enumerate(sorted_items, 1):
+                price_gold = item.get('price_gold', 0)
+                country_name = item.get('country', 'Unknown')
+                country_flag = country_flags.get(country_name, "🏳️")
+                country_with_flag = f"{country_flag} {country_name}"
+                price_local = item.get('price_currency', item.get('price_in_currency', 0))
+                currency_name = item.get('currency_name', 'N/A')
+                currency_icon = currency_icons.get(currency_name, "💰")
+                currency_with_icon = f"{currency_icon} {currency_name}"
+                stock = item.get('amount', 0)
+                avg5 = item.get('avg5_in_gold', 0)
+                
+                # Oblicz rabat względem średniej
+                discount_pct = 0
+                if avg5 > 0:
+                    discount_pct = ((avg5 - price_gold) / avg5) * 100
+                
+                # Ocena okazji z uwzględnieniem rankingu
+                if rank == 1:
+                    if discount_pct > 20:
+                        deal_rating = "💎 AMAZING #1"
+                    elif discount_pct > 10:
+                        deal_rating = "🔥 GREAT #1"
+                    elif discount_pct > 5:
+                        deal_rating = "✅ GOOD #1"
+                    else:
+                        deal_rating = "🥇 BEST"
+                elif rank == 2:
+                    deal_rating = "🥈 2ND BEST"
+                else:
+                    deal_rating = "🥉 3RD BEST"
+                
+                all_opportunities.append({
+                    'product': product_base,
+                    'quality': quality,
+                    'price_gold': price_gold,
+                    'country': country_with_flag,
+                    'price_local': price_local,
+                    'currency': currency_with_icon,
+                    'stock': stock,
+                    'avg5': avg5,
+                    'discount_pct': discount_pct,
+                    'deal_rating': deal_rating,
+                    'rank': rank
+                })
         
-        # Sortuj według rabatu (najlepsze okazje pierwsze)
-        all_opportunities.sort(key=lambda x: x['discount_pct'], reverse=True)
+        # Sortuj wszystkie oferty według ceny (najniższe pierwsze)
+        all_opportunities.sort(key=lambda x: x['price_gold'])
         
-        # Dodaj do arkusza (top 30 okazji)
-        for opp in all_opportunities[:30]:
+        # Dodaj do arkusza (wszystkie TOP 3 oferty dla każdego produktu)
+        for opp in all_opportunities:
             sheet.append([
                 opp['product'],
                 opp['quality'],
@@ -407,11 +494,12 @@ class EnhancedSheetsFormatter:
         
         return sheet
     
-    def _create_production_hubs_sheet(self, regions_data: List) -> List[List]:
+    def _create_production_hubs_sheet(self, regions_data: List, last_update: str) -> List[List]:
         """Arkusz 4: Najlepsze lokalizacje produkcyjne"""
         
         sheet = [
             ["🏭 PRODUCTION HUBS - OPTIMAL MANUFACTURING LOCATIONS", "", "", "", "", "", "", "", ""],
+            [last_update, "", "", "", "", "", "", "", ""],
             ["", "", "", "", "", "", "", "", ""],
             ["Region", "Country", "Specialization", "Regional Bonus %", "Pollution", 
              "Efficiency Score", "NPC Wages", "Investment Grade", "Recommendation"]
@@ -430,6 +518,8 @@ class EnhancedSheetsFormatter:
             
             region_name = region.get('region_name', region.get('name', 'Unknown'))
             country_name = region.get('country_name', 'Unknown')
+            country_flag = self.country_flags.get(country_name, "🏳️")
+            country_with_flag = f"{country_flag} {country_name}"
             bonus_description = region.get('bonus_description', '')
             bonus_score = region.get('bonus_score', 0)
             pollution = region.get('pollution', 0)
@@ -474,7 +564,7 @@ class EnhancedSheetsFormatter:
             
             production_opportunities.append({
                 'region_name': region_name,
-                'country_name': country_name,
+                'country_name': country_with_flag,
                 'specialization': specialization,
                 'bonus_score': bonus_score,
                 'pollution': pollution,
@@ -505,11 +595,19 @@ class EnhancedSheetsFormatter:
     
     def _create_economic_overview_sheet(self, country_map: Dict, currency_rates: Dict,
                                       currencies_map: Dict, regions_data: List, 
-                                      best_jobs: List) -> List[List]:
+                                      best_jobs: List, last_update: str) -> List[List]:
         """Arkusz 5: Przegląd gospodarczy krajów"""
         
         sheet = [
             ["📊 ECONOMIC OVERVIEW - COUNTRY INVESTMENT ANALYSIS", "", "", "", "", "", "", ""],
+            [last_update, "", "", "", "", "", "", ""],
+            ["", "", "", "", "", "", "", ""],
+            ["🔍 WHAT THIS SHOWS: Comprehensive economic health analysis combining currency stability,", "", "", "", "", "", "", ""],
+            ["job market quality, and production capabilities. Scores are calculated from:", "", "", "", "", "", "", ""],
+            ["• Currency Strength: Exchange rate vs GOLD (higher = stronger currency)", "", "", "", "", "", "", ""],
+            ["• Job Market: Average salary levels and opportunity count", "", "", "", "", "", "", ""],
+            ["• Production Power: Regional bonuses and manufacturing efficiency", "", "", "", "", "", "", ""],
+            ["• Risk Level: Volatility based on historical data patterns", "", "", "", "", "", "", ""],
             ["", "", "", "", "", "", "", ""],
             ["Country", "Currency Strength", "Production Regions", "Avg Job Salary", 
              "Best Opportunities", "Economic Score", "Risk Level", "Investment Rating"]
@@ -593,11 +691,19 @@ class EnhancedSheetsFormatter:
     
     def _create_investment_alerts_sheet(self, currency_rates: Dict, cheapest_items: Dict,
                                       best_jobs: List, regions_data: List, 
-                                      historical_data: Dict) -> List[List]:
+                                      historical_data: Dict, last_update: str) -> List[List]:
         """Arkusz 6: Alerty inwestycyjne i okazje arbitrażowe"""
         
         sheet = [
             ["⚡ INVESTMENT ALERTS - REAL-TIME OPPORTUNITIES", "", "", "", "", "", "", ""],
+            [last_update, "", "", "", "", "", "", ""],
+            ["", "", "", "", "", "", "", ""],
+            ["🔍 WHAT THIS SHOWS: Time-sensitive investment opportunities identified by analyzing", "", "", "", "", "", "", ""],
+            ["market anomalies, price discrepancies, and unusual patterns. Alerts include:", "", "", "", "", "", "", ""],
+            ["• Currency Fluctuations: Major rate changes suggesting trading opportunities", "", "", "", "", "", "", ""],
+            ["• Market Arbitrage: Price differences between regions for same products", "", "", "", "", "", "", ""],
+            ["• Job Market Spikes: Unusually high-paying positions above market average", "", "", "", "", "", "", ""],
+            ["• Production Gaps: High-demand areas with low supply for strategic investment", "", "", "", "", "", "", ""],
             ["", "", "", "", "", "", "", ""],
             ["Alert Type", "Asset/Opportunity", "Location", "Current Value", 
              "Target Value", "Profit Potential", "Risk Level", "Action"]

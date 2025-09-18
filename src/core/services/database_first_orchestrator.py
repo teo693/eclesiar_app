@@ -222,7 +222,8 @@ class DatabaseFirstOrchestrator:
     def _process_market_offers(self, market_offers: List[Dict]) -> Dict[int, List[Dict]]:
         """Processes market offers to format expected by reports (dictionary grouped by item_id)"""
         processed = {}
-        for offer in market_offers[:100]:  # Top 100 cheapest
+        # Process ALL offers to show top 3 for each item type
+        for offer in market_offers:
             item_id = offer.get('item_id')
             if item_id is not None:
                 if item_id not in processed:
