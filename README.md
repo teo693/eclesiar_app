@@ -107,7 +107,7 @@ nano .env
 
 #### Interactive Mode (Recommended)
 ```bash
-python main.py
+python3 main.py
 ```
 This launches the interactive menu where you can select from all available options.
 
@@ -115,42 +115,42 @@ This launches the interactive menu where you can select from all available optio
 
 ##### 1. Generate daily report
 ```bash
-python main.py daily-report
+python3 main.py daily-report
 ```
 
 ##### 2. Regional productivity analysis
 ```bash
-python main.py production-analysis
+python3 main.py production-analysis
 ```
 
 ##### 3. Currency arbitrage analysis
 ```bash
-python main.py arbitrage-analysis --min-profit 1.0
+python3 main.py arbitrage-analysis --min-profit 1.0
 ```
 
 ##### 4. Short economic report (DOCX)
 ```bash
-python main.py short-economic-report
+python3 main.py short-economic-report
 ```
 
 ##### 5. Full analysis (all modules)
 ```bash
-python main.py full-analysis
+python3 main.py full-analysis
 ```
 
 ##### 6. Interactive Production Calculator
 ```bash
-python main.py production-calculator
+python3 main.py production-calculator
 ```
 
 ##### 7. Quick Production Calculator (Test scenarios)
 ```bash
-python main.py quick-calculator
+python3 main.py quick-calculator
 ```
 
 ##### 8. Google Sheets Report
 ```bash
-python main.py google-sheets-report
+python3 main.py google-sheets-report
 ```
 
 ## 🐳 Docker Setup (Automated Reports)
@@ -184,15 +184,15 @@ docker-compose logs -f eclesiar-scheduler
 docker-compose down
 
 # Manual report generation
-docker-compose exec eclesiar-scheduler python main.py google-sheets-report
+docker-compose exec eclesiar-scheduler python3 main.py google-sheets-report
 ```
 
 See [docs/docker/DOCKER_QUICK_START.md](docs/docker/DOCKER_QUICK_START.md) for quick setup or [docs/docker/DOCKER_SETUP.md](docs/docker/DOCKER_SETUP.md) for detailed configuration.
 
 ### Additional options
 ```bash
-python main.py daily-report --output-dir custom_reports
-python main.py arbitrage-analysis --min-profit 2.0 --output-dir arbitrage_results
+python3 main.py daily-report --output-dir custom_reports
+python3 main.py arbitrage-analysis --min-profit 2.0 --output-dir arbitrage_results
 ```
 
 ## 🏛️ Architecture
@@ -575,7 +575,7 @@ mypy src/
 - ✅ Implemented all 8 production factors from Eclesiar documentation
 - ✅ Added region selection with real-time data from API
 - ✅ Integrated calculators with main application menu
-- ✅ Added new commands: `python main.py production-calculator` and `python main.py quick-calculator`
+- ✅ Added new commands: `python3 main.py production-calculator` and `python3 main.py quick-calculator`
 - ✅ Created comprehensive calculator documentation (CALCULATOR_README.md)
 - ✅ Translated all application interfaces to English
 
@@ -585,7 +585,7 @@ mypy src/
 - ✅ Shows cheapest item of each type from all countries
 - ✅ Displays best production region for each product
 - ✅ Integrated with main application menu and CLI
-- ✅ Added new command: `python main.py short-economic-report`
+- ✅ Added new command: `python3 main.py short-economic-report`
 
 ### v2.5 - Docker Automation & Google Sheets Integration (2025-09-12)
 - ✅ **Docker Containerization** - Complete Docker setup with automated scheduling

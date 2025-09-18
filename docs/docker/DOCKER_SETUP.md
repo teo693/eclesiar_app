@@ -52,7 +52,7 @@ docker-compose logs -f eclesiar-scheduler
 
 The container runs a cron job that executes every 6 hours:
 ```bash
-0 */6 * * * cd /app && python main.py google-sheets-report >> /app/logs/cron.log 2>&1
+0 */6 * * * cd /app && python3 main.py google-sheets-report >> /app/logs/cron.log 2>&1
 ```
 
 ### Report Generation
@@ -156,11 +156,11 @@ docker-compose up -d --build
 
 ```bash
 # Generate report manually
-docker-compose exec eclesiar-scheduler python main.py google-sheets-report
+docker-compose exec eclesiar-scheduler python3 main.py google-sheets-report
 
 # Generate different report types
-docker-compose exec eclesiar-scheduler python main.py daily-report
-docker-compose exec eclesiar-scheduler python main.py production-analysis
+docker-compose exec eclesiar-scheduler python3 main.py daily-report
+docker-compose exec eclesiar-scheduler python3 main.py production-analysis
 ```
 
 ### Update Configuration
@@ -199,7 +199,7 @@ docker-compose up -d
 docker-compose run --rm eclesiar-scheduler bash
 
 # Inside container, test manually:
-python main.py google-sheets-report
+python3 main.py google-sheets-report
 ```
 
 ## 📈 Scaling and Production
@@ -231,7 +231,7 @@ The container is configured with resource limits:
 For issues or questions:
 1. Check the logs first: `docker-compose logs eclesiar-scheduler`
 2. Verify configuration in `.env` file
-3. Test manual execution: `docker-compose exec eclesiar-scheduler python main.py google-sheets-report`
+3. Test manual execution: `docker-compose exec eclesiar-scheduler python3 main.py google-sheets-report`
 4. Check Google Sheets API quotas and permissions
 
 ---

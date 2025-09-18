@@ -413,16 +413,16 @@ def main():
             formatter_class=argparse.RawDescriptionHelpFormatter,
             epilog="""
 Usage examples:
-  python main.py daily-report          # Generate daily report
-  python main.py production-analysis   # Regional productivity analysis
-  python main.py arbitrage-analysis    # Currency arbitrage analysis
-  python main.py short-economic-report # Short economic report (DOCX)
-  python main.py google-sheets-report  # Generate Google Sheets report
-  python main.py google-sheets-report --economic-only  # Economic section only
-  python main.py full-analysis         # Full analysis (everything)
-  python main.py production-calculator # Interactive production calculator
-  python main.py quick-calculator      # Quick production calculator (test scenarios)
-  python main.py                       # Interactive mode
+  python3 main.py daily-report          # Generate daily report
+  python3 main.py production-analysis   # Regional productivity analysis
+  python3 main.py arbitrage-analysis    # Currency arbitrage analysis
+  python3 main.py short-economic-report # Short economic report (DOCX)
+  python3 main.py google-sheets-report  # Generate Google Sheets report
+  python3 main.py google-sheets-report --economic-only  # Economic section only
+  python3 main.py full-analysis         # Full analysis (everything)
+  python3 main.py production-calculator # Interactive production calculator
+  python3 main.py quick-calculator      # Quick production calculator (test scenarios)
+  python3 main.py                       # Interactive mode
             """
         )
         

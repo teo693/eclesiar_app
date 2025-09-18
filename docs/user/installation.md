@@ -333,7 +333,7 @@ docker-compose logs -f eclesiar-scheduler
 docker-compose down
 
 # Manual report generation
-docker-compose exec eclesiar-scheduler python main.py google-sheets-report
+docker-compose exec eclesiar-scheduler python3 main.py google-sheets-report
 
 # Update containers
 docker-compose pull

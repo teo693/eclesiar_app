@@ -18,6 +18,9 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
+# Create symlink for python -> python3 to avoid 'python: not found' errors
+RUN ln -sf /usr/local/bin/python3 /usr/local/bin/python
+
 # Copy requirements first for better caching
 COPY requirements/base.txt /app/requirements/
 
