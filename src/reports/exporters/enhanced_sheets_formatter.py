@@ -41,6 +41,7 @@ class EnhancedSheetsFormatter:
         regions_data = data.get('regions_data', [])
         gold_id = data.get('gold_id')
         
+        
         # 1. 💰 Currency Analysis - Kompleksowa analiza walut
         sheets_data["💰 Currency Analysis"] = self._create_currency_analysis_sheet(
             currency_rates, currencies_map, currency_codes_map, historical_data, gold_id
@@ -89,14 +90,24 @@ class EnhancedSheetsFormatter:
             sheet.append(["No currency data available", "", "", "", "", "", "", ""])
             return sheet
         
-        # Pobierz wczorajsze kursy
-        yesterday_key = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+        # Pobierz wczorajsze kursy - szukaj dostępnych danych historycznych
         yesterday_rates = {}
         
         try:
-            if yesterday_key in historical_data:
-                yesterday_rates = (historical_data[yesterday_key].get('economic_summary') or {}).get('currency_rates') or {}
-        except:
+            # Użyj najnowszych dostępnych danych historycznych
+            if historical_data:
+                # Sortuj daty i weź najnowszą
+                available_dates = sorted(historical_data.keys(), reverse=True)
+                
+                for date_key in available_dates:
+                    historical_entry = historical_data[date_key]
+                    if isinstance(historical_entry, dict):
+                        econ_summary = historical_entry.get('economic_summary', {})
+                        if 'currency_rates' in econ_summary:
+                            yesterday_rates = econ_summary['currency_rates']
+                            break
+        except Exception as e:
+            print(f"⚠️ Error loading historical currency data: {e}")
             pass
         
         # Przygotuj dane do analizy
@@ -174,6 +185,7 @@ class EnhancedSheetsFormatter:
              "Global Rank", "Country Rank", "Efficiency", "Weekly Estimate", "Monthly Estimate", "Action"]
         ]
         
+        
         if not best_jobs:
             # Pobierz dane używając centralnego serwisu jeśli nie ma danych
             try:
@@ -189,8 +201,39 @@ class EnhancedSheetsFormatter:
             sheet.append(["No premium job data available", "", "", "", "", "", "", "", "", "", "", ""])
             return sheet
         
-        # Sortuj i weź top 50 ofert dla szczegółowej analizy
-        best_jobs_sorted = sorted(best_jobs, key=lambda x: x.get("salary_gold", 0), reverse=True)[:50]
+        # Check if all salaries are zero
+        non_zero_salaries = [job for job in best_jobs if job.get('wage_gold', job.get('salary_gold', 0)) > 0]
+        if not non_zero_salaries:
+            sheet.append(["⚠️ WARNING: All salary data shows 0.0 - API may be incomplete", "", "", "", "", "", "", "", "", "", "", ""])
+            sheet.append(["Showing business data available:", "", "", "", "", "", "", "", "", "", "", ""])
+            sheet.append(["", "", "", "", "", "", "", "", "", "", "", ""])
+            
+            # Show businesses even with zero salaries for now
+            for i, job in enumerate(best_jobs[:20], 1):
+                country = job.get('country_name', 'Unknown')
+                business_id = job.get('business_id') or job.get('company_id') or f"Job-{i}"
+                currency = job.get('currency_name', 'N/A')
+                job_title = job.get('job_title', 'Unknown')
+                
+                sheet.append([
+                    str(business_id),
+                    country,
+                    "0.00 ⚠️",  # Show zero with warning
+                    "0.00",
+                    currency,
+                    "N/A",
+                    f"#{i}",
+                    "N/A", 
+                    "N/A",
+                    "N/A",
+                    "N/A",
+                    "⚠️ Check API"
+                ])
+            
+            return sheet
+        
+        # Sortuj i weź top 50 ofert dla szczegółowej analizy (użyj wage_gold zamiast salary_gold)
+        best_jobs_sorted = sorted(best_jobs, key=lambda x: x.get("wage_gold", x.get("salary_gold", 0)), reverse=True)[:50]
         
         # Grupuj oferty według krajów dla rankingu krajowego
         country_jobs = {}
@@ -200,20 +243,20 @@ class EnhancedSheetsFormatter:
                 country_jobs[country] = []
             country_jobs[country].append(job)
         
-        # Sortuj oferty w każdym kraju
+        # Sortuj oferty w każdym kraju (użyj wage_gold zamiast salary_gold)
         for country in country_jobs:
-            country_jobs[country].sort(key=lambda x: x.get("salary_gold", 0), reverse=True)
+            country_jobs[country].sort(key=lambda x: x.get("wage_gold", x.get("salary_gold", 0)), reverse=True)
         
-        # Oblicz średnie i statystyki
-        avg_global_salary = sum(job.get('salary_gold', 0) for job in best_jobs) / len(best_jobs) if best_jobs else 0
-        median_salary = sorted([job.get('salary_gold', 0) for job in best_jobs])[len(best_jobs)//2] if best_jobs else 0
+        # Oblicz średnie i statystyki (użyj wage_gold zamiast salary_gold)
+        avg_global_salary = sum(job.get('wage_gold', job.get('salary_gold', 0)) for job in best_jobs) / len(best_jobs) if best_jobs else 0
+        median_salary = sorted([job.get('wage_gold', job.get('salary_gold', 0)) for job in best_jobs])[len(best_jobs)//2] if best_jobs else 0
         
         # Przygotuj dane dla każdej oferty
         for global_rank, job in enumerate(best_jobs_sorted, 1):
             country = job.get('country_name', 'Unknown')
             business_id = job.get('business_id') or job.get('company_id') or f"Job-{global_rank}"
-            salary_gold = job.get('salary_gold', 0)
-            salary_local = job.get('salary_original', 0)
+            salary_gold = job.get('wage_gold', job.get('salary_gold', 0))  # Use wage_gold first
+            salary_local = job.get('wage', job.get('salary_original', 0))  # Use wage first
             currency = job.get('currency_name', 'N/A')
             eco_skill = job.get('economic_skill', 0)
             

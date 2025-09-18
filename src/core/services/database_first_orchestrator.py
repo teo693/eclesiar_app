@@ -47,9 +47,35 @@ class DatabaseFirstOrchestrator:
         self.region_calc = RegionCalculationService()
         self.market_calc = MarketCalculationService()
         
+        # Initialize service dependencies for report generators
+        self._init_service_dependencies()
+        
         print("🏗️ Database-First Orchestrator initialized")
         print("📊 Using centralized calculation services")
         print("🚫 Cache disabled - all data from database")
+    
+    def _init_service_dependencies(self):
+        """Initialize service dependencies for report generators"""
+        from ...core.services.base_service import ServiceDependencies
+        from ...data.repositories.sqlite_repository import (
+            SQLiteCountryRepository, SQLiteCurrencyRepository, SQLiteRegionRepository
+        )
+        
+        # Create repository instances
+        country_repo = SQLiteCountryRepository(self.db_manager.db_path)
+        currency_repo = SQLiteCurrencyRepository(self.db_manager.db_path)
+        region_repo = SQLiteRegionRepository(self.db_manager.db_path)
+        
+        # Create service dependencies
+        self.deps = ServiceDependencies(
+            country_repo=country_repo,
+            currency_repo=currency_repo,
+            region_repo=region_repo,
+            item_repo=None,      # Will be implemented later
+            market_repo=None,    # Will be implemented later
+            production_repo=None, # Will be implemented later
+            report_repo=None     # Will be implemented later
+        )
     
     def run(self, sections: Dict[str, bool] = None, report_type: str = "daily", 
             output_dir: str = "reports") -> str:
@@ -151,11 +177,10 @@ class DatabaseFirstOrchestrator:
             data_bundle['best_jobs'] = self._process_job_offers(data_bundle['job_offers']) if data_bundle['job_offers'] else []
             data_bundle['cheapest_items'] = self._process_market_offers(data_bundle['market_offers']) if data_bundle['market_offers'] else {}
             
-            # Region data (for productivity)
-            if sections.get('production', False):
-                regions_data, regions_summary = self.db_manager.get_regions_data()
-                data_bundle['regions_data'] = regions_data
-                data_bundle['regions_summary'] = regions_summary
+            # Region data (always load for comprehensive economic analysis)
+            regions_data, regions_summary = self.db_manager.get_regions_data()
+            data_bundle['regions_data'] = regions_data
+            data_bundle['regions_summary'] = regions_summary
             
             # Military data
             if sections.get('military', False):
@@ -457,11 +482,95 @@ class DatabaseFirstOrchestrator:
     
     def _generate_google_sheets_report(self, data_bundle: Dict[str, Any], 
                                      sections: Dict[str, bool], output_dir: str) -> Optional[str]:
-        """Generuje raport Google Sheets"""
+        """Generuje raport Google Sheets z danych z bazy"""
         
-        # TODO: Implementuj generator Google Sheets używający danych z bazy
-        print("📊 Google Sheets report generation from database not yet implemented")
-        return None
+        try:
+            from ...reports.factories.report_factory import ReportFactory
+            from ...core.models.entities import ReportType
+            
+            # Przygotuj dane militarne i wojowników jeśli dostępne
+            hits_data, wars_summary = self.db_manager.get_military_data() if sections.get('military', False) else ([], {})
+            warriors_data = self.db_manager.get_warriors_data() if sections.get('warriors', False) else []
+            
+            # Przygotuj dane w formacie oczekiwanym przez Google Sheets exporter
+            summary_data = {
+                'fetched_at': data_bundle.get('fetched_at'),
+                'total_countries': len(data_bundle.get('countries', [])),
+                'total_currencies': len(data_bundle.get('currencies_map', {})),
+                'hits_data': hits_data,
+                'wars_summary': wars_summary,
+                'report_type': 'google_sheets'
+            }
+            
+            # Przygotuj top wojowników
+            top_warriors = warriors_data[:10] if warriors_data else []
+            summary_data['top_warriors'] = top_warriors
+            
+            # Przygotuj dane ekonomiczne
+            if sections.get('economic', False):
+                economic_summary = {
+                    'job_offers': data_bundle.get('best_jobs', []),
+                    'cheapest_items': data_bundle.get('cheapest_items', {}),
+                    'currency_rates': data_bundle.get('currency_rates', {}),
+                    'cheapest_items_all_countries': data_bundle.get('cheapest_items', {})
+                }
+                summary_data['economic_summary'] = economic_summary
+            
+            # Dodaj wszystkie dane ekonomiczne do głównego poziomu
+            summary_data.update({
+                'best_jobs': data_bundle.get('best_jobs', []),
+                'cheapest_items': data_bundle.get('cheapest_items', {}),
+                'currency_rates': data_bundle.get('currency_rates', {}),
+                'items_map': data_bundle.get('items_map', {}),
+                'currencies_map': data_bundle.get('currencies_map', {}),
+                'currency_codes_map': data_bundle.get('currency_codes_map', {}),
+                'gold_id': data_bundle.get('gold_id'),
+                'countries': data_bundle.get('countries', []),
+                'country_map': self._convert_countries_to_map(data_bundle.get('countries', [])),  # Convert countries list to map
+                'regions_data': data_bundle.get('regions_data', []),
+                'historical_data': self._load_historical_data(),  # Add historical data
+            })
+            
+            # Utwórz generator Google Sheets
+            generator = ReportFactory.create_generator(ReportType.GOOGLE_SHEETS, self.deps)
+            
+            # Generuj raport
+            print("📊 Generating Google Sheets report using factory...")
+            result = generator.generate(summary_data, sections, output_dir)
+            
+            if result:
+                print(f"✅ Google Sheets report generated successfully: {result}")
+                return result
+            else:
+                print("❌ Failed to generate Google Sheets report")
+                return "❌ Failed to generate report"
+                
+        except Exception as e:
+            print(f"❌ Error generating Google Sheets report: {e}")
+            import traceback
+            traceback.print_exc()
+            return "❌ Failed to generate report"
+    
+    def _load_historical_data(self) -> Dict[str, Any]:
+        """Load historical data for currency rate comparisons"""
+        try:
+            return load_historical_data()
+        except Exception as e:
+            print(f"⚠️ Could not load historical data: {e}")
+            return {}
+    
+    def _convert_countries_to_map(self, countries_list: List[Dict[str, Any]]) -> Dict[int, Dict[str, Any]]:
+        """Convert countries list to map format expected by EnhancedSheetsFormatter"""
+        country_map = {}
+        for country in countries_list:
+            country_id = country.get('country_id')
+            if country_id is not None:
+                country_map[country_id] = {
+                    'name': country.get('country_name'),
+                    'currency_id': country.get('currency_id'),
+                    'currency_name': country.get('currency_name')
+                }
+        return country_map
     
     def update_database_force(self, sections: Dict[str, bool] = None) -> bool:
         """Wymusza aktualizację bazy danych"""

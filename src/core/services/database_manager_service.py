@@ -597,8 +597,8 @@ class DatabaseManagerService:
         """Pobiera mapę kodów walut z bazy danych"""
         with self._connect() as conn:
             try:
-                cursor = conn.execute("SELECT currency_id, currency_code FROM currency_codes")
-                return {row['currency_id']: row['currency_code'] for row in cursor.fetchall()}
+                cursor = conn.execute("SELECT id, code FROM currencies WHERE code IS NOT NULL AND code != ''")
+                return {row['id']: row['code'] for row in cursor.fetchall()}
             except:
                 # Fallback if table doesn't exist
                 return {}

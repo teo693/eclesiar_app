@@ -589,11 +589,14 @@ class MarketCalculationService:
         
         for job in job_offers:
             legacy_job = {
+                "country_id": job.country_id,
                 "country_name": job.country_name,
-                "salary_original": job.salary_local,
+                "wage_original": job.salary_local,  # Fix: use wage_original not salary_original
+                "wage_gold": job.salary_gold,       # Fix: use wage_gold not salary_gold
+                "currency_id": job.currency_id,
                 "currency_name": job.currency_name,
-                "salary_gold": job.salary_gold,
-                "job_title": job.job_title,  # ✅ Już prawidłowo sformatowany
+                "job_title": job.job_title,
+                "business_name": job.job_title,     # Use job_title as business_name
                 "business_id": job.business_id,
                 "company_id": "N/A"  # Nie używane w API
             }
