@@ -165,6 +165,29 @@ def run_google_sheets_report(output_dir: str, sections: dict) -> None:
         print(f"❌ Error generating Google Sheets report: {e}")
 
 
+def run_google_sheets_economic_report(output_dir: str) -> None:
+    """Run Google Sheets economic report generation (economic sections only)"""
+    print("📊 Generating Google Sheets economic report...")
+    try:
+        # Use Database-First orchestrator with economic sections only
+        orchestrator = DatabaseFirstOrchestrator()
+        sections = {
+            'military': False,
+            'warriors': False, 
+            'economic': True,
+            'production': True
+        }
+        result = orchestrator.run(sections, "google_sheets", output_dir)
+        
+        if result.startswith("❌"):
+            print(f"❌ Google Sheets economic report failed: {result}")
+        else:
+            print(f"✅ Google Sheets economic report generated: {result}")
+            
+    except Exception as e:
+        print(f"❌ Error generating Google Sheets economic report: {e}")
+
+
 def run_production_calculator() -> None:
     """Run interactive production calculator"""
     print("🏭 Starting Production Calculator...")
@@ -237,14 +260,15 @@ def interactive_menu():
         print("4. 💰 Currency arbitrage analysis")
         print("5. 📈 Short economic report (DOCX)")
         print("6. 📊 Generate Google Sheets report")
-        print("7. 🔄 Full analysis (everything)")
-        print("8. 🧮 Production Calculator (Interactive)")
-        print("9. ⚡ Quick Production Calculator (Test scenarios)")
-        print("10. 🔄 Force Database Update")
-        print("11. 📊 Database Status")
-        print("12. ❌ Exit")
+        print("7. 💰 Generate Google Sheets economic report")
+        print("8. 🔄 Full analysis (everything)")
+        print("9. 🧮 Production Calculator (Interactive)")
+        print("10. ⚡ Quick Production Calculator (Test scenarios)")
+        print("11. 🔄 Force Database Update")
+        print("12. 📊 Database Status")
+        print("13. ❌ Exit")
         
-        choice = input("\nSelect option (1-12): ").strip()
+        choice = input("\nSelect option (1-13): ").strip()
         
         if choice == '1':
             output_dir = input("📁 Output directory (default: reports): ").strip() or 'reports'
@@ -304,6 +328,11 @@ def interactive_menu():
             
         elif choice == '7':
             output_dir = input("📁 Output directory (default: reports): ").strip() or 'reports'
+            print("💰 Generating Google Sheets economic report...")
+            run_google_sheets_economic_report(output_dir)
+            
+        elif choice == '8':
+            output_dir = input("📁 Output directory (default: reports): ").strip() or 'reports'
             min_profit = input("💰 Minimum profit threshold in % (default: 0.5): ").strip()
             try:
                 min_profit = float(min_profit) if min_profit else 0.5
@@ -312,15 +341,15 @@ def interactive_menu():
             sections = get_report_sections()
             run_full_analysis(output_dir, min_profit, sections)
             
-        elif choice == '8':
+        elif choice == '9':
             print("🧮 Starting Interactive Production Calculator...")
             run_production_calculator()
             
-        elif choice == '9':
+        elif choice == '10':
             print("⚡ Starting Quick Production Calculator...")
             run_quick_calculator()
             
-        elif choice == '10':
+        elif choice == '11':
             print("🔄 Forcing database update...")
             try:
                 orchestrator = DatabaseFirstOrchestrator()
@@ -338,7 +367,7 @@ def interactive_menu():
             except Exception as e:
                 print(f"❌ Error during database update: {e}")
         
-        elif choice == '11':
+        elif choice == '12':
             print("📊 Database Status:")
             try:
                 orchestrator = DatabaseFirstOrchestrator()
@@ -350,7 +379,7 @@ def interactive_menu():
             except Exception as e:
                 print(f"❌ Error getting database status: {e}")
         
-        elif choice == '12':
+        elif choice == '13':
             print("👋 Thank you for using the Eclesiar Application!")
             break
             
@@ -388,6 +417,7 @@ Usage examples:
   python main.py arbitrage-analysis    # Currency arbitrage analysis
   python main.py short-economic-report # Short economic report (DOCX)
   python main.py google-sheets-report  # Generate Google Sheets report
+  python main.py google-sheets-report --economic-only  # Economic section only
   python main.py full-analysis         # Full analysis (everything)
   python main.py production-calculator # Interactive production calculator
   python main.py quick-calculator      # Quick production calculator (test scenarios)
@@ -412,6 +442,12 @@ Usage examples:
             type=float,
             default=0.5,
             help='Minimum profit threshold for arbitrage in %% (default: 0.5)'
+        )
+        
+        parser.add_argument(
+            '--economic-only',
+            action='store_true',
+            help='Generate only economic section for Google Sheets report (no user interaction)'
         )
         
         args = parser.parse_args()
@@ -452,13 +488,24 @@ Usage examples:
                 run_short_economic_report(args.output_dir)
                 
             elif args.command == 'google-sheets-report':
-                # For command line mode, use all sections by default
-                sections = {
-                    'military': True,
-                    'warriors': True, 
-                    'economic': True,
-                    'production': True
-                }
+                # Check if economic-only flag is set
+                if args.economic_only:
+                    # Use only economic section (like option 3 in interactive menu)
+                    sections = {
+                        'military': False,
+                        'warriors': False, 
+                        'economic': True,
+                        'production': False
+                    }
+                    print("📊 Generating Google Sheets report with economic section only...")
+                else:
+                    # For command line mode without flag, use all sections by default
+                    sections = {
+                        'military': True,
+                        'warriors': True, 
+                        'economic': True,
+                        'production': True
+                    }
                 run_google_sheets_report(args.output_dir, sections)
                     
             elif args.command == 'full-analysis':
