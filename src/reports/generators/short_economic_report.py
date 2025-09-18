@@ -17,8 +17,6 @@ from src.core.services.economy_service import (
     fetch_best_jobs_from_all_countries
 )
 from src.data.repositories.sqlite_repository import SQLiteCurrencyRepository
-from src.core.services.economy_service_refactored import EconomyService
-from src.core.services.base_service import ServiceDependencies
 from src.reports.generators.production_report import ProductionAnalyzer
 from src.data.storage.cache import load_historical_data
 from datetime import timedelta

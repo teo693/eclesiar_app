@@ -12,10 +12,7 @@ import sys
 import argparse
 from datetime import datetime
 
-from src.core.services.orchestrator_service import run as run_orchestrator
-from src.core.services.orchestrator_service_refactored import OrchestratorService
 from src.core.services.database_first_orchestrator import DatabaseFirstOrchestrator
-from src.core.config.app_config import AppConfig
 from src.reports.generators.production_report import ProductionAnalyzer
 from src.reports.generators.arbitrage_report import CurrencyArbitrageAnalyzer
 from src.reports.generators.short_economic_report import generate_short_economic_report
@@ -90,18 +87,7 @@ def run_production_analysis(output_dir: str) -> None:
         
     except Exception as e:
         print(f"❌ Error during productivity analysis: {e}")
-        # Fallback to old orchestrator
-        try:
-            sections = {
-                'military': False,
-                'warriors': False, 
-                'economic': False,
-                'production': True
-            }
-            run_orchestrator(sections, "production")
-            print("✅ Productivity analysis completed using fallback orchestrator")
-        except Exception as fallback_e:
-            print(f"❌ Fallback orchestrator also failed: {fallback_e}")
+        print("💡 Try manually updating the database with option 10 in interactive menu")
 
 
 def run_arbitrage_analysis(output_dir: str, min_profit: float) -> None:
@@ -126,18 +112,7 @@ def run_arbitrage_analysis(output_dir: str, min_profit: float) -> None:
         
     except Exception as e:
         print(f"❌ Error during arbitrage analysis: {e}")
-        # Fallback to old orchestrator
-        try:
-            sections = {
-                'military': False,
-                'warriors': False, 
-                'economic': True,
-                'production': False
-            }
-            run_orchestrator(sections, "arbitrage")
-            print("✅ Arbitrage analysis completed using fallback orchestrator")
-        except Exception as fallback_e:
-            print(f"❌ Fallback orchestrator also failed: {fallback_e}")
+        print("💡 Try manually updating the database with option 10 in interactive menu")
 
 
 def run_short_economic_report(output_dir: str) -> None:
@@ -177,16 +152,14 @@ def run_google_sheets_report(output_dir: str, sections: dict) -> None:
     """Run Google Sheets report generation"""
     print("📊 Generating Google Sheets report...")
     try:
-        # Use refactored orchestrator
-        config = AppConfig.from_env()
-        if not config.validate():
-            print("❌ Configuration validation failed")
-            return
+        # Use Database-First orchestrator
+        orchestrator = DatabaseFirstOrchestrator()
+        result = orchestrator.run(sections, "google_sheets", output_dir)
         
-        orchestrator = OrchestratorService(config)
-        
-        # Use the run method which fetches data first
-        orchestrator.run(sections, "google_sheets")
+        if result.startswith("❌"):
+            print(f"❌ Google Sheets report failed: {result}")
+        else:
+            print(f"✅ Google Sheets report generated: {result}")
             
     except Exception as e:
         print(f"❌ Error generating Google Sheets report: {e}")
@@ -215,8 +188,15 @@ def run_quick_calculator() -> None:
 def run_orchestrator_html(output_dir: str, sections: dict = None) -> None:
     """Run orchestrator with HTML report generation"""
     print("🌐 Generating daily HTML report...")
-    from src.core.services.orchestrator_service import run_html as run_orchestrator_html_func
-    run_orchestrator_html_func(output_dir, sections)
+    try:
+        orchestrator = DatabaseFirstOrchestrator()
+        result = orchestrator.run(sections, "html", output_dir)
+        if result.startswith("❌"):
+            print(f"❌ HTML report failed: {result}")
+        else:
+            print(f"✅ HTML report generated: {result}")
+    except Exception as e:
+        print(f"❌ Error generating HTML report: {e}")
 
 
 def run_full_analysis(output_dir: str, min_profit: float, sections: dict = None) -> None:
@@ -233,8 +213,15 @@ def run_full_analysis(output_dir: str, min_profit: float, sections: dict = None)
         }
     
     print("📊 Generating comprehensive report with all data...")
-    run_orchestrator(sections, "full")
-    print("✅ Full analysis completed using optimized data fetching")
+    try:
+        orchestrator = DatabaseFirstOrchestrator()
+        result = orchestrator.run(sections, "daily", output_dir)
+        if result.startswith("❌"):
+            print(f"❌ Full analysis failed: {result}")
+        else:
+            print(f"✅ Full analysis completed: {result}")
+    except Exception as e:
+        print(f"❌ Error during full analysis: {e}")
 
 
 def interactive_menu():
@@ -267,15 +254,13 @@ def interactive_menu():
                 orchestrator = DatabaseFirstOrchestrator()
                 result = orchestrator.run(sections, "daily", output_dir)
                 if result.startswith("❌"):
-                    print(f"Database-First failed: {result}")
-                    print("🔄 Falling back to original orchestrator...")
-                    run_orchestrator(sections, "daily")
+                    print(f"❌ Report generation failed: {result}")
+                    print("💡 Try option 10 to manually update the database")
                 else:
                     print(f"✅ Report generated: {result}")
             except Exception as e:
-                print(f"❌ Database-First orchestrator failed: {e}")
-                print("🔄 Falling back to original orchestrator...")
-                run_orchestrator(sections, "daily")
+                print(f"❌ Orchestrator failed: {e}")
+                print("💡 Try option 10 to manually update the database")
             
         elif choice == '2':
             output_dir = input("📁 Output directory (default: reports): ").strip() or 'reports'
@@ -285,15 +270,13 @@ def interactive_menu():
                 orchestrator = DatabaseFirstOrchestrator()
                 result = orchestrator.run(sections, "html", output_dir)
                 if result.startswith("❌"):
-                    print(f"Database-First failed: {result}")
-                    print("🔄 Falling back to original orchestrator...")
-                    run_orchestrator_html(output_dir, sections)
+                    print(f"❌ HTML report generation failed: {result}")
+                    print("💡 Try option 10 to manually update the database")
                 else:
                     print(f"✅ Report generated: {result}")
             except Exception as e:
-                print(f"❌ Database-First orchestrator failed: {e}")
-                print("🔄 Falling back to original orchestrator...")
-                run_orchestrator_html(output_dir, sections)
+                print(f"❌ HTML orchestrator failed: {e}")
+                print("💡 Try option 10 to manually update the database")
             
         elif choice == '3':
             output_dir = input("📁 Output directory (default: reports): ").strip() or 'reports'
@@ -449,7 +432,15 @@ Usage examples:
                 print("📋 Generating daily report...")
                 # Use get_report_sections() function so user can select sections
                 sections = get_report_sections()
-                run_orchestrator(sections, "daily")
+                try:
+                    orchestrator = DatabaseFirstOrchestrator()
+                    result = orchestrator.run(sections, "daily", args.output_dir)
+                    if result.startswith("❌"):
+                        print(f"❌ Report generation failed: {result}")
+                    else:
+                        print(f"✅ Report generated: {result}")
+                except Exception as e:
+                    print(f"❌ Error generating report: {e}")
                 
             elif args.command == 'production-analysis':
                 run_production_analysis(args.output_dir)

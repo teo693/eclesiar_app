@@ -208,7 +208,6 @@ class DependencyContainer:
     def _initialize_services(self):
         """Initialize service instances"""
         from src.core.services.base_service import ServiceDependencies
-        from src.core.services.economy_service_refactored import EconomyService
         
         # Create service dependencies
         deps = ServiceDependencies(

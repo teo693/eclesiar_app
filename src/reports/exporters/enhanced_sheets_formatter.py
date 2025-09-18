@@ -9,12 +9,20 @@ Licensed under the MIT License - see LICENSE file for details.
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 import json
+from src.core.services.calculations.market_calculation_service import MarketCalculationService
+from src.core.services.calculations.currency_calculation_service import CurrencyCalculationService
+from src.core.services.calculations.region_calculation_service import RegionCalculationService
 
 class EnhancedSheetsFormatter:
     """Enhanced formatter for comprehensive economic analysis in Google Sheets"""
     
     def __init__(self):
         self.date_format = "%Y-%m-%d %H:%M:%S"
+        
+        # Initialize centralized calculation services (zgodnie z planem refaktoryzacji)
+        self.market_calc = MarketCalculationService()
+        self.currency_calc = CurrencyCalculationService()
+        self.region_calc = RegionCalculationService()
     
     def format_comprehensive_economic_report(self, data: Dict[str, Any]) -> Dict[str, List[List]]:
         """
@@ -38,8 +46,8 @@ class EnhancedSheetsFormatter:
             currency_rates, currencies_map, currency_codes_map, historical_data, gold_id
         )
         
-        # 2. 💼 Job Market Analysis - Analiza rynku pracy
-        sheets_data["💼 Job Market Analysis"] = self._create_job_market_sheet(
+        # 2. 🚀 Premium Job Opportunities - Najlepsze oferty pracy (NOWY ARKUSZ)
+        sheets_data["🚀 Premium Job Opportunities"] = self._create_premium_jobs_sheet(
             best_jobs, country_map, currency_rates, gold_id
         )
         
@@ -155,87 +163,110 @@ class EnhancedSheetsFormatter:
         
         return sheet
     
-    def _create_job_market_sheet(self, best_jobs: List, country_map: Dict, 
-                               currency_rates: Dict, gold_id: int) -> List[List]:
-        """Arkusz 2: Analiza rynku pracy"""
+    def _create_premium_jobs_sheet(self, best_jobs: List, country_map: Dict, 
+                                 currency_rates: Dict, gold_id: int) -> List[List]:
+        """Arkusz 2: Szczegółowa analiza najlepszych ofert pracy - GŁÓWNY ARKUSZ PRACY"""
         
         sheet = [
-            ["💼 JOB MARKET ANALYSIS - TOP OPPORTUNITIES WORLDWIDE", "", "", "", "", "", "", "", ""],
-            ["", "", "", "", "", "", "", "", ""],
-            ["Rank", "Country", "Business ID", "Salary (GOLD)", "Salary (Local)", 
-             "Currency", "Premium vs Avg %", "Country Avg", "Opportunity Score", "Status"]
+            ["🚀 PREMIUM JOB OPPORTUNITIES - DETAILED SALARY ANALYSIS", "", "", "", "", "", "", "", "", "", "", ""],
+            ["", "", "", "", "", "", "", "", "", "", "", ""],
+            ["Business", "Country", "Salary GOLD", "Salary Local", "Currency", "Eco Skill", 
+             "Global Rank", "Country Rank", "Efficiency", "Weekly Estimate", "Monthly Estimate", "Action"]
         ]
         
         if not best_jobs:
-            # Jeśli nie ma danych, spróbuj pobrać
+            # Pobierz dane używając centralnego serwisu jeśli nie ma danych
             try:
-                from src.core.services.economy_service import fetch_best_jobs_from_all_countries
                 if country_map and currency_rates and gold_id:
-                    best_jobs = fetch_best_jobs_from_all_countries(country_map, currency_rates, gold_id)
+                    job_offers = self.market_calc.fetch_best_jobs_from_all_countries(country_map, currency_rates, gold_id)
+                    best_jobs = self.market_calc.convert_job_offers_to_legacy_format(job_offers)
                     best_jobs.sort(key=lambda x: x.get("salary_gold", 0), reverse=True)
-                    best_jobs = best_jobs[:20]  # Top 20
-            except:
+            except Exception as e:
+                print(f"⚠️ Error fetching job data for premium analysis: {e}")
                 pass
         
         if not best_jobs:
-            sheet.append(["No job offers data available", "", "", "", "", "", "", "", "", ""])
+            sheet.append(["No premium job data available", "", "", "", "", "", "", "", "", "", "", ""])
             return sheet
         
-        # Oblicz średnią globalną
-        global_avg = sum(job.get('salary_gold', 0) for job in best_jobs) / len(best_jobs) if best_jobs else 0
+        # Sortuj i weź top 50 ofert dla szczegółowej analizy
+        best_jobs_sorted = sorted(best_jobs, key=lambda x: x.get("salary_gold", 0), reverse=True)[:50]
         
-        # Oblicz średnie krajowe
-        country_averages = {}
-        for job in best_jobs:
+        # Grupuj oferty według krajów dla rankingu krajowego
+        country_jobs = {}
+        for job in best_jobs_sorted:
             country = job.get('country_name', 'Unknown')
-            salary = job.get('salary_gold', 0)
-            if country not in country_averages:
-                country_averages[country] = []
-            country_averages[country].append(salary)
+            if country not in country_jobs:
+                country_jobs[country] = []
+            country_jobs[country].append(job)
         
-        for country in country_averages:
-            country_averages[country] = sum(country_averages[country]) / len(country_averages[country])
+        # Sortuj oferty w każdym kraju
+        for country in country_jobs:
+            country_jobs[country].sort(key=lambda x: x.get("salary_gold", 0), reverse=True)
         
-        # Przygotuj dane
-        for i, job in enumerate(best_jobs[:20], 1):
+        # Oblicz średnie i statystyki
+        avg_global_salary = sum(job.get('salary_gold', 0) for job in best_jobs) / len(best_jobs) if best_jobs else 0
+        median_salary = sorted([job.get('salary_gold', 0) for job in best_jobs])[len(best_jobs)//2] if best_jobs else 0
+        
+        # Przygotuj dane dla każdej oferty
+        for global_rank, job in enumerate(best_jobs_sorted, 1):
             country = job.get('country_name', 'Unknown')
+            business_id = job.get('business_id') or job.get('company_id') or f"Job-{global_rank}"
             salary_gold = job.get('salary_gold', 0)
             salary_local = job.get('salary_original', 0)
             currency = job.get('currency_name', 'N/A')
-            business_id = job.get('business_id') or job.get('company_id') or f"Job-{i}"
+            eco_skill = job.get('economic_skill', 0)
             
-            # Oblicz premium względem średniej globalnej
-            premium_pct = ((salary_gold - global_avg) / global_avg * 100) if global_avg > 0 else 0
+            # Znajdź ranking w kraju
+            country_rank = 1
+            for i, country_job in enumerate(country_jobs.get(country, []), 1):
+                if country_job.get('business_id') == job.get('business_id'):
+                    country_rank = i
+                    break
             
-            # Oblicz średnią krajową
-            country_avg = country_averages.get(country, 0)
-            
-            # Ocena możliwości
-            if premium_pct > 50:
-                opportunity_score = "🌟 EXCELLENT"
-                status = "🔥 HOT"
-            elif premium_pct > 20:
-                opportunity_score = "⭐ VERY GOOD"
-                status = "✅ ACTIVE"
-            elif premium_pct > 0:
-                opportunity_score = "👍 GOOD"
-                status = "✅ ACTIVE"
+            # Oblicz efektywność (płaca do wymagań skill)
+            if eco_skill > 0:
+                efficiency = salary_gold / eco_skill
+                efficiency_text = f"{efficiency:.4f}"
             else:
-                opportunity_score = "📊 AVERAGE"
-                status = "⚠️ MONITOR"
+                efficiency_text = "∞ (No req.)"
+            
+            # Szacunkowe zarobki (założenie: praca codziennie)
+            weekly_estimate = salary_gold * 7
+            monthly_estimate = salary_gold * 30
+            
+            # Rekomendacja działania
+            if salary_gold > avg_global_salary * 1.5:
+                action = "🔥 APPLY NOW!"
+            elif salary_gold > avg_global_salary * 1.2:
+                action = "✅ Highly Recommended"
+            elif salary_gold > median_salary:
+                action = "👍 Consider"
+            else:
+                action = "📊 Monitor"
             
             sheet.append([
-                str(i),
-                country,
                 str(business_id),
+                country,
                 f"{salary_gold:.6f}",
                 f"{salary_local:.2f}",
                 currency,
-                f"{premium_pct:+.1f}%",
-                f"{country_avg:.4f}",
-                opportunity_score,
-                status
+                str(eco_skill) if eco_skill > 0 else "No req.",
+                f"#{global_rank}",
+                f"#{country_rank} in {country}",
+                efficiency_text,
+                f"{weekly_estimate:.4f}",
+                f"{monthly_estimate:.3f}",
+                action
             ])
+        
+        # Dodaj separator i statystyki na końcu
+        sheet.append(["", "", "", "", "", "", "", "", "", "", "", ""])
+        sheet.append(["📊 MARKET STATISTICS", "", "", "", "", "", "", "", "", "", "", ""])
+        sheet.append(["Global Average Salary", f"{avg_global_salary:.6f}", "", "", "", "", "", "", "", "", "", ""])
+        sheet.append(["Median Salary", f"{median_salary:.6f}", "", "", "", "", "", "", "", "", "", ""])
+        sheet.append(["Total Analyzed Jobs", str(len(best_jobs_sorted)), "", "", "", "", "", "", "", "", "", ""])
+        sheet.append(["Countries Covered", str(len(country_jobs)), "", "", "", "", "", "", "", "", "", ""])
         
         return sheet
     

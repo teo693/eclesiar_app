@@ -45,8 +45,15 @@ class GoogleSheetsExporter(ReportGenerator):
             if GOOGLE_SHEETS_EXISTING_ID:
                 print(f"📊 Using existing spreadsheet: {GOOGLE_SHEETS_EXISTING_ID}")
                 spreadsheet_id = GOOGLE_SHEETS_EXISTING_ID
-                # Update existing spreadsheet
-                self._update_existing_spreadsheet(spreadsheet_id, formatted_data, service)
+                try:
+                    # Update existing spreadsheet
+                    self._update_existing_spreadsheet(spreadsheet_id, formatted_data, service)
+                except Exception as update_error:
+                    print(f"⚠️ Failed to update existing spreadsheet: {update_error}")
+                    print("🔄 Creating new spreadsheet instead...")
+                    # Fallback: create new spreadsheet if update fails
+                    spreadsheet_id = self._create_spreadsheet(formatted_data, report_type, service)
+                    self._share_spreadsheet(spreadsheet_id, drive_service)
             else:
                 # Create new spreadsheet
                 spreadsheet_id = self._create_spreadsheet(formatted_data, report_type, service)
