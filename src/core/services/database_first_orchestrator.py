@@ -131,7 +131,9 @@ class DatabaseFirstOrchestrator:
             # Podstawowe dane ekonomiczne (zawsze potrzebne)
             data_bundle['countries'] = self.db_manager.get_countries_data()
             data_bundle['currencies_map'] = self.db_manager.get_currencies_data()
+            data_bundle['currency_codes_map'] = self.db_manager.get_currency_codes_data()
             data_bundle['currency_rates'] = self.db_manager.get_currency_rates()
+            data_bundle['items_map'] = self.db_manager.get_items_map()
             
             # Znajdź GOLD ID
             gold_id = None
@@ -141,14 +143,13 @@ class DatabaseFirstOrchestrator:
                     break
             data_bundle['gold_id'] = gold_id or 1  # Fallback
             
-            # Dane ekonomiczne
-            if sections.get('economic', False):
-                data_bundle['job_offers'] = self.db_manager.get_job_offers()
-                data_bundle['market_offers'] = self.db_manager.get_market_offers()
-                
-                # Przetwórz oferty na format oczekiwany przez raporty
-                data_bundle['best_jobs'] = self._process_job_offers(data_bundle['job_offers'])
-                data_bundle['cheapest_items'] = self._process_market_offers(data_bundle['market_offers'])
+            # Dane ekonomiczne (zawsze ładuj podstawowe dane ekonomiczne jeśli są)
+            data_bundle['job_offers'] = self.db_manager.get_job_offers()
+            data_bundle['market_offers'] = self.db_manager.get_market_offers()
+            
+            # Przetwórz oferty na format oczekiwany przez raporty
+            data_bundle['best_jobs'] = self._process_job_offers(data_bundle['job_offers']) if data_bundle['job_offers'] else []
+            data_bundle['cheapest_items'] = self._process_market_offers(data_bundle['market_offers']) if data_bundle['market_offers'] else {}
             
             # Dane regionów (dla produktywności)
             if sections.get('production', False):
@@ -193,21 +194,26 @@ class DatabaseFirstOrchestrator:
             })
         return processed
     
-    def _process_market_offers(self, market_offers: List[Dict]) -> List[Dict]:
-        """Przetwarza oferty rynkowe do formatu oczekiwanego przez raporty"""
-        processed = []
+    def _process_market_offers(self, market_offers: List[Dict]) -> Dict[int, List[Dict]]:
+        """Przetwarza oferty rynkowe do formatu oczekiwanego przez raporty (słownik grupowany po item_id)"""
+        processed = {}
         for offer in market_offers[:100]:  # Top 100 najtańszych
-            processed.append({
-                'item_id': offer.get('item_id'),
-                'item_name': offer.get('item_name'),
-                'country_id': offer.get('country_id'),
-                'country_name': offer.get('country_name'),
-                'price': offer.get('price_original'),
-                'price_gold': offer.get('price_gold'),
-                'currency_id': offer.get('currency_id'),
-                'currency_name': offer.get('currency_name'),
-                'quantity': offer.get('quantity', 1)
-            })
+            item_id = offer.get('item_id')
+            if item_id is not None:
+                if item_id not in processed:
+                    processed[item_id] = []
+                
+                processed[item_id].append({
+                    'item_id': item_id,
+                    'item_name': offer.get('item_name'),
+                    'country_id': offer.get('country_id'),
+                    'country': offer.get('country_name'),  # daily report oczekuje 'country'
+                    'price_currency': offer.get('price_original'),
+                    'price_gold': offer.get('price_gold'),
+                    'currency_id': offer.get('currency_id'),
+                    'currency_name': offer.get('currency_name'),
+                    'amount': offer.get('quantity', 1)
+                })
         return processed
     
     def _generate_report_from_db_data(self, data_bundle: Dict[str, Any], 
@@ -249,29 +255,51 @@ class DatabaseFirstOrchestrator:
                              sections: Dict[str, bool], output_dir: str) -> Optional[str]:
         """Generuje dzienny raport DOCX z danych z bazy"""
         
+        # Przygotuj dane militarne i wojowników jeśli dostępne
+        hits_data, wars_summary = self.db_manager.get_military_data() if sections.get('military', False) else ([], {})
+        warriors_data = self.db_manager.get_warriors_data() if sections.get('warriors', False) else []
+        
         # Przygotuj dane w formacie oczekiwanym przez generator
         summary_data = {
             'fetched_at': data_bundle.get('fetched_at'),
             'total_countries': len(data_bundle.get('countries', [])),
-            'total_currencies': len(data_bundle.get('currencies_map', {}))
+            'total_currencies': len(data_bundle.get('currencies_map', {})),
+            'hits_data': hits_data,
+            'wars_summary': wars_summary
         }
         
         # Załaduj dane historyczne dla porównań
         historical_data = load_historical_data()
         
         # Przygotuj top wojowników
-        warriors_data = data_bundle.get('warriors_data', [])
         top_warriors = warriors_data[:10] if warriors_data else []
+        
+        # Przygotuj dane ekonomiczne w formacie oczekiwanym przez daily report
+        if sections.get('economic', False):
+            economic_summary = {
+                'job_offers': data_bundle.get('best_jobs', []),
+                'cheapest_items': data_bundle.get('cheapest_items', {}),
+                'currency_rates': data_bundle.get('currency_rates', {}),
+                'cheapest_items_all_countries': data_bundle.get('cheapest_items', {})
+            }
+            summary_data['economic_summary'] = economic_summary
+        
+        # Dodaj także dane do głównego poziomu dla innych komponentów
+        summary_data.update({
+            'best_jobs': data_bundle.get('best_jobs', []),
+            'cheapest_items': data_bundle.get('cheapest_items', {}),
+            'currency_rates': data_bundle.get('currency_rates', {}),
+        })
         
         # Generuj raport używając istniejącego generatora
         return generate_report(
             summary_data=summary_data,
             historical_data=historical_data,
             top_warriors=top_warriors,
-            items_map={},  # TODO: Dodać items_map do bazy danych
+            items_map=data_bundle.get('items_map', {}),
             currencies_map=data_bundle.get('currencies_map', {}),
             country_map={c['country_id']: c['country_name'] for c in data_bundle.get('countries', [])},
-            currency_codes_map={},  # TODO: Dodać currency_codes_map
+            currency_codes_map=data_bundle.get('currency_codes_map', {}),
             gold_id=data_bundle.get('gold_id'),
             output_dir=output_dir,
             sections=sections
@@ -281,25 +309,50 @@ class DatabaseFirstOrchestrator:
                             sections: Dict[str, bool], output_dir: str) -> Optional[str]:
         """Generuje dzienny raport HTML z danych z bazy"""
         
-        # Analogicznie do daily report, ale z HTML generator
+        # Przygotuj dane militarne i wojowników jeśli dostępne
+        hits_data, wars_summary = self.db_manager.get_military_data() if sections.get('military', False) else ([], {})
+        warriors_data = self.db_manager.get_warriors_data() if sections.get('warriors', False) else []
+        
+        # Przygotuj dane w formacie oczekiwanym przez generator
         summary_data = {
             'fetched_at': data_bundle.get('fetched_at'),
             'total_countries': len(data_bundle.get('countries', [])),
-            'total_currencies': len(data_bundle.get('currencies_map', {}))
+            'total_currencies': len(data_bundle.get('currencies_map', {})),
+            'hits_data': hits_data,
+            'wars_summary': wars_summary
         }
         
+        # Załaduj dane historyczne dla porównań
         historical_data = load_historical_data()
-        warriors_data = data_bundle.get('warriors_data', [])
+        
+        # Przygotuj top wojowników
         top_warriors = warriors_data[:10] if warriors_data else []
+        
+        # Przygotuj dane ekonomiczne w formacie oczekiwanym przez HTML report
+        if sections.get('economic', False):
+            economic_summary = {
+                'job_offers': data_bundle.get('best_jobs', []),
+                'cheapest_items': data_bundle.get('cheapest_items', {}),
+                'currency_rates': data_bundle.get('currency_rates', {}),
+                'cheapest_items_all_countries': data_bundle.get('cheapest_items', {})
+            }
+            summary_data['economic_summary'] = economic_summary
+        
+        # Dodaj także dane do głównego poziomu dla innych komponentów
+        summary_data.update({
+            'best_jobs': data_bundle.get('best_jobs', []),
+            'cheapest_items': data_bundle.get('cheapest_items', {}),
+            'currency_rates': data_bundle.get('currency_rates', {}),
+        })
         
         return generate_html_report(
             summary_data=summary_data,
             historical_data=historical_data,
             top_warriors=top_warriors,
-            items_map={},
+            items_map=data_bundle.get('items_map', {}),
             currencies_map=data_bundle.get('currencies_map', {}),
             country_map={c['country_id']: c['country_name'] for c in data_bundle.get('countries', [])},
-            currency_codes_map={},
+            currency_codes_map=data_bundle.get('currency_codes_map', {}),
             gold_id=data_bundle.get('gold_id'),
             output_dir=output_dir,
             sections=sections
@@ -329,34 +382,78 @@ class DatabaseFirstOrchestrator:
     
     def _generate_arbitrage_report(self, data_bundle: Dict[str, Any], 
                                  output_dir: str) -> Optional[str]:
-        """Generuje raport arbitrażu walutowego używając centralnych serwisów"""
+        """Generuje raport arbitrażu walutowego używając centralnych serwisów z danych z bazy"""
         
         currency_rates = data_bundle.get('currency_rates', {})
         currencies_map = data_bundle.get('currencies_map', {})
         
+        if not currencies_map:
+            print("❌ No currencies data available for arbitrage report")
+            return None
+            
         if not currency_rates:
             print("❌ No currency rates available for arbitrage report")
             return None
         
+        print(f"✅ Using currency data: {len(currencies_map)} currencies, {len(currency_rates)} rates")
+        
         # Użyj refaktoryzowanego CurrencyArbitrageAnalyzer
         analyzer = CurrencyArbitrageAnalyzer(min_profit_threshold=0.5)
         
-        # Znajdź okazje arbitrażowe
-        opportunities = analyzer.find_arbitrage_opportunities()
+        # Utwórz struktur danych dla analizatora z danych z bazy
+        analyzer.currencies_map = currencies_map
+        analyzer.currency_rates = currency_rates
+        analyzer.gold_id = data_bundle.get('gold_id', 1)
+        
+        # Przygotuj eco_countries z danych z bazy
+        countries = data_bundle.get('countries', [])
+        analyzer.eco_countries = [
+            {
+                'country_id': c['country_id'],
+                'country_name': c['country_name'],
+                'currency_id': c['currency_id']
+            }
+            for c in countries
+        ]
+        
+        # Znajdź okazje arbitrażowe używając danych z bazy (use_database=True, ale z już załadowanymi danymi)
+        opportunities = analyzer.find_arbitrage_opportunities(use_database=False)  # False bo już mamy dane
         
         if opportunities:
-            return analyzer.generate_arbitrage_report(opportunities, "txt")
+            result = analyzer.generate_arbitrage_report(opportunities, "txt")
+            if result and not result.startswith("❌"):
+                return result
+            else:
+                print("❌ Failed to generate arbitrage report file")
+                return None
         else:
             print("❌ No arbitrage opportunities found")
             return None
     
     def _generate_short_economic_report(self, data_bundle: Dict[str, Any], 
                                       output_dir: str) -> Optional[str]:
-        """Generuje krótki raport ekonomiczny"""
+        """Generuje krótki raport ekonomiczny z danych z bazy"""
         
-        # TODO: Przystosuj generator do pracy z danymi z bazy
-        # Na razie użyj istniejącej funkcji która sama pobiera dane
-        return generate_short_economic_report(output_dir)
+        # Sprawdź czy mamy potrzebne dane
+        currencies_map = data_bundle.get('currencies_map', {})
+        currency_rates = data_bundle.get('currency_rates', {})
+        
+        if not currencies_map:
+            print("❌ No currencies data available for short economic report")
+            return None
+            
+        if not currency_rates:
+            print("❌ No currency rates available for short economic report")
+            return None
+        
+        print(f"✅ Using economic data: {len(currencies_map)} currencies, {len(currency_rates)} rates")
+        
+        # Użyj istniejącego generatora - został już zrefaktoryzowany do używania DB
+        try:
+            return generate_short_economic_report(output_dir)
+        except Exception as e:
+            print(f"❌ Error generating short economic report: {e}")
+            return None
     
     def _generate_google_sheets_report(self, data_bundle: Dict[str, Any], 
                                      sections: Dict[str, bool], output_dir: str) -> Optional[str]:

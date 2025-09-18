@@ -195,7 +195,7 @@ class DatabaseManagerService:
             # Zapisz kraje
             self._save_countries_data(eco_countries, currencies_map)
             
-            # Zapisz waluty
+            # Zapisz waluty i kody walut
             self._save_currencies_data(currencies_map, currency_codes_map)
             
             # Pobierz i zapisz kursy walut
@@ -209,6 +209,7 @@ class DatabaseManagerService:
             # Pobierz i zapisz najtańsze przedmioty
             from src.core.services.economy_service import fetch_items_by_type
             items_map = fetch_items_by_type("economic")
+            self._save_items_map(items_map)  # Zapisz items_map
             cheapest_items = fetch_cheapest_items_from_all_countries(eco_countries, items_map, currency_rates, gold_id)
             self._save_market_offers(cheapest_items, items_map)
             
@@ -240,12 +241,18 @@ class DatabaseManagerService:
         """Aktualizuje dane militarne w bazie danych"""
         try:
             # Pobierz dane o walkach
-            hits_response = fetch_data("fights/hits", headers={"Authorization": f"Bearer {AUTH_TOKEN}"})
-            hits_data = process_hits_data(hits_response)
+            hits_response = fetch_data("fights/hits", "military hits data")
+            if hits_response:
+                hits_data = process_hits_data(hits_response)
+            else:
+                hits_data = []
             
             # Pobierz dane o wojnach
-            wars_response = fetch_data("fights/wars", headers={"Authorization": f"Bearer {AUTH_TOKEN}"})
-            wars_summary = build_wars_summary(wars_response)
+            wars_response = fetch_data("fights/wars", "military wars data")
+            if wars_response:
+                wars_summary = build_wars_summary(wars_response)
+            else:
+                wars_summary = {}
             
             # Zapisz dane militarne
             self._save_military_data(hits_data, wars_summary)
@@ -260,10 +267,15 @@ class DatabaseManagerService:
         """Aktualizuje dane wojowników w bazie danych"""
         try:
             # Pobierz ranking wojowników
-            warriors_response = fetch_data("citizens/top", headers={"Authorization": f"Bearer {AUTH_TOKEN}"})
+            warriors_response = fetch_data("citizens/top", "warriors ranking data")
+            
+            if warriors_response and 'data' in warriors_response:
+                warriors_data = warriors_response['data']
+            else:
+                warriors_data = []
             
             # Zapisz dane wojowników
-            self._save_warriors_data(warriors_response)
+            self._save_warriors_data(warriors_data)
             
             return True
             
@@ -271,21 +283,21 @@ class DatabaseManagerService:
             print(f"❌ Error updating warriors data: {e}")
             return False
     
-    def _save_countries_data(self, countries: List[Dict], currencies_map: Dict):
+    def _save_countries_data(self, countries: Dict[int, Dict], currencies_map: Dict):
         """Zapisuje dane krajów do bazy danych"""
         with self._connect() as conn:
             # Wyczyść starą tabelę
             conn.execute("DELETE FROM countries")
             
             # Wstaw nowe dane
-            for country in countries:
+            for country_id, country in countries.items():
                 conn.execute("""
                     INSERT OR REPLACE INTO countries 
                     (id, name, currency_id, currency_name, is_available)
                     VALUES (?, ?, ?, ?, ?)
                 """, (
-                    country['country_id'],
-                    country['country_name'],
+                    country_id,
+                    country['name'],
                     country['currency_id'],
                     currencies_map.get(country['currency_id'], 'Unknown'),
                     True
@@ -306,6 +318,44 @@ class DatabaseManagerService:
                     (id, name, code, gold_rate)
                     VALUES (?, ?, ?, ?)
                 """, (currency_id, currency_name, currency_code, 0.0))
+            conn.commit()
+            
+            # Zapisz również currency_codes_map w osobnej tabeli
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS currency_codes (
+                    currency_id INTEGER PRIMARY KEY,
+                    currency_code TEXT NOT NULL
+                )
+            """)
+            conn.execute("DELETE FROM currency_codes")
+            for currency_id, code in currency_codes_map.items():
+                conn.execute("""
+                    INSERT INTO currency_codes (currency_id, currency_code)
+                    VALUES (?, ?)
+                """, (currency_id, code))
+            conn.commit()
+    
+    def _save_items_map(self, items_map: Dict):
+        """Zapisuje mapę przedmiotów do bazy danych"""
+        with self._connect() as conn:
+            # Utwórz tabelę jeśli nie istnieje
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS items_map (
+                    item_id INTEGER PRIMARY KEY,
+                    item_name TEXT NOT NULL,
+                    item_type TEXT NOT NULL
+                )
+            """)
+            
+            # Wyczyść starą tabelę
+            conn.execute("DELETE FROM items_map")
+            
+            # Wstaw nowe dane
+            for item_id, item_name in items_map.items():
+                conn.execute("""
+                    INSERT INTO items_map (item_id, item_name, item_type)
+                    VALUES (?, ?, ?)
+                """, (item_id, item_name, "economic"))
             conn.commit()
     
     def _save_currency_rates(self, currency_rates: Dict):
@@ -362,7 +412,7 @@ class DatabaseManagerService:
             
             conn.commit()
     
-    def _save_market_offers(self, market_offers: List[Dict], items_map: Dict):
+    def _save_market_offers(self, market_offers: Dict[int, List[Dict]], items_map: Dict):
         """Zapisuje oferty rynkowe do bazy danych"""
         with self._connect() as conn:
             ts = datetime.utcnow().isoformat() + "Z"
@@ -371,26 +421,27 @@ class DatabaseManagerService:
             cutoff = (datetime.utcnow() - timedelta(days=1)).isoformat() + "Z"
             conn.execute("DELETE FROM market_offers WHERE ts < ?", (cutoff,))
             
-            # Wstaw nowe oferty
-            for offer in market_offers:
-                conn.execute("""
-                    INSERT INTO market_offers 
-                    (ts, item_id, item_name, country_id, country_name, 
-                     price_original, price_gold, currency_id, currency_name, quantity, offer_type)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    ts,
-                    offer.get('item_id', 0),
-                    offer.get('item_name', ''),
-                    offer.get('country_id', 0),
-                    offer.get('country_name', ''),
-                    offer.get('price_original', 0),
-                    offer.get('price_gold', 0),
-                    offer.get('currency_id', 0),
-                    offer.get('currency_name', ''),
-                    offer.get('quantity', 1),
-                    'SELL'
-                ))
+            # Wstaw nowe oferty - market_offers to słownik {item_id: [lista ofert]}
+            for item_id, offers_list in market_offers.items():
+                for offer in offers_list:
+                    conn.execute("""
+                        INSERT INTO market_offers 
+                        (ts, item_id, item_name, country_id, country_name, 
+                         price_original, price_gold, currency_id, currency_name, quantity, offer_type)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """, (
+                        ts,
+                        offer.get('item_id', item_id),
+                        offer.get('item_name', items_map.get(item_id, f'Item {item_id}')),
+                        offer.get('country_id', 0),
+                        offer.get('country', ''),  # 'country' zamiast 'country_name'
+                        offer.get('price_currency', 0),  # 'price_currency' zamiast 'price_original'
+                        offer.get('price_gold', 0),
+                        offer.get('currency_id', 0),
+                        offer.get('currency_name', ''),
+                        offer.get('amount', 1),  # 'amount' zamiast 'quantity'
+                        'SELL'
+                    ))
             
             conn.commit()
     
@@ -541,6 +592,26 @@ class DatabaseManagerService:
         with self._connect() as conn:
             cursor = conn.execute("SELECT id, name FROM currencies")
             return {row['id']: row['name'] for row in cursor.fetchall()}
+    
+    def get_currency_codes_data(self) -> Dict[int, str]:
+        """Pobiera mapę kodów walut z bazy danych"""
+        with self._connect() as conn:
+            try:
+                cursor = conn.execute("SELECT currency_id, currency_code FROM currency_codes")
+                return {row['currency_id']: row['currency_code'] for row in cursor.fetchall()}
+            except:
+                # Fallback if table doesn't exist
+                return {}
+    
+    def get_items_map(self) -> Dict[int, str]:
+        """Pobiera mapę przedmiotów z bazy danych"""
+        with self._connect() as conn:
+            try:
+                cursor = conn.execute("SELECT item_id, item_name FROM items_map")
+                return {row['item_id']: row['item_name'] for row in cursor.fetchall()}
+            except:
+                # Fallback if table doesn't exist
+                return {}
     
     def get_currency_rates(self) -> Dict[int, float]:
         """Pobiera najnowsze kursy walut z bazy danych"""

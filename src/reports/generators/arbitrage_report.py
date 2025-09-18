@@ -44,6 +44,7 @@ class CurrencyMarket:
     best_sell_rate: float
     spread: float
     volume_24h: float
+    liquidity_score: float
     last_updated: datetime
 
 
@@ -251,6 +252,7 @@ class CurrencyArbitrageAnalyzer:
                 best_sell_rate=best_sell_rate,
                 spread=spread,
                 volume_24h=volume_24h,
+                liquidity_score=liquidity_score,
                 last_updated=datetime.now()
             )
             

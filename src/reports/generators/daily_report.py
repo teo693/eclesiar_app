@@ -315,32 +315,32 @@ def generate_report(
         else:
             # Top 5 best job offers worldwide
             job_offers = economic_data.get('job_offers', [])
-        if job_offers:
-            document.add_heading("💼 Top 5 Best Job Offers Worldwide", level=2)
-            document.add_paragraph("Best paid job offers across all countries (salary in GOLD):")
+            if job_offers:
+                document.add_heading("💼 Top 5 Best Job Offers Worldwide", level=2)
+                document.add_paragraph("Best paid job offers across all countries (salary in GOLD):")
 
-            # Table without Position column
-            table = document.add_table(rows=1, cols=4)
-            hdr = table.rows[0].cells
-            hdr[0].text = "Country"
-            hdr[1].text = "Company"
-            hdr[2].text = "Company ID"
-            hdr[3].text = "Salary (GOLD)"
+                # Table without Position column
+                table = document.add_table(rows=1, cols=4)
+                hdr = table.rows[0].cells
+                hdr[0].text = "Country"
+                hdr[1].text = "Company"
+                hdr[2].text = "Company ID"
+                hdr[3].text = "Salary (GOLD)"
 
-            for i, job in enumerate(job_offers[:5], 1):
-                row_cells = table.add_row().cells
-                row_cells[0].text = job.get('country', 'Unknown')
-                # Company name may not be present; leave blank or '—'
-                company_name = job.get('business_name') or job.get('company_name') or '—'
-                row_cells[1].text = str(company_name)
-                row_cells[2].text = str(job.get('business_id', 'N/A'))
-                salary_gold = job.get('salary', 0) or 0
-                # Flag clearly unrealistic salaries with an asterisk
-                note = "*" if isinstance(salary_gold, (int, float)) and salary_gold > 5 else ""
-                row_cells[3].text = f"{float(salary_gold):.6f}{note}"
-            document.add_paragraph("* flagged as potentially anomalous (re-check conversion)")
-            
-            document.add_paragraph("")  # Dodaj pusty wiersz dla lepszego formatowania
+                for i, job in enumerate(job_offers[:5], 1):
+                    row_cells = table.add_row().cells
+                    row_cells[0].text = job.get('country', 'Unknown')
+                    # Company name may not be present; leave blank or '—'
+                    company_name = job.get('business_name') or job.get('company_name') or '—'
+                    row_cells[1].text = str(company_name)
+                    row_cells[2].text = str(job.get('business_id', 'N/A'))
+                    salary_gold = job.get('salary', 0) or 0
+                    # Flag clearly unrealistic salaries with an asterisk
+                    note = "*" if isinstance(salary_gold, (int, float)) and salary_gold > 5 else ""
+                    row_cells[3].text = f"{float(salary_gold):.6f}{note}"
+                document.add_paragraph("* flagged as potentially anomalous (re-check conversion)")
+                
+                document.add_paragraph("")  # Dodaj pusty wiersz dla lepszego formatowania
         currency_rates = (economic_data.get('currency_rates') or {})
         codes_map = currency_codes_map or {}
         # Render currency rates as a compact table with name and rate only

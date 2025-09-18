@@ -1,0 +1,10 @@
+=== RAPORT ARBITRAŻU WALUTOWEGO ===
+Data generowania: 2025-09-18 11:53:45
+Liczba znalezionych okazji: 23
+Minimalny próg zysku: 0.5%
+==================================================
+
+ 1. PLN → PHP
+    Kupno: 4.500000 | Sprzedaż: 500.000000
+    Zysk: 11011.11% | Maks. kwota: 0.08
+    Szacowany zysk: 38.153500 GOLD
