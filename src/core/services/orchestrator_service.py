@@ -269,18 +269,22 @@ def run(sections: dict = None, report_type: str = "daily") -> None:
     # Load historical data for comparison
     historical_data = load_historical_data()
     
-    # Transform best_jobs data to match expected format in reports
+    # ✅ POPRAWKA: Transform best_jobs data z prawidłowym job_title
     best_jobs = raw_data_dump.get('best_jobs', [])
     transformed_jobs = []
     for job in best_jobs[:5]:  # Top 5 for reports
+        # Poprawa błędu: business_name nie powinien być job_title (który był business_id)
+        business_id = job.get('business_id', 'N/A')
+        business_name = f"Business #{business_id}" if business_id != 'N/A' else 'Unknown Business'
+        
         transformed_job = {
             'country': job.get('country_name', 'Unknown'),
-            'salary': job.get('salary_gold', 0),
-            'business_id': job.get('business_id', 'N/A'),
+            'salary': job.get('salary_gold', 0),  # ✅ Prawdziwa salary w GOLD
+            'business_id': business_id,
             'company_id': job.get('company_id', 'N/A'),
-            'business_name': job.get('job_title', '—'),
-            'company_name': job.get('job_title', '—'),
-            'description': f"Business ID: {job.get('business_id', 'N/A')}"
+            'business_name': business_name,  # ✅ Prawidłowa nazwa biznesu
+            'company_name': business_name,   # ✅ Prawidłowa nazwa firmy
+            'description': f"Business ID: {business_id}, Salary: {job.get('salary_original', 0)} {job.get('currency_name', '')}"
         }
         transformed_jobs.append(transformed_job)
     

@@ -44,6 +44,21 @@ class CheapestItemInfo:
 
 
 @dataclass
+class JobOffer:
+    """Reprezentuje ofertę pracy"""
+    country_id: int
+    country_name: str
+    currency_id: int
+    currency_name: str
+    business_id: int
+    salary_local: float
+    salary_gold: float
+    amount: int
+    economic_skill: int
+    job_title: str  # Prawidłowo sformatowany tytuł
+
+
+@dataclass
 class MarketAnalysis:
     """Analiza rynku dla konkretnego towaru"""
     item_name: str
@@ -475,6 +490,117 @@ class MarketCalculationService:
         self._market_cache.clear()
         self._cache_timestamp.clear()
     
+    def fetch_best_jobs_from_all_countries(self,
+                                          countries: Dict[int, Dict[str, Any]], 
+                                          currency_rates: Dict[int, float], 
+                                          gold_id: int) -> List[JobOffer]:
+        """
+        Pobiera najlepsze oferty pracy ze wszystkich krajów używając centralnego serwisu.
+        Poprawia błąd z job_title = business_id.
+        
+        Args:
+            countries: Słownik krajów
+            currency_rates: Kursy walut względem GOLD
+            gold_id: ID waluty GOLD
+            
+        Returns:
+            Lista prawidłowo sformatowanych ofert pracy
+        """
+        all_jobs = []
+        
+        for country_id, country_info in countries.items():
+            try:
+                # Pobierz oferty pracy w danym kraju
+                url = f"market/jobs/get?country_id={country_id}"
+                res = fetch_data(url, f"ofertach pracy w kraju {country_info.get('name', country_id)}")
+                
+                if res and res.get("code") == 200:
+                    offers = res.get("data", [])
+                    if offers:
+                        # Zbierz oferty z tego kraju
+                        country_jobs = []
+                        for offer in offers:
+                            salary = offer.get("value")  # API uses "value" not "salary"
+                            if not salary:
+                                continue
+                                
+                            try:
+                                salary_f = float(salary)
+                            except (ValueError, TypeError):
+                                continue
+                            
+                            # Przelicz na GOLD
+                            currency_id = country_info.get("currency_id")
+                            if currency_id == gold_id:
+                                salary_gold = salary_f
+                            else:
+                                rate = currency_rates.get(currency_id)
+                                if not rate or rate <= 0:
+                                    continue
+                                salary_gold = salary_f * rate
+                            
+                            # ✅ POPRAWKA: Stwórz prawidłowy job_title
+                            business_id = offer.get("business_id", "N/A")
+                            if business_id != "N/A":
+                                job_title = f"Business #{business_id}"
+                            else:
+                                job_title = "Job Offer"
+                            
+                            job_offer = JobOffer(
+                                country_id=country_id,
+                                country_name=country_info.get("name", f"Country {country_id}"),
+                                currency_id=currency_id,
+                                currency_name=country_info.get("currency_name", f"Currency {currency_id}"),
+                                business_id=business_id,
+                                salary_local=salary_f,
+                                salary_gold=salary_gold,
+                                amount=offer.get("amount", 1),
+                                economic_skill=offer.get("economic_skill", 0),
+                                job_title=job_title
+                            )
+                            
+                            country_jobs.append(job_offer)
+                        
+                        # Sortuj oferty w tym kraju od najwyższej płacy
+                        country_jobs.sort(key=lambda x: x.salary_gold, reverse=True)
+                        
+                        # Dodaj posortowane oferty z tego kraju do listy głównej
+                        all_jobs.extend(country_jobs)
+                            
+            except Exception as e:
+                print(f"Error fetching job offers from country {country_id}: {e}")
+                continue
+        
+        print(f"💼 Znaleziono łącznie {len(all_jobs)} ofert pracy ze wszystkich krajów")
+        
+        return all_jobs
+    
+    def convert_job_offers_to_legacy_format(self, job_offers: List[JobOffer]) -> List[Dict[str, Any]]:
+        """
+        Konwertuje JobOffer dataclass do starszego formatu dict dla kompatybilności wstecznej.
+        
+        Args:
+            job_offers: Lista JobOffer obiektów
+            
+        Returns:
+            Lista słowników w starym formacie
+        """
+        legacy_jobs = []
+        
+        for job in job_offers:
+            legacy_job = {
+                "country_name": job.country_name,
+                "salary_original": job.salary_local,
+                "currency_name": job.currency_name,
+                "salary_gold": job.salary_gold,
+                "job_title": job.job_title,  # ✅ Już prawidłowo sformatowany
+                "business_id": job.business_id,
+                "company_id": "N/A"  # Nie używane w API
+            }
+            legacy_jobs.append(legacy_job)
+        
+        return legacy_jobs
+
     def get_cache_stats(self) -> Dict[str, Any]:
         """Zwraca statystyki cache"""
         return {
