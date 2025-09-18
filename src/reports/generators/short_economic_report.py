@@ -12,11 +12,13 @@ from docx.shared import Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 
 from src.core.services.economy_service import (
-    fetch_countries_and_currencies,
-    build_currency_rates_map,
     fetch_cheapest_items_from_all_countries,
-    fetch_items_by_type
+    fetch_items_by_type,
+    fetch_best_jobs_from_all_countries
 )
+from src.data.repositories.sqlite_repository import SQLiteCurrencyRepository
+from src.core.services.economy_service_refactored import EconomyService
+from src.core.services.base_service import ServiceDependencies
 from src.reports.generators.production_report import ProductionAnalyzer
 from src.data.storage.cache import load_historical_data
 from datetime import timedelta
@@ -42,7 +44,8 @@ def generate_short_economic_report(
         sections = {
             'currency_rates': True,
             'cheapest_items': True,
-            'best_regions': True
+            'best_regions': True,
+            'highest_wages': True
         }
     
     print("🚀 Generating short economic report...")
@@ -50,17 +53,53 @@ def generate_short_economic_report(
     # Load historical data for currency rate comparison
     historical_data = load_historical_data()
     
-    # Get economic data
-    print("📊 Fetching economic data...")
-    eco_countries, currencies_map, currency_codes_map, gold_id = fetch_countries_and_currencies()
-    
-    if not eco_countries or not currencies_map:
-        print("❌ Error: Cannot fetch economic data")
-        return None
-    
-    # Get currency rates
-    print("💰 Fetching currency rates...")
-    currency_rates = build_currency_rates_map(currencies_map, gold_id)
+    # Get economic data using refactored service (from database)
+    print("📊 Fetching economic data from database...")
+    try:
+        # Initialize repositories and service
+        currency_repo = SQLiteCurrencyRepository("data/eclesiar.db")
+        
+        # Create minimal dependencies for economy service
+        deps = ServiceDependencies(
+            country_repo=None,
+            currency_repo=currency_repo,
+            region_repo=None,
+            item_repo=None,
+            market_repo=None,
+            production_repo=None,
+            report_repo=None
+        )
+        economy_service = EconomyService(deps)
+        
+        # First try to get from database
+        eco_countries, currencies_map, currency_codes_map, gold_id = economy_service.get_countries_and_currencies()
+        
+        # If no data in database, fall back to API
+        if not eco_countries or not currencies_map:
+            print("📊 No data in database, falling back to API...")
+            from src.core.services.economy_service import fetch_countries_and_currencies
+            eco_countries, currencies_map, currency_codes_map, gold_id = fetch_countries_and_currencies()
+        
+        if not eco_countries or not currencies_map:
+            print("❌ Error: Cannot fetch economic data")
+            return None
+        
+        # Get currency rates from database first, then API if needed
+        print("💰 Fetching currency rates from database...")
+        currency_rates = economy_service.build_currency_rates_map(currencies_map, gold_id)
+        
+        # If no currency rates from database, fall back to API
+        if not currency_rates:
+            print("💰 No currency rates in database, falling back to API...")
+            from src.core.services.economy_service import build_currency_rates_map
+            currency_rates = build_currency_rates_map(currencies_map, gold_id)
+        
+    except Exception as e:
+        print(f"❌ Error with database service: {e}")
+        print("📊 Falling back to API...")
+        from src.core.services.economy_service import fetch_countries_and_currencies, build_currency_rates_map
+        eco_countries, currencies_map, currency_codes_map, gold_id = fetch_countries_and_currencies()
+        currency_rates = build_currency_rates_map(currencies_map, gold_id)
     
     # Get items map
     print("📦 Fetching items map...")
@@ -70,6 +109,12 @@ def generate_short_economic_report(
     print("🛒 Fetching cheapest items...")
     cheapest_items = fetch_cheapest_items_from_all_countries(
         eco_countries, items_map, currency_rates, gold_id
+    )
+    
+    # Get best jobs (highest wages)
+    print("💼 Fetching best job offers...")
+    best_jobs = fetch_best_jobs_from_all_countries(
+        eco_countries, currency_rates, gold_id
     )
     
     # Get region data for productivity analysis
@@ -325,6 +370,61 @@ def generate_short_economic_report(
                     document.add_paragraph("")
         else:
             document.add_paragraph("No region productivity data available.")
+    
+    # 4. Top 10 Highest Wages
+    if sections.get('highest_wages', True) and best_jobs:
+        print("💼 Adding highest wages section...")
+        document.add_heading("💼 Top 10 Highest Salaries Worldwide", level=1)
+        
+        # Add disclaimer about data accuracy
+        disclaimer = document.add_paragraph()
+        disclaimer.add_run("⚠️ Note: ").bold = True
+        disclaimer.add_run("Job market data is fetched from API and may include offers that are no longer available in-game due to being filled or expired. Some very high salaries (like 62 HUF from Hungary) may be outdated. Actual highest salaries may differ from what is currently visible in the game.")
+        
+        # Extend the list to show top 10 instead of top 5
+        all_jobs = fetch_best_jobs_from_all_countries(eco_countries, currency_rates, gold_id)
+        # Sort by salary_gold descending and take top 10
+        all_jobs.sort(key=lambda x: x.get("salary_gold", 0), reverse=True)
+        top_10_jobs = all_jobs[:10]
+        
+        if top_10_jobs:
+            # Create table for highest salaries
+            table = document.add_table(rows=1, cols=5)
+            table.style = 'Table Grid'
+            
+            # Headers
+            hdr_cells = table.rows[0].cells
+            hdr_cells[0].text = "Rank"
+            hdr_cells[1].text = "Country"
+            hdr_cells[2].text = "Business ID"
+            hdr_cells[3].text = "Salary (GOLD)"
+            hdr_cells[4].text = "Salary (Local)"
+            
+            # Data rows
+            for i, job in enumerate(top_10_jobs, 1):
+                row_cells = table.add_row().cells
+                row_cells[0].text = str(i)
+                row_cells[1].text = job.get('country_name', 'Unknown')
+                # Użyj business_id z API
+                business_id = job.get('business_id') or job.get('company_id') or f"Job-{i}"
+                row_cells[2].text = str(business_id)
+                
+                # Make salary bold (most important column)
+                salary_cell = row_cells[3]
+                salary_gold = job.get('salary_gold', 0)
+                salary_cell.text = f"{salary_gold:.6f}"
+                for paragraph in salary_cell.paragraphs:
+                    for run in paragraph.runs:
+                        run.bold = True
+                
+                # Local salary with currency
+                salary_original = job.get('salary_original', 0)
+                currency_name = job.get('currency_name', 'N/A')
+                row_cells[4].text = f"{salary_original:.2f} {currency_name}"
+        else:
+            document.add_paragraph("No job offers data available.")
+        
+        document.add_paragraph("")
     
     # Save document
     if not os.path.exists(output_dir):

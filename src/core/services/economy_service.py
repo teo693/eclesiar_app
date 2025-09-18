@@ -192,27 +192,51 @@ def _fetch_filtered_items(needed_items: Dict[str, bool]) -> Dict[int, str]:
 
 
 def fetch_currency_to_gold_rate(currency_id: int) -> Optional[float]:
-    # Używamy transaction=SELL - oferty kupna waluty za GOLD
-    url = f"market/coin/get?currency_id={currency_id}&transaction=SELL"
-    res = fetch_data(url, f"currency rates {currency_id}")
-    if res and res.get("code") == 200:
-        offers = res.get("data") or []
-        if offers:
-            try:
-                # Weź średnią z 3 najlepszych ofert
-                rates = []
-                for offer in offers[:3]:
-                    rate = offer.get("rate")
-                    if rate is not None:
-                        try:
-                            rates.append(float(rate))
-                        except (ValueError, TypeError):
-                            continue
+    """
+    Pobiera najlepszą realną ofertę SELL dla waluty z API.
+    Wyszukuje pierwsze oferty o rozsądnym kursie, pomijając bardzo niskie spekulacyjne ceny.
+    """
+    try:
+        # Pobierz oferty SELL (sprzedaż waluty za GOLD)
+        sell_res = fetch_data(f"market/coin/get?currency_id={currency_id}&transaction=SELL", f"currency rates {currency_id}")
+        
+        if not sell_res or sell_res.get("code") != 200:
+            return None
+            
+        offers = sell_res.get("data", [])
+        if not offers:
+            return None
+        
+        # Zbierz wszystkie kursy i znajdź pierwsze rozsądne
+        rates = []
+        for offer in offers:
+            rate = offer.get("rate")
+            if rate is not None:
+                try:
+                    rate_f = float(rate)
+                    if rate_f > 0:
+                        rates.append(rate_f)
+                except (ValueError, TypeError):
+                    continue
+        
+        if not rates:
+            return None
+        
+        # Sortuj kursy rosnąco
+        rates.sort()
+        
+        # Znajdź pierwszy kurs większy niż minimum (odrzuć bardzo niskie spekulacyjne)
+        # Dla większości walut realny kurs to 0.1-10 GOLD za jednostkę
+        for rate in rates:
+            if rate >= 0.1:  # Minimalny rozsądny kurs
+                return rate
+        
+        # Jeśli nie ma kursów >= 0.1, weź największy dostępny
+        return max(rates) if rates else None
                 
-                if rates:
-                    return sum(rates) / len(rates)
-            except Exception:
-                pass
+    except Exception as e:
+        print(f"Error fetching currency rate for {currency_id}: {e}")
+    
     return None
 
 
@@ -259,8 +283,8 @@ def fetch_best_jobs_from_all_countries(
     currency_rates: Dict[int, float], 
     gold_id: int
 ) -> List[Dict[str, Any]]:
-    """Pobiera najlepsze oferty pracy ze wszystkich krajów"""
-    best_jobs = []
+    """Pobiera WSZYSTKIE oferty pracy ze wszystkich krajów i sortuje po wypłacie"""
+    all_jobs = []
     
     for country_id, country_info in countries.items():
         try:
@@ -271,12 +295,9 @@ def fetch_best_jobs_from_all_countries(
             if res and res.get("code") == 200:
                 offers = res.get("data", [])
                 if offers:
-                    # Znajdź najlepszą ofertę w kraju
-                    best_offer = None
-                    best_salary_gold = 0
-                    
+                    # Dodaj WSZYSTKIE oferty z tego kraju (nie tylko najlepszą)
                     for offer in offers:
-                        salary = offer.get("salary")
+                        salary = offer.get("value")  # API uses "value" not "salary"
                         if not salary:
                             continue
                             
@@ -293,28 +314,40 @@ def fetch_best_jobs_from_all_countries(
                             rate = currency_rates.get(currency_id)
                             if not rate or rate <= 0:
                                 continue
-                            salary_gold = salary_f / rate
+                            salary_gold = salary_f * rate  # NAPRAWIONE: mnożenie zamiast dzielenia
                         
-                        if salary_gold > best_salary_gold:
-                            best_salary_gold = salary_gold
-                            best_offer = {
-                                "country_name": country_info.get("name", f"Country {country_id}"),
-                                "salary_original": salary_f,
-                                "currency_name": country_info.get("currency_name", f"Currency {currency_id}"),
-                                "salary_gold": salary_gold,
-                                "job_title": offer.get("title", "Unknown Job")
-                            }
-                    
-                    if best_offer:
-                        best_jobs.append(best_offer)
+                        # Określ identyfikator pracy/firmy na podstawie dostępnych pól
+                        job_identifier = (
+                            offer.get("business_id") or 
+                            offer.get("company_id") or 
+                            offer.get("id") or 
+                            offer.get("title") or 
+                            "Job Offer"
+                        )
+                        
+                        job_data = {
+                            "country_name": country_info.get("name", f"Country {country_id}"),
+                            "salary_original": salary_f,
+                            "currency_name": country_info.get("currency_name", f"Currency {currency_id}"),
+                            "salary_gold": salary_gold,
+                            "job_title": str(job_identifier),
+                            "business_id": offer.get("business_id", "N/A"),
+                            "company_id": offer.get("company_id", "N/A")
+                        }
+                        
+                        all_jobs.append(job_data)
                         
         except Exception as e:
             print(f"Error fetching job offers from country {country_id}: {e}")
             continue
     
-    # Sortuj po wypłacie w gold (malejąco) i zwróć top 5
-    best_jobs.sort(key=lambda x: x["salary_gold"], reverse=True)
-    return best_jobs[:5]
+    # Sortuj WSZYSTKIE oferty po wypłacie w GOLD (malejąco)
+    all_jobs.sort(key=lambda x: x.get("salary_gold", 0), reverse=True)
+    
+    print(f"💼 Znaleziono łącznie {len(all_jobs)} ofert pracy ze wszystkich krajów")
+    
+    # Zwróć wszystkie oferty (posortowane)
+    return all_jobs
 
 
 def fetch_cheapest_items_from_all_countries(

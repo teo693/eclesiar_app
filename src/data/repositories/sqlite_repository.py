@@ -209,7 +209,7 @@ class SQLiteCurrencyRepository(SQLiteRepositoryMixin, CurrencyRepository):
         """
         rows = self._execute_query(query, (currency_id,))
         return [
-            (datetime.fromisoformat(row['ts']), row['rate_gold_per_unit'])
+            (datetime.fromisoformat(row['ts'].replace('Z', '+00:00')), row['rate_gold_per_unit'])
             for row in rows
         ]
 

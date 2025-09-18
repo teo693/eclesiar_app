@@ -8,87 +8,30 @@ Licensed under the MIT License - see LICENSE file for details.
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 import json
+from .enhanced_sheets_formatter import EnhancedSheetsFormatter
+from src.core.services.calculations import (
+    RegionCalculationService,
+    CurrencyCalculationService,
+    ProductionCalculationService
+)
 
 class SheetsFormatter:
-    """Formats data for Google Sheets export"""
+    """REFACTORED Formats data for Google Sheets export using centralized services"""
     
     def __init__(self):
         self.date_format = "%Y-%m-%d %H:%M:%S"
-        # Mapowanie typów bonusów dla produktów
-        self.bonus_type_mapping = {
-            "aircraft": "AIRCRAFT",
-            "air-weapon": "AIRCRAFT", 
-            "samolot": "AIRCRAFT",
-            "weapon": "WEAPONS",
-            "broń": "WEAPONS",
-            "iron": "IRON",
-            "grain": "GRAIN",
-            "zboże": "GRAIN",
-            "food": "FOOD",
-            "fuel": "FUEL",
-            "paliwo": "FUEL",
-            "titanium": "TITANIUM",
-            "tytan": "TITANIUM",
-            "airplane ticket": "TICKETS",
-            "bilet lotniczy": "TICKETS"
-        }
+        
+        # Initialize centralized calculation services
+        self.region_calc = RegionCalculationService()
+        self.currency_calc = CurrencyCalculationService()
+        self.production_calc = ProductionCalculationService()
+        
+        # Legacy compatibility - keep reference to bonus mapping
+        self.bonus_type_mapping = self.region_calc.bonus_type_mapping
     
     def calculate_country_bonus(self, country_name: str, regions_data: List[Dict[str, Any]], item_name: str = "grain") -> float:
-        """
-        Oblicza bonus krajowy na podstawie wzoru:
-        suma bonusów regionalnych danego typu w kraju / 5 = bonus krajowy w %
-        
-        Args:
-            country_name: Nazwa kraju
-            regions_data: Lista regionów z bazy danych
-            item_name: Nazwa towaru (domyślnie "grain")
-            
-        Returns:
-            Bonus krajowy w procentach (jako float, np. 7.0 dla 7%)
-        """
-        try:
-            # Znajdź wszystkie unikalne regiony w danym kraju (bez duplikatów)
-            unique_regions = {}
-            for region in regions_data:
-                if region.get('country_name', '').lower() == country_name.lower():
-                    region_key = region.get('region_name', region.get('name', '')).lower()
-                    # Zachowaj tylko pierwszy (najnowszy) region o tej nazwie
-                    if region_key not in unique_regions:
-                        unique_regions[region_key] = region
-            
-            country_regions = list(unique_regions.values())
-            
-            if not country_regions:
-                return 0.0
-            
-            # Określ typ bonusu dla danego towaru
-            bonus_type = self.bonus_type_mapping.get(item_name.lower(), "GRAIN")
-            
-            # Zsumuj bonusy danego typu ze wszystkich unikalnych regionów w kraju
-            total_bonus = 0.0
-            regions_with_bonus = 0
-            
-            for region in country_regions:
-                # Parsuj bonus_description do bonus_by_type
-                bonus_description = region.get('bonus_description', '')
-                if bonus_description:
-                    bonus_by_type = self._parse_bonus_description(bonus_description)
-                    if bonus_type in bonus_by_type:
-                        bonus_value = bonus_by_type[bonus_type]
-                        if bonus_value > 0:
-                            total_bonus += bonus_value
-                            regions_with_bonus += 1
-            
-            # Oblicz bonus krajowy: suma / 5
-            if regions_with_bonus > 0:
-                country_bonus = total_bonus / 5.0
-                return country_bonus
-            else:
-                return 0.0
-                
-        except Exception as e:
-            print(f"Error calculating country bonus for {country_name}: {e}")
-            return 0.0
+        """REFACTORED - Deleguje do centralnego serwisu regionów"""
+        return self.region_calc.calculate_country_bonus(country_name, item_name, regions_data)
     
     def _parse_bonus_description(self, bonus_description: str) -> Dict[str, float]:
         """
@@ -119,32 +62,10 @@ class SheetsFormatter:
         return bonus_by_type
     
     def _get_regional_bonus_for_type(self, region: Dict[str, Any], item_name: str) -> float:
-        """
-        Pobiera bonus regionalny dla konkretnego typu towaru.
-        
-        Args:
-            region: Dane regionu
-            item_name: Nazwa towaru
-            
-        Returns:
-            Bonus regionalny dla danego typu towaru
-        """
+        """REFACTORED - Deleguje do centralnego serwisu regionów"""
         try:
-            bonus_description = region.get('bonus_description', '')
-            if not bonus_description:
-                return 0.0
-            
-            bonus_by_type = self._parse_bonus_description(bonus_description)
-            bonus_type = self.bonus_type_mapping.get(item_name.lower(), "GRAIN")
-            
-            result = bonus_by_type.get(bonus_type, 0.0)
-            
-            # Debug: sprawdź czy result jest liczbą
-            if not isinstance(result, (int, float)):
-                print(f"Warning: bonus result is not a number: {result} (type: {type(result)})")
-                return 0.0
-                
-            return float(result)
+            bonus_value, _ = self.region_calc.get_regional_bonus_for_item(region, item_name)
+            return bonus_value * 100.0  # Konwersja z ułamka na procenty dla kompatybilności
         except Exception as e:
             print(f"Error getting regional bonus for {item_name}: {e}")
             return 0.0
@@ -663,7 +584,24 @@ class SheetsFormatter:
         return sheets_data
     
     def format_economic_report(self, data: Dict[str, Any]) -> Dict[str, List[List]]:
-        """Format economic report data for Google Sheets with only 2 main tabs"""
+        """Format economic report data for Google Sheets - ENHANCED VERSION"""
+        
+        # Użyj zaawansowanego formattera dla lepszej analizy
+        enhanced_formatter = EnhancedSheetsFormatter()
+        
+        # Sprawdź czy mamy wystarczająco danych dla pełnej analizy
+        has_comprehensive_data = (
+            data.get('currency_rates') and 
+            data.get('country_map') and 
+            len(data.get('currency_rates', {})) > 5
+        )
+        
+        if has_comprehensive_data:
+            print("📊 Using enhanced comprehensive economic analysis...")
+            return enhanced_formatter.format_comprehensive_economic_report(data)
+        
+        # Fallback do podstawowej wersji jeśli brak danych
+        print("📊 Using basic economic report format...")
         sheets_data = {}
         
         # Sheet 1: Cheapest items - all products in one sheet
@@ -936,6 +874,49 @@ class SheetsFormatter:
                         continue
         
         sheets_data["Production Regions"] = regions_sheet
+        
+        # Sheet 4: Wages - Top 10 Highest Paying Jobs
+        best_jobs = data.get('best_jobs', [])
+        if not best_jobs:
+            # If not in data, try to fetch it
+            try:
+                from src.core.services.economy_service import fetch_best_jobs_from_all_countries
+                country_map = data.get('country_map', {})
+                currency_rates = data.get('currency_rates', {})
+                gold_id = data.get('gold_id')
+                
+                if country_map and currency_rates and gold_id:
+                    best_jobs = fetch_best_jobs_from_all_countries(country_map, currency_rates, gold_id)
+                    # Sort by salary_gold descending and take top 10
+                    best_jobs.sort(key=lambda x: x.get("salary_gold", 0), reverse=True)
+                    best_jobs = best_jobs[:10]
+            except Exception as e:
+                print(f"Could not fetch jobs data: {e}")
+                best_jobs = []
+        
+        wages_sheet = []
+        
+        if best_jobs:
+            # Header
+            wages_sheet.append(["💼 TOP 10 HIGHEST SALARIES WORLDWIDE", "", "", "", "", ""])
+            wages_sheet.append(["Rank", "Country", "Business ID", "Salary (GOLD)", "Salary (Local)", "Currency"])
+            
+            # Data rows - limit to top 10
+            for i, job in enumerate(best_jobs[:10], 1):
+                business_id = job.get('business_id') or job.get('company_id') or f"Job-{i}"
+                wages_sheet.append([
+                    str(i),
+                    job.get('country_name', 'Unknown'),
+                    str(business_id),
+                    f"{job.get('salary_gold', 0):.6f}",
+                    f"{job.get('salary_original', 0):.2f}",
+                    job.get('currency_name', 'N/A')
+                ])
+        else:
+            wages_sheet.append(["💼 TOP 10 HIGHEST SALARIES WORLDWIDE", "", "", "", "", ""])
+            wages_sheet.append(["No job offers data available", "", "", "", "", ""])
+        
+        sheets_data["Wages"] = wages_sheet
         
         return sheets_data
     

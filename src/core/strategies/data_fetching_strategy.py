@@ -135,6 +135,8 @@ class OptimizedDataFetchingStrategy(DataFetchingStrategy):
                 data.update(self._fetch_arbitrage_data())
             elif report_type == "economic":
                 data.update(self._fetch_economic_data())
+            elif report_type == "short_economic":
+                data.update(self._fetch_short_economic_data())
             elif report_type == "military":
                 data.update(self._fetch_military_data())
             elif report_type == "google_sheets":
@@ -195,6 +197,71 @@ class OptimizedDataFetchingStrategy(DataFetchingStrategy):
             'military': {},
             'warriors': {},
             'sections': {'military': True, 'warriors': True}
+        }
+    
+    def _fetch_short_economic_data(self) -> Dict[str, Any]:
+        """Fetch data needed for short economic report"""
+        from src.core.services.economy_service import (
+            fetch_countries_and_currencies,
+            build_currency_rates_map,
+            fetch_cheapest_items_from_all_countries,
+            fetch_items_by_type,
+            fetch_best_jobs_from_all_countries
+        )
+        from src.core.services.regions_service import fetch_and_process_regions
+        
+        print("📊 Fetching short economic data...")
+        
+        # Get economic data
+        eco_countries, currencies_map, currency_codes_map, gold_id = fetch_countries_and_currencies()
+        
+        if not eco_countries or not currencies_map:
+            print("❌ Error: Cannot fetch economic data")
+            return {'sections': {}}
+        
+        # Get currency rates
+        currency_rates = build_currency_rates_map(currencies_map, gold_id)
+        
+        # Get items map
+        items_map = fetch_items_by_type("economic")
+        
+        # Fetch cheapest items
+        cheapest_items = {}
+        if eco_countries and items_map:
+            cheapest_items = fetch_cheapest_items_from_all_countries(
+                eco_countries, items_map, currency_rates, gold_id
+            )
+        
+        # Fetch best jobs
+        best_jobs = []
+        if eco_countries:
+            best_jobs = fetch_best_jobs_from_all_countries(
+                eco_countries, currency_rates, gold_id
+            )
+            
+        # Fetch regions data
+        regions_data = []
+        regions_summary = {}
+        if eco_countries:
+            regions_data, regions_summary = fetch_and_process_regions(eco_countries)
+        
+        return {
+            'eco_countries': eco_countries,
+            'currencies_map': currencies_map,
+            'currency_codes_map': currency_codes_map,
+            'gold_id': gold_id,
+            'currency_rates': currency_rates,
+            'items_map': items_map,
+            'cheapest_items': cheapest_items,
+            'best_jobs': best_jobs,
+            'regions_data': regions_data,
+            'regions_summary': regions_summary,
+            'sections': {
+                'currency_rates': True,
+                'cheapest_items': True,
+                'best_regions': True,
+                'highest_wages': True
+            }
         }
     
     def _fetch_database_data(self) -> Dict[str, Any]:

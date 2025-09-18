@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from src.reports.generators.production_report import ProductionAnalyzer, ProductionData
 from src.core.services.economy_service import fetch_countries_and_currencies, fetch_country_statistics
 from src.data.api.client import fetch_data
+from src.core.services.calculations import ProductionCalculationService, ProductionFactors
 
 
 @dataclass
@@ -31,19 +32,21 @@ class CalculatorInput:
 
 
 class ProductionCalculator:
-    """Interactive regional productivity calculator"""
+    """REFACTORED Interactive regional productivity calculator using centralized services"""
     
     def __init__(self):
+        # Initialize centralized calculation services
+        self.production_calc = ProductionCalculationService()
+        
+        # Keep legacy analyzer for backward compatibility
         self.analyzer = ProductionAnalyzer()
+        
         self.regions_data = []
         self.countries_data = {}
         self.items_list = []
         
-        # List of available products
-        self.available_items = [
-            "grain", "iron", "titanium", "fuel",
-            "food", "weapon", "aircraft", "airplane ticket"
-        ]
+        # List of available products - delegate to centralized service
+        self.available_items = self.production_calc.get_available_items()
         
         # List of company tiers
         self.company_tiers = [1, 2, 3, 4, 5]
@@ -374,15 +377,10 @@ class ProductionCalculator:
         return params
     
     def calculate_production(self, region: Dict[str, Any], item: str, params: Dict[str, Any]) -> ProductionData:
-        """Oblicza produkcję dla wybranych parametrów"""
+        """REFACTORED - Oblicza produkcję używając centralnego serwisu"""
         try:
-            # Załaduj dane NPC wages jeśli nie są załadowane
-            if not self.analyzer.npc_wages_cache:
-                self.analyzer.load_npc_wages_data()
-            
-            # Oblicz produkcję
-            production_data = self.analyzer.calculate_production_efficiency(
-                region, item,
+            # Utwórz obiekt ProductionFactors z parametrów
+            factors = ProductionFactors(
                 company_tier=params['company_tier'],
                 eco_skill=params['eco_skill'],
                 workers_today=params['workers_today'],
@@ -390,10 +388,35 @@ class ProductionCalculator:
                 military_base_level=params['military_base_level'],
                 production_field_level=params['production_field_level'],
                 industrial_zone_level=params['industrial_zone_level'],
+                hospital_level=params.get('hospital_level', 0),
                 is_on_sale=params['is_on_sale']
             )
             
-            return production_data
+            # Deleguj obliczenia do centralnego serwisu
+            result = self.production_calc.calculate_full_production(region, item, factors)
+            
+            if not result:
+                return None
+            
+            # Konwertuj na legacy ProductionData dla kompatybilności
+            return ProductionData(
+                region_name=result.region_name,
+                country_name=result.country_name,
+                country_id=result.country_id,
+                item_name=result.item_name,
+                total_bonus=result.total_bonus,
+                regional_bonus=result.regional_bonus,
+                country_bonus=result.country_bonus,
+                bonus_type=result.bonus_type,
+                pollution=result.pollution,
+                npc_wages=result.npc_wages,
+                production_q1=result.production_q1,
+                production_q2=result.production_q2,
+                production_q3=result.production_q3,
+                production_q4=result.production_q4,
+                production_q5=result.production_q5,
+                efficiency_score=result.efficiency_score
+            )
             
         except Exception as e:
             print(f"❌ Error during calculation: {e}")

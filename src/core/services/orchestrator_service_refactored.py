@@ -163,7 +163,11 @@ class OrchestratorService:
             'military': False,
             'warriors': False, 
             'economic': True,
-            'production': False
+            'production': False,
+            'currency_rates': True,
+            'cheapest_items': True,
+            'best_regions': True,
+            'highest_wages': True
         }
         
         self.run(sections, "short_economic")

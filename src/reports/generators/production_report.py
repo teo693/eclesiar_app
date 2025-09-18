@@ -1,27 +1,10 @@
 #!/usr/bin/env python3
 """
-Consolidated regional productivity analyzer for various goods in Eclesiar.
-Implements all 8 factors affecting production according to the game documentation.
+Refactored regional productivity analyzer for various goods in Eclesiar.
+Now uses centralized calculation services to eliminate code duplication.
 
-DATA AVAILABLE FROM API:
-✅ Regional bonuses (region bonus)
-✅ Pollution levels
-✅ NPC wages
-✅ List of goods and countries
-
-MISSING DATA (using default values):
-❌ Base production values Q1-Q5 (hardcoded based on documentation)
-❌ Military base levels (default 0)
-❌ Production Fields/Industrial Zones levels (default 0)
-❌ Hospital levels (default 0)
-❌ Player eco skills (default 0)
-❌ Number of workers in companies (default 0)
-❌ Company status (for sale) (default False)
-❌ Company owner (NPC vs player) (default False)
-❌ Country bonuses (default 0)
-
-NOTE: To get accurate calculations, missing data must be provided
-or appropriate API endpoints must be implemented.
+Copyright (c) 2025 Teo693
+Licensed under the MIT License - see LICENSE file for details.
 """
 
 import sqlite3
@@ -31,12 +14,17 @@ from typing import Dict, List, Any, Optional, Tuple
 from dataclasses import dataclass
 import os
 
-from src.core.services.economy_service import fetch_country_statistics, fetch_countries_and_currencies, build_currency_rates_map
+from src.core.services.calculations import (
+    ProductionCalculationService, 
+    ProductionFactors, 
+    ProductionResult,
+    RegionCalculationService
+)
 
-
+# Legacy compatibility - keep ProductionData for existing code
 @dataclass
 class ProductionData:
-    """Production data for a specific region and good"""
+    """Production data for a specific region and good - LEGACY"""
     region_name: str
     country_name: str
     country_id: int
@@ -56,234 +44,44 @@ class ProductionData:
 
 
 class ProductionAnalyzer:
-    """Consolidated regional productivity analyzer"""
+    """REFACTORED regional productivity analyzer using centralized services"""
     
     def __init__(self, db_path: str = None):
         self.db_path = db_path or os.getenv("ECLESIAR_DB_PATH", "eclesiar.db")
+        
+        # Initialize centralized calculation services
+        self.production_calc = ProductionCalculationService(db_path)
+        self.region_calc = RegionCalculationService()
+        
+        # Legacy compatibility - keep references for existing code
         self.npc_wages_cache = {}
-        
-        # Mapping bonus types to products (API uses uppercase)
-        self.bonus_type_mapping = {
-            # Surowce
-            "grain": ["GRAIN", "grain", "food", "general"],
-            "iron": ["IRON", "iron", "weapon", "aircraft", "general"],
-            "titanium": ["TITANIUM", "titanium", "aircraft", "general"],
-            "fuel": ["OIL", "fuel", "aircraft", "general"],
-            
-            # Produkty
-            "food": ["FOOD", "food", "grain", "general"],
-            "weapon": ["WEAPONS", "weapon", "iron", "general"],  # TICKETS removed - should not apply to weapon production
-            "aircraft": ["AIRCRAFT", "aircraft", "titanium", "iron", "general"],
-            "airplane ticket": ["TICKETS", "airplane ticket", "ticket", "aircraft", "general"]
-        }
-        
-        # Base production values for different goods
-        # Values from real game data (1 worker, eco skill 0)
-        # These values are base production without eco skill bonus
-        self.base_production = {
-            # Raw materials - use Production Fields
-            "grain": {
-                "q1": 19, "q2": 29, "q3": 58, "q4": 78, "q5": 97,
-                "building_type": "Production Field"
-            },
-            "iron": {
-                "q1": 19, "q2": 29, "q3": 58, "q4": 78, "q5": 97,
-                "building_type": "Production Field"
-            },
-            "titanium": {
-                "q1": 19, "q2": 29, "q3": 58, "q4": 78, "q5": 97,
-                "building_type": "Production Field"
-            },
-            "fuel": {
-                "q1": 19, "q2": 29, "q3": 58, "q4": 78, "q5": 97,
-                "building_type": "Production Field"
-            },
-            
-            # Products - use Industrial Zone
-            "food": {
-                "q1": 60, "q2": 49, "q3": 38, "q4": 27, "q5": 16,
-                "building_type": "Industrial Zone"
-            },
-            "weapon": {
-                "q1": 197, "q2": 143, "q3": 105, "q4": 77, "q5": 56,
-                "building_type": "Industrial Zone"
-            },
-            "aircraft": {
-                "q1": 90, "q2": 65, "q3": 47, "q4": 34, "q5": 25,
-                "building_type": "Industrial Zone"
-            },
-            "airplane ticket": {
-                "q1": 40, "q2": 29, "q3": 21, "q4": 15, "q5": 11,
-                "building_type": "Industrial Zone"
-            },
-        }
+        self.bonus_type_mapping = self.production_calc.bonus_type_mapping
+        self.base_production = self.production_calc.base_production
     
     def load_npc_wages_data(self):
-        """Loads real NPC wages data for all countries"""
-        try:
-            print("Fetching real NPC wages data...")
-            
-            # Pobierz dane o krajach i walutach
-            eco_countries, currencies_map, currency_codes_map, gold_id = fetch_countries_and_currencies()
-            
-            if not eco_countries or not currencies_map:
-                print("Error: Cannot fetch countries and currencies data")
-                return
-            
-            # Pobierz kursy walut
-            currency_rates = build_currency_rates_map(currencies_map, gold_id)
-            
-            # Pobierz dane o NPC wages
-            npc_wage_raw = fetch_country_statistics("npcwage")
-            
-            # Sprawdź czy to jest słownik z kluczem 'data'
-            if isinstance(npc_wage_raw, dict) and 'data' in npc_wage_raw:
-                npc_wage_data = npc_wage_raw['data']
-            else:
-                npc_wage_data = npc_wage_raw
-            
-            # Utwórz słownik country_id -> wage_in_gold
-            for country in npc_wage_data:
-                # Sprawdź strukturę danych
-                if "country" in country and "id" in country["country"]:
-                    country_id = country["country"]["id"]
-                else:
-                    # Fallback: spróbuj bezpośrednio z country
-                    country_id = country.get("id")
-                
-                local_wage = country.get("value", 0)
-                
-                if country_id and local_wage > 0:
-                    # NPC wages z API są już w GOLD, nie trzeba przeliczać
-                    self.npc_wages_cache[country_id] = local_wage
-            
-            print(f"Loaded NPC wages data for {len(self.npc_wages_cache)} countries")
-            
-        except Exception as e:
-            print(f"Error loading NPC wages data: {e}")
-            # Użyj domyślnych wartości
-            self.npc_wages_cache = {}
+        """Loads real NPC wages data for all countries - REFACTORED to use centralized service"""
+        # Delegate to centralized production calculation service
+        self.production_calc.load_npc_wages_data()
+        # Update legacy cache for backward compatibility
+        self.npc_wages_cache = self.production_calc.npc_wages_cache
     
     def get_relevant_bonus(self, region_data: Dict[str, Any], item_name: str) -> Tuple[float, str]:
-        """
-        Pobiera odpowiedni bonus dla konkretnego produktu z regionu.
-        
-        Args:
-            region_data: Dane regionu z bonusami
-            item_name: Nazwa produktu
-            
-        Returns:
-            Krotka (bonus w procentach, typ bonusu)
-        """
-        bonus_by_type = region_data.get("bonus_by_type", {})
-        
-        # Jeśli bonus_by_type nie istnieje lub jest pusty, spróbuj sparsować bonus_description
-        if not bonus_by_type:
-            bonus_description = region_data.get("bonus_description", "")
-            if bonus_description:
-                # Parsuj bonus_description (format: "TICKETS:15" lub "WEAPONS:20 TICKETS:15")
-                bonus_by_type = self._parse_bonus_description(bonus_description)
-        
-        # Jeśli nadal nie ma bonus_by_type, użyj starego systemu
-        if not bonus_by_type:
-            total_bonus = region_data.get("bonus_score", 0)
-            return (total_bonus / 100.0 if total_bonus > 0 else 0.0), "general"
-        
-        relevant_bonus_types = self.bonus_type_mapping.get(item_name.lower(), ["general"])
-        
-        # Znajdź pierwszy pasujący bonus
-        for bonus_type in relevant_bonus_types:
-            if bonus_type in bonus_by_type:
-                return bonus_by_type[bonus_type] / 100.0, bonus_type  # Konwersja z procentów
-        
-        # Jeśli nie znaleziono pasującego bonusu, zwróć 0%
-        return 0.0, "none"
+        """REFACTORED - Pobiera odpowiedni bonus używając centralnego serwisu"""
+        return self.region_calc.get_regional_bonus_for_item(region_data, item_name)
     
     def _parse_bonus_description(self, bonus_description: str) -> Dict[str, float]:
-        """
-        Parsuje bonus_description do słownika bonus_by_type.
-        
-        Args:
-            bonus_description: String w formacie "TICKETS:15" lub "WEAPONS:20 TICKETS:15"
-            
-        Returns:
-            Słownik z bonusami według typów
-        """
-        bonus_by_type = {}
-        if not bonus_description:
-            return bonus_by_type
-        
-        # Podziel na części (spacje)
-        parts = bonus_description.strip().split()
-        for part in parts:
-            if ':' in part:
-                try:
-                    bonus_type, bonus_value = part.split(':', 1)
-                    bonus_by_type[bonus_type] = float(bonus_value)
-                except ValueError:
-                    continue
-        
-        return bonus_by_type
+        """REFACTORED - Deleguje do centralnego serwisu"""
+        return self.region_calc._parse_bonus_description(bonus_description)
     
     def calculate_country_bonus(self, country_name: str, item_name: str) -> float:
-        """
-        Oblicza bonus krajowy na podstawie wzoru:
-        suma bonusów regionalnych danego typu w kraju / 5 = bonus krajowy w %
-        
-        Args:
-            country_name: Nazwa kraju
-            item_name: Nazwa towaru
-            
-        Returns:
-            Bonus krajowy w procentach (jako float, np. 7.0 dla 7%)
-        """
+        """REFACTORED - Deleguje do centralnego serwisu regionów"""
         try:
             # Załaduj dane regionów z bazy
             from src.data.database.models import load_regions_data
             regions_data, summary = load_regions_data()
             
-            # Znajdź wszystkie unikalne regiony w danym kraju (bez duplikatów)
-            unique_regions = {}
-            for region in regions_data:
-                if region['country_name'].lower() == country_name.lower():
-                    region_key = region['region_name'].lower()
-                    # Zachowaj tylko pierwszy (najnowszy) region o tej nazwie
-                    if region_key not in unique_regions:
-                        unique_regions[region_key] = region
+            return self.region_calc.calculate_country_bonus(country_name, item_name, regions_data)
             
-            country_regions = list(unique_regions.values())
-            
-            if not country_regions:
-                return 0.0
-            
-            # Określ typ bonusu dla danego towaru
-            bonus_type = self._get_bonus_type_for_item(item_name)
-            if not bonus_type:
-                return 0.0
-            
-            # Zsumuj bonusy danego typu ze wszystkich unikalnych regionów w kraju
-            total_bonus = 0.0
-            regions_with_bonus = 0
-            
-            for region in country_regions:
-                # Użyj bonus_description zamiast bonus_by_type (który może być pusty)
-                bonus_description = region.get('bonus_description', '')
-                if bonus_description:
-                    # Parsuj bonus_description do bonus_by_type
-                    bonus_by_type = self._parse_bonus_description(bonus_description)
-                    if bonus_type in bonus_by_type:
-                        bonus_value = bonus_by_type[bonus_type]
-                        if bonus_value > 0:
-                            total_bonus += bonus_value
-                            regions_with_bonus += 1
-            
-            # Oblicz bonus krajowy: suma / 5
-            if regions_with_bonus > 0:
-                country_bonus = total_bonus / 5.0
-                return country_bonus
-            else:
-                return 0.0
-                
         except Exception as e:
             print(f"Error calculating country bonus for {country_name}: {e}")
             return 0.0
@@ -325,122 +123,46 @@ class ProductionAnalyzer:
                                       industrial_zone_level: int = 0, hospital_level: int = 0, 
                                       is_on_sale: bool = False) -> ProductionData:
         """
-        Oblicza efektywność produkcji dla konkretnego regionu i towaru
-        zgodnie z mechanikami Eclesiar (9 czynników wpływających na produkcję)
+        REFACTORED - Oblicza efektywność produkcji używając centralnego serwisu
         """
         try:
-            # Pobierz bazową produkcję dla towaru
-            item_config = self.base_production.get(item_name.lower())
-            if not item_config:
+            # Utwórz obiekt ProductionFactors z parametrów
+            factors = ProductionFactors(
+                company_tier=company_tier,
+                eco_skill=eco_skill,
+                workers_today=workers_today,
+                is_npc_owned=is_npc_owned,
+                military_base_level=military_base_level,
+                production_field_level=production_field_level,
+                industrial_zone_level=industrial_zone_level,
+                hospital_level=hospital_level,
+                is_on_sale=is_on_sale
+            )
+            
+            # Deleguj obliczenia do centralnego serwisu
+            result = self.production_calc.calculate_full_production(region_data, item_name, factors)
+            
+            if not result:
                 return None
             
-            building_type = item_config["building_type"]
-            
-            # Pobierz bazową produkcję dla danego tieru
-            tier_key = f"q{company_tier}"
-            if tier_key not in item_config:
-                tier_key = "q5"  # Fallback do Q5
-            base_production = item_config[tier_key]
-            
-            # Pobierz dane regionu
-            region_name = region_data.get("region_name", region_data.get("name", "Unknown"))
-            country_id = region_data.get("country_id")
-            country_name = region_data.get("country_name", "Unknown")
-            pollution = region_data.get("pollution", 0)
-            bonus_score = region_data.get("bonus_score", 0)
-            
-            # Pobierz NPC wages dla kraju
-            npc_wages = self.npc_wages_cache.get(country_id, 5.0)
-            
-            # Walidacja poziomów budynków (0-5)
-            military_base_level = max(0, min(5, military_base_level))
-            production_field_level = max(0, min(5, production_field_level))
-            industrial_zone_level = max(0, min(5, industrial_zone_level))
-            hospital_level = max(0, min(5, hospital_level))
-            
-            # ===== OBLICZANIE PRODUKCJI ZGODNIE Z MECHANIKAMI ECLESIAR =====
-            
-            # 1. NPC Company Owner - produkcja dzielona przez 3 dla produktów
-            production = base_production
-            if is_npc_owned and building_type == "Industrial Zone":
-                production = production / 3
-            
-            # 2. Building bonuses (5% per level) - WCZEŚNIEJ w kolejności
-            if building_type == "Production Field" and production_field_level > 0:
-                production = production * (1 + (production_field_level * 0.05))
-            elif building_type == "Industrial Zone" and industrial_zone_level > 0:
-                production = production * (1 + (industrial_zone_level * 0.05))
-            
-            # 3. Hospital bonus (2% per level) - wpływa na wszystkie rodzaje produkcji
-            if hospital_level > 0:
-                production = production * (1 + (hospital_level * 0.02))
-            
-            # 4. Military base bonus (5% dla broni i air-weapons)
-            if military_base_level >= 3 and item_name.lower() in ["weapon", "aircraft"]:
-                production = production * 1.05
-            
-            # 5. Consecutive workers debuff
-            # [production] = [production] * (1.3 - ( [AMOUNT OF WORKERS] / 10 ))
-            worker_debuff = 1.3 - (workers_today / 10)
-            production = production * max(0.1, worker_debuff)  # Minimum 10% produkcji
-            
-            # 6. Eco skill bonus
-            # Bazowe wartości to produkcja z eco skill 0 (zgodnie z dokumentacją)
-            # Zastosuj eco skill bonus: production = base * (1 + eco_skill/50)
-            eco_bonus = 1 + (eco_skill / 50)
-            production = int(production * eco_bonus)
-            
-            # 7. Region and country bonus (tylko odpowiedni bonus dla produktu)
-            regional_bonus, bonus_type = self.get_relevant_bonus(region_data, item_name)
-            country_bonus = self.calculate_country_bonus(country_name, item_name)
-            total_bonus = regional_bonus + (country_bonus / 100.0)  # Konwersja procentów na ułamek
-            production = production + (production * total_bonus)
-            
-            # 8. Pollution debuff
-            # [production] = [production] - (([production] - ([production]*0.1)) * [POLLUTION_VALUE])
-            if pollution > 0:
-                pollution_debuff = (production - (production * 0.1)) * (pollution / 100.0)
-                production = production - pollution_debuff
-            
-            # 9. Company state (on sale)
-            if is_on_sale:
-                production = production / 2
-            
-            # Oblicz produkcję dla wszystkich jakości (używając proporcji)
-            production_q1 = int(production * (item_config["q1"] / item_config[tier_key]))
-            production_q2 = int(production * (item_config["q2"] / item_config[tier_key]))
-            production_q3 = int(production * (item_config["q3"] / item_config[tier_key]))
-            production_q4 = int(production * (item_config["q4"] / item_config[tier_key]))
-            production_q5 = int(production * (item_config["q5"] / item_config[tier_key]))
-            
-            # Oblicz score efektywności (wyższy = lepszy)
-            efficiency_score = (production_q5 * 5 + production_q4 * 4 + production_q3 * 3 + 
-                              production_q2 * 2 + production_q1) / (5 + 4 + 3 + 2 + 1)
-            
-            # Normalizuj score względem kosztów operacyjnych
-            if pollution > 0:
-                efficiency_score = efficiency_score / (1 + pollution / 100.0)
-            
-            if npc_wages > 0:
-                efficiency_score = efficiency_score / (1 + npc_wages / 10.0)
-            
+            # Konwertuj na legacy ProductionData dla kompatybilności
             return ProductionData(
-                region_name=region_name,
-                country_name=country_name,
-                country_id=country_id,
-                item_name=item_name,
-                total_bonus=total_bonus,
-                regional_bonus=regional_bonus,
-                country_bonus=country_bonus,
-                bonus_type=bonus_type,
-                pollution=pollution,
-                npc_wages=npc_wages,
-                production_q1=production_q1,
-                production_q2=production_q2,
-                production_q3=production_q3,
-                production_q4=production_q4,
-                production_q5=production_q5,
-                efficiency_score=efficiency_score
+                region_name=result.region_name,
+                country_name=result.country_name,
+                country_id=result.country_id,
+                item_name=result.item_name,
+                total_bonus=result.total_bonus,
+                regional_bonus=result.regional_bonus,
+                country_bonus=result.country_bonus,
+                bonus_type=result.bonus_type,
+                pollution=result.pollution,
+                npc_wages=result.npc_wages,
+                production_q1=result.production_q1,
+                production_q2=result.production_q2,
+                production_q3=result.production_q3,
+                production_q4=result.production_q4,
+                production_q5=result.production_q5,
+                efficiency_score=result.efficiency_score
             )
             
         except Exception as e:
