@@ -1,8 +1,8 @@
 """
 Database Manager Service
 
-Centralny serwis do zarządzania bazą danych zgodnie z planem refaktoryzacji.
-Implementuje przepływ: aktualizacja DB → generowanie raportów z DB.
+Central service for database management according to refactoring plan.
+Implements flow: DB update → report generation from DB.
 
 Copyright (c) 2025 Teo693
 Licensed under the MIT License - see LICENSE file for details.
@@ -31,14 +31,14 @@ from config.settings.base import AUTH_TOKEN, GOLD_ID_FALLBACK
 
 
 class DatabaseManagerService:
-    """Centralny serwis do zarządzania bazą danych i przepływem danych"""
+    """Central service for database management and data flow"""
     
     def __init__(self, db_path: str = None):
         self.db_path = db_path or os.getenv("ECLESIAR_DB_PATH", "data/eclesiar.db")
         self._ensure_db_initialized()
     
     def _ensure_db_initialized(self):
-        """Zapewnia że baza danych jest zainicjalizowana"""
+        """Ensures that the database is initialized"""
         try:
             init_db()
             self._create_additional_tables()
@@ -47,7 +47,7 @@ class DatabaseManagerService:
             print(f"⚠️ Warning: database initialization failed: {e}")
     
     def _create_additional_tables(self):
-        """Tworzy dodatkowe tabele potrzebne do Database-First approach"""
+        """Creates additional tables needed for Database-First approach"""
         with self._connect() as conn:
             # Tabela oferuje pracy
             conn.execute("""

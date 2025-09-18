@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Konsolidowany analizator arbitrażu walutowego dla Eclesiar.
-Łączy najlepsze funkcje z obu wersji.
+Consolidated currency arbitrage analyzer for Eclesiar.
+Combines the best features from both versions.
 """
 
 from datetime import datetime, timedelta
@@ -24,11 +24,11 @@ from src.core.services.economy_service import fetch_countries_and_currencies, bu
 
 @dataclass
 class MarketOffer:
-    """Reprezentuje ofertę na rynku walutowym"""
+    """Represents an offer in the currency market"""
     rate: float
     amount: float
     owner_id: int
-    transaction_type: str  # 'BUY' lub 'SELL'
+    transaction_type: str  # 'BUY' or 'SELL'
     timestamp: datetime
 
 
@@ -50,7 +50,7 @@ class CurrencyMarket:
 
 @dataclass
 class ArbitrageOpportunity:
-    """Reprezentuje okazję do arbitrażu"""
+    """Represents an arbitrage opportunity"""
     from_currency: str
     to_currency: str
     buy_rate: float
@@ -65,7 +65,7 @@ class ArbitrageOpportunity:
 
 @dataclass
 class PortfolioPosition:
-    """Reprezentuje pozycję w portfelu"""
+    """Represents a portfolio position"""
     currency_name: str
     amount: float
     avg_buy_rate: float
@@ -103,7 +103,7 @@ class RiskAnalyzer:
         }
     
     def calculate_risk_score(self, opportunity: ArbitrageOpportunity) -> float:
-        """Oblicza score ryzyka dla okazji arbitrażowej"""
+        """Calculates risk score for arbitrage opportunity"""
         try:
             risk_score = 0.0
             

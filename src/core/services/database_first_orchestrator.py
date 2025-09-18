@@ -1,9 +1,9 @@
 """
 Database-First Orchestrator Service
 
-Nowy orchestrator implementujący przepływ zgodny z planem refaktoryzacji:
-1. Aktualizacja bazy danych
-2. Generowanie raportów z bazy danych (bez cache)
+New orchestrator implementing DB-first flow according to refactoring plan:
+1. Database update
+2. Report generation from database (without cache)
 
 Copyright (c) 2025 Teo693
 Licensed under the MIT License - see LICENSE file for details.
@@ -28,21 +28,21 @@ from src.data.storage.cache import save_historical_data, load_historical_data
 
 class DatabaseFirstOrchestrator:
     """
-    Orchestrator implementujący przepływ DB-first zgodnie z planem refaktoryzacji.
+    Orchestrator implementing DB-first flow according to refactoring plan.
     
-    Przepływ:
-    1. Sprawdza czy baza danych jest świeża
-    2. Jeśli nie - aktualizuje bazę danych z API
-    3. Generuje raporty wyłącznie z danych z bazy danych
-    4. Używa centralnych serwisów obliczeniowych
+    Flow:
+    1. Checks if database is fresh
+    2. If not - updates database from API
+    3. Generates reports exclusively from database data
+    4. Uses centralized calculation services
     """
     
     def __init__(self, db_path: str = None, force_refresh: bool = False):
         self.db_manager = DatabaseManagerService(db_path)
         self.force_refresh = force_refresh
         
-        # Inicjalizuj centralne serwisy obliczeniowe
-        self.currency_calc = CurrencyCalculationService(cache_timeout_minutes=0)  # Bez cache
+        # Initialize centralized calculation services
+        self.currency_calc = CurrencyCalculationService(cache_timeout_minutes=0)  # No cache
         self.production_calc = ProductionCalculationService(db_path)
         self.region_calc = RegionCalculationService()
         self.market_calc = MarketCalculationService()
@@ -54,15 +54,15 @@ class DatabaseFirstOrchestrator:
     def run(self, sections: Dict[str, bool] = None, report_type: str = "daily", 
             output_dir: str = "reports") -> str:
         """
-        Główna metoda orchestratora - przepływ DB-first.
+        Main orchestrator method - DB-first flow.
         
         Args:
-            sections: Sekcje do włączenia w raport
-            report_type: Typ raportu do wygenerowania
-            output_dir: Katalog wyjściowy
+            sections: Sections to include in report
+            report_type: Type of report to generate
+            output_dir: Output directory
             
         Returns:
-            Ścieżka do wygenerowanego raportu lub komunikat o błędzie
+            Path to generated report or error message
         """
         if sections is None:
             sections = {
@@ -77,16 +77,16 @@ class DatabaseFirstOrchestrator:
         print(f"📁 Output directory: {output_dir}")
         
         try:
-            # KROK 1: Sprawdź świeżość bazy danych i zaktualizuj jeśli potrzeba
+            # STEP 1: Check database freshness and update if needed
             if not self._ensure_fresh_database(sections):
                 return "❌ Failed to update database"
             
-            # KROK 2: Pobierz wszystkie dane z bazy danych
+            # STEP 2: Load all data from database
             data_bundle = self._load_data_from_database(sections)
             if not data_bundle:
                 return "❌ Failed to load data from database"
             
-            # KROK 3: Wygeneruj raport używając centralnych serwisów
+            # STEP 3: Generate report using centralized services
             report_path = self._generate_report_from_db_data(
                 data_bundle, sections, report_type, output_dir
             )
@@ -103,39 +103,39 @@ class DatabaseFirstOrchestrator:
     
     def _ensure_fresh_database(self, sections: Dict[str, bool]) -> bool:
         """
-        Zapewnia że baza danych jest świeża.
-        Aktualizuje bazę danych jeśli jest przestarzała lub wymuszono odświeżenie.
+        Ensures that the database is fresh.
+        Updates database if it's outdated or refresh is forced.
         """
-        # Sprawdź czy baza jest świeża (max 1 godzina)
+        # Check if database is fresh (max 1 hour)
         if not self.force_refresh and self.db_manager.is_database_fresh(max_age_hours=1):
             last_refresh = self.db_manager.get_last_refresh_time()
             print(f"✅ Database is fresh (last updated: {last_refresh.strftime('%Y-%m-%d %H:%M:%S')})")
             return True
         
-        # Baza danych wymaga aktualizacji
+        # Database requires update
         print("🔄 Database needs refresh, updating from API...")
         return self.db_manager.update_database_full(sections)
     
     def _load_data_from_database(self, sections: Dict[str, bool]) -> Optional[Dict[str, Any]]:
         """
-        Ładuje wszystkie potrzebne dane z bazy danych.
+        Loads all necessary data from the database.
         
         Returns:
-            Słownik z danymi lub None jeśli nie udało się załadować
+            Dictionary with data or None if loading failed
         """
         print("📚 Loading data from database...")
         
         try:
             data_bundle = {}
             
-            # Podstawowe dane ekonomiczne (zawsze potrzebne)
+            # Basic economic data (always needed)
             data_bundle['countries'] = self.db_manager.get_countries_data()
             data_bundle['currencies_map'] = self.db_manager.get_currencies_data()
             data_bundle['currency_codes_map'] = self.db_manager.get_currency_codes_data()
             data_bundle['currency_rates'] = self.db_manager.get_currency_rates()
             data_bundle['items_map'] = self.db_manager.get_items_map()
             
-            # Znajdź GOLD ID
+            # Find GOLD ID
             gold_id = None
             for curr_id, curr_name in data_bundle['currencies_map'].items():
                 if curr_name.upper() == 'GOLD':
@@ -143,31 +143,31 @@ class DatabaseFirstOrchestrator:
                     break
             data_bundle['gold_id'] = gold_id or 1  # Fallback
             
-            # Dane ekonomiczne (zawsze ładuj podstawowe dane ekonomiczne jeśli są)
+            # Economic data (always load basic economic data if available)
             data_bundle['job_offers'] = self.db_manager.get_job_offers()
             data_bundle['market_offers'] = self.db_manager.get_market_offers()
             
-            # Przetwórz oferty na format oczekiwany przez raporty
+            # Process offers to format expected by reports
             data_bundle['best_jobs'] = self._process_job_offers(data_bundle['job_offers']) if data_bundle['job_offers'] else []
             data_bundle['cheapest_items'] = self._process_market_offers(data_bundle['market_offers']) if data_bundle['market_offers'] else {}
             
-            # Dane regionów (dla produktywności)
+            # Region data (for productivity)
             if sections.get('production', False):
                 regions_data, regions_summary = self.db_manager.get_regions_data()
                 data_bundle['regions_data'] = regions_data
                 data_bundle['regions_summary'] = regions_summary
             
-            # Dane militarne
+            # Military data
             if sections.get('military', False):
                 hits_data, wars_summary = self.db_manager.get_military_data()
                 data_bundle['hits_data'] = hits_data
                 data_bundle['wars_summary'] = wars_summary
             
-            # Dane wojowników
+            # Warriors data
             if sections.get('warriors', False):
                 data_bundle['warriors_data'] = self.db_manager.get_warriors_data()
             
-            # Czas pobrania danych
+            # Data fetch time
             data_bundle['fetched_at'] = datetime.now().isoformat()
             
             print("✅ All data loaded from database successfully")
@@ -178,9 +178,9 @@ class DatabaseFirstOrchestrator:
             return None
     
     def _process_job_offers(self, job_offers: List[Dict]) -> List[Dict]:
-        """Przetwarza oferty pracy do formatu oczekiwanego przez raporty"""
+        """Processes job offers to format expected by reports"""
         processed = []
-        for job in job_offers[:50]:  # Top 50 ofert
+        for job in job_offers[:50]:  # Top 50 offers
             processed.append({
                 'country_id': job.get('country_id'),
                 'country_name': job.get('country_name'),
@@ -190,14 +190,14 @@ class DatabaseFirstOrchestrator:
                 'currency_name': job.get('currency_name'),
                 'job_title': job.get('job_title', 'Unknown'),
                 'business_name': job.get('business_name', 'Unknown'),
-                'business_id': job.get('country_id', 0)  # Fallback dla kompatybilności
+                'business_id': job.get('country_id', 0)  # Fallback for compatibility
             })
         return processed
     
     def _process_market_offers(self, market_offers: List[Dict]) -> Dict[int, List[Dict]]:
-        """Przetwarza oferty rynkowe do formatu oczekiwanego przez raporty (słownik grupowany po item_id)"""
+        """Processes market offers to format expected by reports (dictionary grouped by item_id)"""
         processed = {}
-        for offer in market_offers[:100]:  # Top 100 najtańszych
+        for offer in market_offers[:100]:  # Top 100 cheapest
             item_id = offer.get('item_id')
             if item_id is not None:
                 if item_id not in processed:
@@ -220,7 +220,7 @@ class DatabaseFirstOrchestrator:
                                     sections: Dict[str, bool], report_type: str, 
                                     output_dir: str) -> Optional[str]:
         """
-        Generuje raport używając danych z bazy danych i centralnych serwisów obliczeniowych.
+        Generates report using database data and centralized calculation services.
         """
         print(f"📋 Generating {report_type} report from database data...")
         

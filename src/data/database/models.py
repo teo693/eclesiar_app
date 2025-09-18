@@ -112,7 +112,7 @@ def init_db() -> None:
             """
         )
         
-        # Migracja: dodaj kolumnę bonus_by_type jeśli nie istnieje
+        # Migration: add bonus_by_type column if it doesn't exist
         try:
             cur.execute("ALTER TABLE regions_data ADD COLUMN bonus_by_type TEXT DEFAULT '{}'")
             print("Added bonus_by_type column to regions_data table")
@@ -362,14 +362,14 @@ def load_raw_cache() -> Optional[Dict[str, Any]]:
 
 def load_regions_data() -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
     """
-    Ładuje dane o regionach z bazy danych.
+    Loads region data from the database.
     
     Returns:
-        Krotka (lista regionów, podsumowanie)
+        Tuple (list of regions, summary)
     """
     try:
         with _connect() as conn:
-            # Pobierz najnowsze podsumowanie
+            # Get the latest summary
             cursor = conn.execute(
                 """
                 SELECT summary_json FROM regions_summary 
@@ -379,7 +379,7 @@ def load_regions_data() -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
             summary_row = cursor.fetchone()
             summary = json.loads(summary_row[0]) if summary_row else {}
             
-            # Pobierz najnowsze dane regionów
+            # Get the latest region data
             cursor = conn.execute(
                 """
                 SELECT region_name, country_name, country_id, pollution, 
@@ -418,16 +418,16 @@ def load_regions_data() -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
 
 def save_regions_data(regions_data: List[Dict[str, Any]], regions_summary: Dict[str, Any]) -> None:
     """
-    Zapisuje dane o regionach do bazy danych.
+    Saves region data to the database.
     
     Args:
-        regions_data: Lista regionów z bonusami
-        regions_summary: Podsumowanie danych o regionach
+        regions_data: List of regions with bonuses
+        regions_summary: Summary of region data
     """
     ts = datetime.utcnow().isoformat() + "Z"
     
     with _connect() as conn:
-        # Zapisz podsumowanie
+        # Save summary
         conn.execute(
             """
             INSERT INTO regions_summary(created_at, summary_json)
@@ -436,7 +436,7 @@ def save_regions_data(regions_data: List[Dict[str, Any]], regions_summary: Dict[
             (ts, json.dumps(regions_summary, ensure_ascii=False)),
         )
         
-        # Zapisz szczegółowe dane regionów
+        # Save detailed region data
         for region in regions_data:
             conn.execute(
                 """
