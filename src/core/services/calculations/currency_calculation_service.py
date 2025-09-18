@@ -76,8 +76,8 @@ class CurrencyCalculationService:
     
     def _fetch_currency_to_gold_rate_from_api(self, currency_id: int) -> Optional[float]:
         """
-        Pobiera najlepszą realną ofertę SELL dla waluty z API.
-        Wyszukuje pierwsze oferty o rozsądnym kursie, pomijając bardzo niskie spekulacyjne ceny.
+        Pobiera najlepszą ofertę SELL dla waluty z API.
+        Zwraca najniższy dostępny kurs (pierwsza oferta).
         """
         try:
             # Pobierz oferty SELL (sprzedaż waluty za GOLD)
@@ -93,7 +93,7 @@ class CurrencyCalculationService:
             if not offers:
                 return None
             
-            # Zbierz wszystkie kursy i znajdź pierwsze rozsądne
+            # Zbierz wszystkie kursy
             rates = []
             for offer in offers:
                 rate = offer.get("rate")
@@ -108,17 +108,9 @@ class CurrencyCalculationService:
             if not rates:
                 return None
             
-            # Sortuj kursy rosnąco
+            # Sortuj kursy rosnąco i zwróć pierwszy (najniższy)
             rates.sort()
-            
-            # Znajdź pierwszy kurs większy niż minimum (odrzuć bardzo niskie spekulacyjne)
-            # Dla większości walut realny kurs to 0.1-10 GOLD za jednostkę
-            for rate in rates:
-                if rate >= 0.1:  # Minimalny rozsądny kurs
-                    return rate
-            
-            # Jeśli nie ma kursów >= 0.1, weź największy dostępny
-            return max(rates) if rates else None
+            return rates[0]
                     
         except Exception as e:
             print(f"Error fetching currency rate for {currency_id}: {e}")

@@ -381,6 +381,10 @@ MIN_SPREAD_THRESHOLD=0.001
 - **Troubleshooting**: `docs/api/troubleshooting.md` - Common issues and solutions
 
 ### Development Documentation
+- **Database Schema**: `docs/development/database_schema.md` - Complete database schema documentation
+- **Database ERD**: `docs/development/database_erd.md` - Visual database relationships and diagrams
+- **Database Quick Ref**: `docs/development/database_quick_ref.md` - Essential commands and queries for developers
+- **Database Explorer**: `docs/development/database_setup.py` - Interactive script to explore database structure
 - **Refactoring Plan**: `docs/development/refactoring_plan.md` - Project refactoring roadmap
 - **Security**: `docs/development/security.md` - Security considerations
 - **Production Analysis**: `docs/development/production_analysis.md` - Production analysis details
@@ -401,6 +405,36 @@ The project follows a **Clean Architecture** pattern with clear separation of co
 - **`database/`** - Database models and SQLite operations
 - **`repositories/`** - Repository pattern implementations
 - **`storage/`** - Cache and data storage management
+
+### 🗄️ Database
+
+The application uses **SQLite** database for persistent storage:
+
+- **Database**: `data/eclesiar.db` (SQLite 3)
+- **Tables**: 10 tables for API cache, economic data, reports, and regions
+- **Features**: WAL mode, foreign keys, JSON fields
+- **Schema**: See detailed documentation in `docs/development/database_schema.md`
+
+#### **Main Tables:**
+- `api_snapshots` - Raw API responses cache
+- `item_prices` - Economic items price history (in GOLD)
+- `currency_rates` - Currency exchange rates vs GOLD
+- `historical_reports` - Daily reports archive
+- `raw_api_cache` - Latest complete API dataset
+- `regions_data` - Regional production bonuses and data
+- `regions_summary` - Aggregated regional statistics
+- `countries`, `currencies`, `regions` - Master data (Repository pattern)
+
+#### **Quick Start for Developers:**
+```bash
+# Explore database structure
+python3 docs/development/database_setup.py
+
+# View SQL schema  
+cat docs/development/database_schema.sql
+```
+
+**📚 Documentation**: `database_schema.md` | **⚡ Quick Ref**: `database_quick_ref.md` | **📊 ERD**: `database_erd.md`
 
 #### **Reports Layer (`src/reports/`)**
 - **`generators/`** - Report generation logic

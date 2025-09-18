@@ -269,9 +269,34 @@ def run(sections: dict = None, report_type: str = "daily") -> None:
     # Load historical data for comparison
     historical_data = load_historical_data()
     
+    # Transform best_jobs data to match expected format in reports
+    best_jobs = raw_data_dump.get('best_jobs', [])
+    transformed_jobs = []
+    for job in best_jobs[:5]:  # Top 5 for reports
+        transformed_job = {
+            'country': job.get('country_name', 'Unknown'),
+            'salary': job.get('salary_gold', 0),
+            'business_id': job.get('business_id', 'N/A'),
+            'company_id': job.get('company_id', 'N/A'),
+            'business_name': job.get('job_title', '—'),
+            'company_name': job.get('job_title', '—'),
+            'description': f"Business ID: {job.get('business_id', 'N/A')}"
+        }
+        transformed_jobs.append(transformed_job)
+    
+    # Create proper summary_data structure
+    summary_data = {
+        'fetched_at': raw_data_dump.get('fetched_at'),
+        'economic_summary': {
+            'job_offers': transformed_jobs,
+            'currency_rates': raw_data_dump.get('currency_rates', {}),
+            'cheapest_by_item': raw_data_dump.get('cheapest_items', {})
+        }
+    }
+    
     # Generate report
     report_file = generate_report(
-        raw_data_dump,
+        summary_data,
         historical_data,
         {},  # top_warriors - empty for now
         raw_data_dump.get('items_map', {}),

@@ -671,6 +671,20 @@ class OptimizedDataFetchingStrategy(DataFetchingStrategy):
         currency_extremes = compute_currency_extremes(currency_rates, currencies_map, gold_id)
         print(f"✅ Computed extremes for {len(currency_extremes)} currencies")
         
+        # Transform best_jobs data to match expected format in reports
+        transformed_jobs = []
+        for job in best_jobs[:5]:  # Top 5 for reports
+            transformed_job = {
+                'country': job.get('country_name', 'Unknown'),
+                'salary': job.get('salary_gold', 0),
+                'business_id': job.get('business_id', 'N/A'),
+                'company_id': job.get('company_id', 'N/A'),
+                'business_name': job.get('job_title', '—'),
+                'company_name': job.get('job_title', '—'),
+                'description': f"Business ID: {job.get('business_id', 'N/A')}"
+            }
+            transformed_jobs.append(transformed_job)
+
         return {
             'country_map': country_map,
             'currencies_map': currencies_map,
@@ -683,7 +697,14 @@ class OptimizedDataFetchingStrategy(DataFetchingStrategy):
             'regions_summary': regions_summary,
             'military_summary': military_summary,
             'currency_extremes': currency_extremes,
-            'summary_data': {'fetched_at': self._get_current_timestamp()},
+            'summary_data': {
+                'fetched_at': self._get_current_timestamp(),
+                'economic_summary': {
+                    'job_offers': transformed_jobs,
+                    'currency_rates': currency_rates,
+                    'cheapest_by_item': cheapest_items
+                }
+            },
             'sections': {'military': True, 'warriors': True, 'economic': True, 'production': True}
         }
     
