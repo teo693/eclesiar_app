@@ -115,10 +115,46 @@ class ProductionCalculationService:
         }
     
     def load_npc_wages_data(self):
-        """Loads real NPC wages data for all countries"""
+        """Loads real NPC wages data from database (DB-first approach)"""
         try:
-            print("Fetching real NPC wages data...")
+            print("Loading NPC wages data from database...")
             
+            # Ładuj dane z bazy danych zamiast z API
+            from src.core.services.database_manager_service import DatabaseManagerService
+            db_manager = DatabaseManagerService(self.db_path)
+            
+            # Pobierz oferty pracy z bazy danych (NPC wages są najmniejszymi wynagrodzeniami)
+            job_offers = db_manager.get_job_offers()
+            
+            if not job_offers:
+                print("⚠️ No job offers in database, falling back to API...")
+                self._load_npc_wages_from_api()
+                return
+            
+            # Znajdź najniższe wynagrodzenie w każdym kraju (to będzie NPC wage)
+            country_wages = {}
+            for job in job_offers:
+                country_id = job.get('country_id')
+                wage_gold = job.get('wage_gold', 0)
+                
+                if country_id and wage_gold > 0:
+                    if country_id not in country_wages:
+                        country_wages[country_id] = wage_gold
+                    else:
+                        # Znajdź minimum (NPC wage)
+                        country_wages[country_id] = min(country_wages[country_id], wage_gold)
+            
+            self.npc_wages_cache = country_wages
+            print(f"✅ Loaded NPC wages for {len(self.npc_wages_cache)} countries from database")
+            
+        except Exception as e:
+            print(f"❌ Error loading NPC wages from database: {e}")
+            print("🔄 Falling back to API...")
+            self._load_npc_wages_from_api()
+    
+    def _load_npc_wages_from_api(self):
+        """Fallback method to load NPC wages from API"""
+        try:
             # Pobierz dane o krajach i walutach
             eco_countries, currencies_map, currency_codes_map, gold_id = fetch_countries_and_currencies()
             
@@ -153,10 +189,10 @@ class ProductionCalculationService:
                     # NPC wages z API są już w GOLD, nie trzeba przeliczać
                     self.npc_wages_cache[country_id] = local_wage
             
-            print(f"✅ Loaded NPC wages for {len(self.npc_wages_cache)} countries")
+            print(f"✅ Loaded NPC wages for {len(self.npc_wages_cache)} countries from API")
             
         except Exception as e:
-            print(f"❌ Error loading NPC wages: {e}")
+            print(f"❌ Error loading NPC wages from API: {e}")
     
     def calculate_base_production(self, item_name: str, company_tier: int) -> Optional[int]:
         """Oblicza bazową produkcję dla towaru i poziomu firmy"""

@@ -9,7 +9,13 @@ Eliminacja duplikowanej logiki obliczeniowej w całym projekcie poprzez stworzen
 ### 1. **Logika Przeliczania Kursów Walut na GOLD**
 
 **Duplikacje znalezione w:**
-- `src/core/services/economy_service.py` - funkcje `fetch_currency_to_gold_rate()`, `build_currency_rates_map()`
+- `src/core/services/economy_service.py` - funkcje `fetch_currency_to_gold_rate()`, `build_currency_rates_map()`1	Turkey	4088	13.560000	40.00 TRY
+2	Hungary	10333	13.516000	62.00 HUF
+3	France	6958	5.000000	50.00 FRF
+1	Turkey	4088	13.560000	40.00 TRY
+2	Hungary	10333	13.516000	62.00 HUF
+3	France	6958	5.000000	50.00 FRF
+
 - `src/core/services/economy_service_refactored.py` - klasa `EconomyService` z metodami kursów
 - `src/reports/generators/arbitrage_report.py` - klasa `CurrencyMarket` z własnymi kalkulacjami
 - `src/reports/generators/short_economic_report.py` - własne wywołania API dla kursów

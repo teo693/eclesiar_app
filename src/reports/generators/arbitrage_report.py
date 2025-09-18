@@ -258,20 +258,56 @@ class CurrencyArbitrageAnalyzer:
             print(f"Error fetching market data for {currency_name}: {e}")
             return None
     
-    def find_arbitrage_opportunities(self) -> List[ArbitrageOpportunity]:
-        """Znajduje okazje do arbitrażu między wszystkimi walutami"""
+    def find_arbitrage_opportunities(self, use_database: bool = True) -> List[ArbitrageOpportunity]:
+        """Znajduje okazje do arbitrażu między wszystkimi walutami (DB-first approach)"""
         try:
             opportunities = []
             
-            # Pobierz dane o krajach i walutach
-            self.eco_countries, self.currencies_map, self.currency_codes_map, self.gold_id = fetch_countries_and_currencies()
+            if use_database:
+                # Spróbuj załadować dane z bazy danych
+                try:
+                    from src.core.services.database_manager_service import DatabaseManagerService
+                    db_manager = DatabaseManagerService()
+                    
+                    # Pobierz dane z bazy
+                    countries = db_manager.get_countries_data()
+                    self.currencies_map = db_manager.get_currencies_data()
+                    self.currency_rates = db_manager.get_currency_rates()
+                    
+                    # Konwertuj kraje do formatu oczekiwanego
+                    self.eco_countries = [
+                        {
+                            'country_id': c['country_id'],
+                            'country_name': c['country_name'],
+                            'currency_id': c['currency_id']
+                        }
+                        for c in countries
+                    ]
+                    
+                    # Znajdź GOLD ID
+                    self.gold_id = GOLD_ID_FALLBACK
+                    for curr_id, curr_name in self.currencies_map.items():
+                        if curr_name.upper() == 'GOLD':
+                            self.gold_id = curr_id
+                            break
+                    
+                    print(f"✅ Loaded data from database: {len(self.currencies_map)} currencies, {len(self.currency_rates)} rates")
+                    
+                except Exception as e:
+                    print(f"⚠️ Error loading from database: {e}")
+                    print("🔄 Falling back to API...")
+                    use_database = False
             
-            if not self.eco_countries or not self.currencies_map:
-                print("Error: Cannot fetch countries and currencies data")
-                return []
-            
-            # Pobierz kursy walut
-            self.currency_rates = build_currency_rates_map(self.currencies_map, self.gold_id)
+            if not use_database:
+                # Fallback: Pobierz dane z API
+                self.eco_countries, self.currencies_map, self.currency_codes_map, self.gold_id = fetch_countries_and_currencies()
+                
+                if not self.eco_countries or not self.currencies_map:
+                    print("Error: Cannot fetch countries and currencies data")
+                    return []
+                
+                # Pobierz kursy walut
+                self.currency_rates = build_currency_rates_map(self.currencies_map, self.gold_id)
             
             # Pobierz dane rynkowe dla wszystkich walut
             currency_ids = list(self.currencies_map.keys())

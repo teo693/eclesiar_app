@@ -74,11 +74,12 @@ class ProductionAnalyzer:
         return self.region_calc._parse_bonus_description(bonus_description)
     
     def calculate_country_bonus(self, country_name: str, item_name: str) -> float:
-        """REFACTORED - Deleguje do centralnego serwisu regionów"""
+        """REFACTORED - Deleguje do centralnego serwisu regionów używając bazy danych"""
         try:
-            # Załaduj dane regionów z bazy
-            from src.data.database.models import load_regions_data
-            regions_data, summary = load_regions_data()
+            # Załaduj dane regionów z bazy używając DatabaseManagerService
+            from src.core.services.database_manager_service import DatabaseManagerService
+            db_manager = DatabaseManagerService(self.db_path)
+            regions_data, summary = db_manager.get_regions_data()
             
             return self.region_calc.calculate_country_bonus(country_name, item_name, regions_data)
             
