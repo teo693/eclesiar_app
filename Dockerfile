@@ -34,7 +34,7 @@ RUN mkdir -p /app/logs /app/reports /app/data /app/cred
 RUN chmod +x /app/main.py
 
 # Create cron job for Google Sheets economic reports every 3 hours  
-RUN echo "0 */3 * * * cd /app && python main.py google-sheets-report --economic-only >> /app/logs/cron.log 2>&1" | crontab -
+RUN echo "0 */3 * * * cd /app && python3 main.py google-sheets-report --economic-only >> /app/logs/cron.log 2>&1" | crontab -
 
 # Create startup script
 RUN echo '#!/bin/bash\n\
@@ -46,7 +46,7 @@ echo "First report will be generated immediately..."\n\
 service cron start\n\
 \n\
 # Generate initial report\n\
-cd /app && python main.py google-sheets-report --economic-only\n\
+cd /app && python3 main.py google-sheets-report --economic-only\n\
 \n\
 # Keep container running and show logs\n\
 tail -f /app/logs/cron.log' > /app/start.sh
