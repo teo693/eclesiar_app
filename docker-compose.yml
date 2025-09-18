@@ -50,7 +50,7 @@ services:
   #   restart: unless-stopped
   #   ports:
   #     - "8000:8000"
-  #   command: ["python", "src/cli/web_api.py"]
+  #   command: ["python3", "src/cli/web_api.py"]
   #   env_file:
   #     - .env
   #   volumes:

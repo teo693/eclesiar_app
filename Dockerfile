@@ -27,6 +27,9 @@ RUN pip install --no-cache-dir -r requirements/base.txt
 # Copy application code
 COPY . /app/
 
+# Force cache invalidation for Google Sheets implementation
+RUN echo "Google Sheets implementation updated: $(date)" > /app/.build_cache
+
 # Create necessary directories
 RUN mkdir -p /app/logs /app/reports /app/data /app/cred
 
