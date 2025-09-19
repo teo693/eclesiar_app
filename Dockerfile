@@ -16,6 +16,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     cron \
     curl \
+    procps \
     && rm -rf /var/lib/apt/lists/*
 
 # Create symlink for python -> python3 to avoid 'python: not found' errors
@@ -41,7 +42,7 @@ RUN chmod +x /app/main.py
 
 # Create cron job for Google Sheets economic reports every 3 hours  
 RUN echo "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" > /etc/cron.d/eclesiar-cron && \
-    echo "0 */3 * * * root cd /app && PATH=/usr/local/bin:\$PATH /usr/local/bin/python3 main.py google-sheets-report --economic-only >> /app/logs/cron.log 2>&1" >> /etc/cron.d/eclesiar-cron && \
+    echo "0 */3 * * * root cd /app && /usr/local/bin/python3 main.py google-sheets-report --economic-only >> /app/logs/cron.log 2>&1" >> /etc/cron.d/eclesiar-cron && \
     chmod 0644 /etc/cron.d/eclesiar-cron && \
     crontab /etc/cron.d/eclesiar-cron
 

@@ -132,8 +132,8 @@ class DatabaseFirstOrchestrator:
         Ensures that the database is fresh.
         Updates database if it's outdated or refresh is forced.
         """
-        # Check if database is fresh (max 1 hour)
-        if not self.force_refresh and self.db_manager.is_database_fresh(max_age_hours=1):
+        # Check if database is fresh (max 1 minute)
+        if not self.force_refresh and self.db_manager.is_database_fresh(max_age_hours=0.017):
             last_refresh = self.db_manager.get_last_refresh_time()
             print(f"✅ Database is fresh (last updated: {last_refresh.strftime('%Y-%m-%d %H:%M:%S')})")
             return True
