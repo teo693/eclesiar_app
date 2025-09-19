@@ -240,17 +240,22 @@ class DatabaseManagerService:
     def _update_military_data(self) -> bool:
         """Aktualizuje dane militarne w bazie danych"""
         try:
+            # Pobierz kraje dla mapowania
+            eco_countries = self._get_countries_from_db()
+            if not eco_countries:
+                eco_countries, _, _, _ = fetch_countries_and_currencies()
+            
             # Pobierz dane o walkach
-            hits_response = fetch_data("fights/hits", "military hits data")
+            hits_response = fetch_data("military/battles", "military hits data")
             if hits_response:
-                hits_data = process_hits_data(hits_response)
+                hits_data = process_hits_data(hits_response, eco_countries)
             else:
                 hits_data = []
             
             # Pobierz dane o wojnach
-            wars_response = fetch_data("fights/wars", "military wars data")
+            wars_response = fetch_data("military/wars", "military wars data")
             if wars_response:
-                wars_summary = build_wars_summary(wars_response)
+                wars_summary = build_wars_summary(wars_response, eco_countries)
             else:
                 wars_summary = {}
             
@@ -266,12 +271,13 @@ class DatabaseManagerService:
     def _update_warriors_data(self) -> bool:
         """Aktualizuje dane wojowników w bazie danych"""
         try:
-            # Pobierz ranking wojowników
+            # Pobierz ranking wojowników - endpoint może nie istnieć
             warriors_response = fetch_data("citizens/top", "warriors ranking data")
             
             if warriors_response and 'data' in warriors_response:
                 warriors_data = warriors_response['data']
             else:
+                print("⚠️ Warriors endpoint not available, skipping warriors data")
                 warriors_data = []
             
             # Zapisz dane wojowników
@@ -541,17 +547,24 @@ class DatabaseManagerService:
             
             conn.commit()
     
-    def _get_countries_from_db(self) -> List[Dict]:
-        """Pobiera kraje z bazy danych"""
+    def _get_countries_from_db(self) -> Dict[int, Dict[str, Any]]:
+        """Pobiera kraje z bazy danych jako słownik z country_id jako klucz"""
         try:
             with self._connect() as conn:
                 cursor = conn.execute("""
                     SELECT id as country_id, name as country_name, currency_id
                     FROM countries WHERE is_available = 1
                 """)
-                return [dict(row) for row in cursor.fetchall()]
+                countries = {}
+                for row in cursor.fetchall():
+                    country_id = row['country_id']
+                    countries[country_id] = {
+                        'name': row['country_name'],
+                        'currency_id': row['currency_id']
+                    }
+                return countries
         except:
-            return []
+            return {}
     
     def get_last_refresh_time(self) -> Optional[datetime]:
         """Zwraca czas ostatniej aktualizacji bazy danych"""

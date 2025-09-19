@@ -253,6 +253,9 @@ def interactive_menu():
     print("🚀 Welcome to Eclesiar Application!")
     print("=" * 50)
     
+    # Default output directory
+    output_dir = "reports"
+    
     while True:
         print("\n📋 What would you like to do?")
         print("1. 📊 Generate daily report (DOCX)")
@@ -272,7 +275,9 @@ def interactive_menu():
         choice = input("\nSelect option (1-13): ").strip()
         
         if choice == '1':
-            output_dir = input("📁 Output directory (default: reports): ").strip() or 'reports'
+            new_output_dir = input(f"📁 Output directory (current: {output_dir}): ").strip()
+            if new_output_dir:
+                output_dir = new_output_dir
             sections = get_report_sections()
             print("📋 Generating daily DOCX report using Database-First approach...")
             try:
@@ -280,15 +285,17 @@ def interactive_menu():
                 result = orchestrator.run(sections, "daily", output_dir)
                 if result.startswith("❌"):
                     print(f"❌ Report generation failed: {result}")
-                    print("💡 Try option 10 to manually update the database")
+                    print("💡 Try option 11 to manually update the database")
                 else:
                     print(f"✅ Report generated: {result}")
             except Exception as e:
                 print(f"❌ Orchestrator failed: {e}")
-                print("💡 Try option 10 to manually update the database")
+                print("💡 Try option 11 to manually update the database")
             
         elif choice == '2':
-            output_dir = input("📁 Output directory (default: reports): ").strip() or 'reports'
+            new_output_dir = input(f"📁 Output directory (current: {output_dir}): ").strip()
+            if new_output_dir:
+                output_dir = new_output_dir
             sections = get_report_sections()
             print("🌐 Generating daily HTML report using Database-First approach...")
             try:
@@ -296,19 +303,23 @@ def interactive_menu():
                 result = orchestrator.run(sections, "html", output_dir)
                 if result.startswith("❌"):
                     print(f"❌ HTML report generation failed: {result}")
-                    print("💡 Try option 10 to manually update the database")
+                    print("💡 Try option 11 to manually update the database")
                 else:
                     print(f"✅ Report generated: {result}")
             except Exception as e:
                 print(f"❌ HTML orchestrator failed: {e}")
-                print("💡 Try option 10 to manually update the database")
+                print("💡 Try option 11 to manually update the database")
             
         elif choice == '3':
-            output_dir = input("📁 Output directory (default: reports): ").strip() or 'reports'
+            new_output_dir = input(f"📁 Output directory (current: {output_dir}): ").strip()
+            if new_output_dir:
+                output_dir = new_output_dir
             run_production_analysis(output_dir)
             
         elif choice == '4':
-            output_dir = input("📁 Output directory (default: reports): ").strip() or 'reports'
+            new_output_dir = input(f"📁 Output directory (current: {output_dir}): ").strip()
+            if new_output_dir:
+                output_dir = new_output_dir
             min_profit = input("💰 Minimum profit threshold in % (default: 0.5): ").strip()
             try:
                 min_profit = float(min_profit) if min_profit else 0.5
@@ -317,23 +328,31 @@ def interactive_menu():
             run_arbitrage_analysis(output_dir, min_profit)
             
         elif choice == '5':
-            output_dir = input("📁 Output directory (default: reports): ").strip() or 'reports'
+            new_output_dir = input(f"📁 Output directory (current: {output_dir}): ").strip()
+            if new_output_dir:
+                output_dir = new_output_dir
             print("📈 Generating short economic report...")
             run_short_economic_report(output_dir)
             
         elif choice == '6':
-            output_dir = input("📁 Output directory (default: reports): ").strip() or 'reports'
+            new_output_dir = input(f"📁 Output directory (current: {output_dir}): ").strip()
+            if new_output_dir:
+                output_dir = new_output_dir
             sections = get_report_sections()
             print("📊 Generating Google Sheets report...")
             run_google_sheets_report(output_dir, sections)
             
         elif choice == '7':
-            output_dir = input("📁 Output directory (default: reports): ").strip() or 'reports'
+            new_output_dir = input(f"📁 Output directory (current: {output_dir}): ").strip()
+            if new_output_dir:
+                output_dir = new_output_dir
             print("💰 Generating Google Sheets economic report...")
             run_google_sheets_economic_report(output_dir)
             
         elif choice == '8':
-            output_dir = input("📁 Output directory (default: reports): ").strip() or 'reports'
+            new_output_dir = input(f"📁 Output directory (current: {output_dir}): ").strip()
+            if new_output_dir:
+                output_dir = new_output_dir
             min_profit = input("💰 Minimum profit threshold in % (default: 0.5): ").strip()
             try:
                 min_profit = float(min_profit) if min_profit else 0.5
