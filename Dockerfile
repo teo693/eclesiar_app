@@ -40,19 +40,30 @@ RUN mkdir -p /app/logs /app/reports /app/data /app/cred
 RUN chmod +x /app/main.py
 
 # Create cron job for Google Sheets economic reports every 3 hours  
-RUN echo "0 */3 * * * cd /app && python3 main.py google-sheets-report --economic-only >> /app/logs/cron.log 2>&1" | crontab -
+RUN echo "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" > /etc/cron.d/eclesiar-cron && \
+    echo "0 */3 * * * root cd /app && /usr/local/bin/python3 main.py google-sheets-report --economic-only >> /app/logs/cron.log 2>&1" >> /etc/cron.d/eclesiar-cron && \
+    chmod 0644 /etc/cron.d/eclesiar-cron && \
+    crontab /etc/cron.d/eclesiar-cron
 
 # Create startup script
 RUN echo '#!/bin/bash\n\
 echo "Starting Eclesiar App with scheduled reports..."\n\
 echo "Google Sheets economic reports will be generated every 3 hours"\n\
 echo "First report will be generated immediately..."\n\
+echo "Starting periodic command scheduler: cron."\n\
+\n\
+# Ensure log file exists\n\
+touch /app/logs/cron.log\n\
 \n\
 # Start cron daemon\n\
 service cron start\n\
 \n\
+# Show cron configuration for debugging\n\
+echo "Cron configuration:"\n\
+crontab -l\n\
+\n\
 # Generate initial report\n\
-cd /app && python3 main.py google-sheets-report --economic-only\n\
+cd /app && /usr/local/bin/python3 main.py google-sheets-report --economic-only\n\
 \n\
 # Keep container running and show logs\n\
 tail -f /app/logs/cron.log' > /app/start.sh
