@@ -509,14 +509,14 @@ class EnhancedSheetsFormatter:
              "Efficiency Score", "NPC Wages", "Investment Grade", "Recommendation"]
         ]
         
-        if not regions_data:
+        print(f"DEBUG: Production Hubs - regions_data type: {type(regions_data)}, count: {len(regions_data) if regions_data else 0}")
+        if regions_data and len(regions_data) > 0:
+            print(f"DEBUG: First region keys: {list(regions_data[0].keys()) if regions_data[0] else 'None'}")
+            print(f"DEBUG: First region sample: {regions_data[0] if regions_data[0] else 'None'}")
+        
+        if not regions_data or len(regions_data) == 0:
             sheet.append(["No production data available", "", "", "", "", "", "", "", ""])
             return sheet
-        
-        # Debug: sprawdź dane regionów
-        print(f"DEBUG: regions_data count: {len(regions_data) if regions_data else 0}")
-        if regions_data:
-            print(f"DEBUG: First region keys: {list(regions_data[0].keys()) if regions_data[0] else 'None'}")
         
         # Przygotuj dane regionów
         production_opportunities = []
@@ -626,6 +626,11 @@ class EnhancedSheetsFormatter:
             sheet.append(["No economic data available", "", "", "", "", "", "", ""])
             return sheet
         
+        # Debug Economic Overview
+        print(f"DEBUG: Economic Overview - country_map keys: {len(country_map) if country_map else 0}")
+        print(f"DEBUG: Economic Overview - regions_data count: {len(regions_data) if regions_data else 0}")
+        print(f"DEBUG: Economic Overview - best_jobs count: {len(best_jobs) if best_jobs else 0}")
+        
         # Przygotuj analizę krajów
         country_analysis = []
         
@@ -641,7 +646,13 @@ class EnhancedSheetsFormatter:
             strength_rating = "💪 STRONG" if currency_strength > 0.3 else ("👍 MEDIUM" if currency_strength > 0.1 else "⚠️ WEAK")
             
             # Liczba regionów produkcyjnych
-            production_regions = len([r for r in regions_data if isinstance(r, dict) and r.get('country_name') == country_name])
+            matching_regions = [r for r in regions_data if isinstance(r, dict) and r.get('country_name') == country_name]
+            production_regions = len(matching_regions)
+            
+            # Debug specific country mapping
+            if country_name in ['Ireland', 'Slovenia', 'Croatia', 'Turkey', 'China']:
+                print(f"DEBUG: Country {country_name} - found {production_regions} regions")
+                print(f"DEBUG: Sample regions for {country_name}: {[r.get('country_name') for r in regions_data[:5]]}")
             
             # Średnia płaca w kraju
             country_jobs = [job for job in best_jobs if job.get('country_name') == country_name]
@@ -798,6 +809,7 @@ class EnhancedSheetsFormatter:
                     })
         
         # 4. Alerty produkcyjne (super regiony)
+        print(f"DEBUG: regions_data type: {type(regions_data)}, length: {len(regions_data) if regions_data else 0}")
         if regions_data and len(regions_data) > 0:
             print(f"DEBUG: Processing {len(regions_data)} regions for investment alerts")
             

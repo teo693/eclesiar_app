@@ -81,10 +81,10 @@ def process_regions_data(regions: List[Dict[str, Any]], eco_countries: Dict[int,
         
         # Pobierz nazwę kraju - spróbuj najpierw country_id, potem original_country_id
         country_name = "Unknown"
-        if country_id and str(country_id) in eco_countries:
-            country_name = eco_countries[str(country_id)].get("name", "Unknown")
-        elif original_country_id and str(original_country_id) in eco_countries:
-            country_name = eco_countries[str(original_country_id)].get("name", "Unknown")
+        if country_id and country_id in eco_countries:
+            country_name = eco_countries[country_id].get("name", "Unknown")
+        elif original_country_id and original_country_id in eco_countries:
+            country_name = eco_countries[original_country_id].get("name", "Unknown")
         
         # Oblicz bonus_score (suma wszystkich bonusów) i przechowuj bonusy według typów
         bonus_score = 0

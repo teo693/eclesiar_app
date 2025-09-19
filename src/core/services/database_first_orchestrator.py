@@ -179,6 +179,8 @@ class DatabaseFirstOrchestrator:
             
             # Region data (always load for comprehensive economic analysis)
             regions_data, regions_summary = self.db_manager.get_regions_data()
+            # Fix country names in regions_data if they are 'Unknown'
+            regions_data = self._fix_regions_country_names(regions_data, data_bundle['countries'])
             data_bundle['regions_data'] = regions_data
             data_bundle['regions_summary'] = regions_summary
             
@@ -572,6 +574,38 @@ class DatabaseFirstOrchestrator:
                     'currency_name': country.get('currency_name')
                 }
         return country_map
+    
+    def _fix_regions_country_names(self, regions_data: List[Dict[str, Any]], countries_list: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Fix country names in regions_data by mapping country_id to actual country names"""
+        if not regions_data or not countries_list:
+            return regions_data
+        
+        # Create country_id -> country_name mapping
+        country_id_to_name = {}
+        for country in countries_list:
+            country_id = country.get('country_id')
+            country_name = country.get('country_name')
+            if country_id and country_name:
+                country_id_to_name[country_id] = country_name
+        
+        # Fix country names in regions_data
+        fixed_regions = []
+        fixed_count = 0
+        for region in regions_data:
+            region_copy = region.copy()
+            country_id = region.get('country_id')
+            
+            # If country_name is Unknown or empty, try to fix it
+            if region.get('country_name') in ['Unknown', '', None] and country_id in country_id_to_name:
+                region_copy['country_name'] = country_id_to_name[country_id]
+                fixed_count += 1
+            
+            fixed_regions.append(region_copy)
+        
+        if fixed_count > 0:
+            print(f"✅ Fixed country names for {fixed_count} regions")
+        
+        return fixed_regions
     
     def update_database_force(self, sections: Dict[str, bool] = None) -> bool:
         """Wymusza aktualizację bazy danych"""
