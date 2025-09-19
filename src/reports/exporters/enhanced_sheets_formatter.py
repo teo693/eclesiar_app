@@ -265,13 +265,15 @@ class EnhancedSheetsFormatter:
             # Show businesses even with zero salaries for now
             for i, job in enumerate(best_jobs[:20], 1):
                 country = job.get('country_name', 'Unknown')
+                country_flag = self.country_flags.get(country, "🏳️")
+                country_with_flag = f"{country_flag} {country}"
                 business_id = job.get('business_id') or job.get('company_id') or f"Job-{i}"
                 currency = job.get('currency_name', 'N/A')
                 job_title = job.get('job_title', 'Unknown')
                 
                 sheet.append([
                     str(business_id),
-                    country,
+                    country_with_flag,
                     "0.00 ⚠️",  # Show zero with warning
                     "0.00",
                     currency,
@@ -308,6 +310,8 @@ class EnhancedSheetsFormatter:
         # Przygotuj dane dla każdej oferty
         for global_rank, job in enumerate(best_jobs_sorted, 1):
             country = job.get('country_name', 'Unknown')
+            country_flag = self.country_flags.get(country, "🏳️")
+            country_with_flag = f"{country_flag} {country}"
             business_id = job.get('business_id') or job.get('company_id') or f"Job-{global_rank}"
             salary_gold = job.get('wage_gold', job.get('salary_gold', 0))  # Use wage_gold first
             salary_local = job.get('wage', job.get('salary_original', 0))  # Use wage first
@@ -344,7 +348,7 @@ class EnhancedSheetsFormatter:
             
             sheet.append([
                 str(business_id),
-                country,
+                country_with_flag,
                 f"{salary_gold:.6f}",
                 f"{salary_local:.2f}",
                 currency,
@@ -508,6 +512,11 @@ class EnhancedSheetsFormatter:
         if not regions_data:
             sheet.append(["No production data available", "", "", "", "", "", "", "", ""])
             return sheet
+        
+        # Debug: sprawdź dane regionów
+        print(f"DEBUG: regions_data count: {len(regions_data) if regions_data else 0}")
+        if regions_data:
+            print(f"DEBUG: First region keys: {list(regions_data[0].keys()) if regions_data[0] else 'None'}")
         
         # Przygotuj dane regionów
         production_opportunities = []
@@ -789,29 +798,41 @@ class EnhancedSheetsFormatter:
                     })
         
         # 4. Alerty produkcyjne (super regiony)
-        if regions_data:
-            avg_efficiency = sum(r.get('bonus_score', 0) / (1 + r.get('pollution', 0)/100) 
-                               for r in regions_data if isinstance(r, dict)) / len(regions_data)
+        if regions_data and len(regions_data) > 0:
+            print(f"DEBUG: Processing {len(regions_data)} regions for investment alerts")
             
-            for region in regions_data:
-                if not isinstance(region, dict):
-                    continue
+            # Sprawdź czy regiony mają dane bonusów
+            regions_with_bonus = [r for r in regions_data if isinstance(r, dict) and r.get('bonus_score', 0) > 0]
+            print(f"DEBUG: Found {len(regions_with_bonus)} regions with bonus data")
+            
+            if regions_with_bonus:
+                avg_efficiency = sum(r.get('bonus_score', 0) / (1 + r.get('pollution', 0)/100) 
+                                   for r in regions_with_bonus) / len(regions_with_bonus)
                 
-                bonus = region.get('bonus_score', 0)
-                pollution = region.get('pollution', 0)
-                efficiency = bonus / (1 + pollution/100) if pollution > 0 else bonus
-                
-                if efficiency > avg_efficiency * 1.5:  # 50% powyżej średniej
-                    alerts.append({
-                        'type': "🏭 PRODUCTION HOT",
-                        'asset': region.get('region_name', 'Region'),
-                        'location': region.get('country_name', 'Unknown'),
-                        'current': f"{efficiency:.2f}",
-                        'target': f"{avg_efficiency:.2f}",
-                        'profit': f"{((efficiency - avg_efficiency) / avg_efficiency * 100):+.1f}%",
-                        'risk': "🟡 MEDIUM",
-                        'action': "🏭 INVEST"
-                    })
+                for region in regions_with_bonus:
+                    bonus = region.get('bonus_score', 0)
+                    pollution = region.get('pollution', 0)
+                    efficiency = bonus / (1 + pollution/100) if pollution > 0 else bonus
+                    
+                    if efficiency > avg_efficiency * 1.2:  # 20% powyżej średniej (mniej restrykcyjne)
+                        country_name = region.get('country_name', 'Unknown')
+                        country_flag = self.country_flags.get(country_name, "🏳️")
+                        location_with_flag = f"{country_flag} {country_name}"
+                        
+                        alerts.append({
+                            'type': "🏭 PRODUCTION HOT",
+                            'asset': region.get('region_name', 'Region'),
+                            'location': location_with_flag,
+                            'current': f"{efficiency:.2f}",
+                            'target': f"{avg_efficiency:.2f}",
+                            'profit': f"{((efficiency - avg_efficiency) / avg_efficiency * 100):+.1f}%",
+                            'risk': "🟡 MEDIUM",
+                            'action': "🏭 INVEST"
+                        })
+            else:
+                print("DEBUG: No regions with bonus data found")
+        else:
+            print("DEBUG: No regions_data available for investment alerts")
         
         # Sortuj alerty według potencjału zysku
         alerts.sort(key=lambda x: float(x['profit'].replace('%', '').replace('+', '')), reverse=True)
