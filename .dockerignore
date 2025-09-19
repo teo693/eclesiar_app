@@ -31,7 +31,7 @@ wheels/
 MANIFEST
 
 # Virtual environments
-.env
+# .env  # Commented out - needed for Docker container
 .venv
 env/
 venv/
