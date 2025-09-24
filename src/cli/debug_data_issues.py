@@ -159,7 +159,7 @@ def debug_api_connectivity():
     print("-" * 25)
     
     try:
-        from src.data.api.client import EclesiarAPIClient
+        from src.data.api.client import fetch_data
         from config.settings.base import AUTH_TOKEN
         
         if not AUTH_TOKEN:
@@ -168,14 +168,12 @@ def debug_api_connectivity():
             
         print(f"✅ AUTH_TOKEN configured: {AUTH_TOKEN[:20]}...")
         
-        client = EclesiarAPIClient(AUTH_TOKEN)
-        
         # Test basic API call
         print("🔄 Testing API connection...")
-        countries = client.get_countries()
+        countries = fetch_data("countries", "countries data")
         
         if countries:
-            print(f"✅ API connection successful: {len(countries)} countries")
+            print(f"✅ API connection successful: {len(countries) if isinstance(countries, list) else 'data received'}")
         else:
             print("⚠️ API returned empty data")
             

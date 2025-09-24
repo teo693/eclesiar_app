@@ -116,12 +116,15 @@ def wait_for_api():
     while attempt < max_attempts:
         try:
             # Try to import and test API connection
-            from src.data.api.client import EclesiarAPIClient
+            from src.data.api.client import fetch_data
             from config.settings.base import AUTH_TOKEN
             
-            client = EclesiarAPIClient(AUTH_TOKEN)
+            if not AUTH_TOKEN:
+                print("⚠️ No AUTH_TOKEN configured")
+                return False
+            
             # Simple test - try to get a small amount of data
-            test_data = client.get_countries()
+            test_data = fetch_data("countries", "countries data")
             
             if test_data:
                 print("✅ API connection successful")
