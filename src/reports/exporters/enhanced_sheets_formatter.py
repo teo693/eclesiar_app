@@ -145,9 +145,14 @@ class EnhancedSheetsFormatter:
                         if 'currency_rates' in econ_summary:
                             yesterday_rates = econ_summary['currency_rates']
                             break
+            else:
+                print("⚠️ No historical data available - using current rates as baseline")
+                # Fallback: użyj aktualnych kursów jako baseline dla pierwszego uruchomienia
+                yesterday_rates = currency_rates.copy()
         except Exception as e:
             print(f"⚠️ Error loading historical currency data: {e}")
-            pass
+            # Fallback: użyj aktualnych kursów jako baseline
+            yesterday_rates = currency_rates.copy()
         
         # Stwórz mapowanie walut do krajów
         currency_to_country = {}
@@ -448,6 +453,10 @@ class EnhancedSheetsFormatter:
                 discount_pct = 0
                 if avg5 > 0:
                     discount_pct = ((avg5 - price_gold) / avg5) * 100
+                else:
+                    # Fallback: jeśli brak avg5, użyj ceny jako baseline
+                    avg5 = price_gold
+                    discount_pct = 0
                 
                 # Ocena okazji z uwzględnieniem rankingu
                 if rank == 1:
@@ -516,6 +525,14 @@ class EnhancedSheetsFormatter:
         
         if not regions_data or len(regions_data) == 0:
             sheet.append(["No production data available", "", "", "", "", "", "", "", ""])
+            sheet.append(["", "", "", "", "", "", "", "", ""])
+            sheet.append(["⚠️ This usually means:", "", "", "", "", "", "", "", ""])
+            sheet.append(["• Database is empty or not initialized", "", "", "", "", "", "", "", ""])
+            sheet.append(["• Regions data hasn't been fetched yet", "", "", "", "", "", "", "", ""])
+            sheet.append(["• API connection issues", "", "", "", "", "", "", "", ""])
+            sheet.append(["", "", "", "", "", "", "", "", ""])
+            sheet.append(["💡 Try running database update first:", "", "", "", "", "", "", "", ""])
+            sheet.append(["python main.py update-database", "", "", "", "", "", "", "", ""])
             return sheet
         
         # Przygotuj dane regionów
@@ -732,15 +749,20 @@ class EnhancedSheetsFormatter:
         alerts = []
         
         # 1. Alerty walutowe (duże zmiany)
-        if historical_data and currency_rates:
+        if currency_rates:
             yesterday_key = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
             yesterday_rates = {}
             
             try:
-                if yesterday_key in historical_data:
+                if historical_data and yesterday_key in historical_data:
                     yesterday_rates = (historical_data[yesterday_key].get('economic_summary') or {}).get('currency_rates') or {}
+                else:
+                    # Fallback: użyj aktualnych kursów jako baseline dla pierwszego uruchomienia
+                    yesterday_rates = currency_rates.copy()
+                    print("⚠️ No historical data for currency alerts - using current rates as baseline")
             except:
-                pass
+                # Fallback: użyj aktualnych kursów jako baseline
+                yesterday_rates = currency_rates.copy()
             
             for currency_id, rate in currency_rates.items():
                 prev_rate = yesterday_rates.get(str(currency_id))
@@ -773,10 +795,17 @@ class EnhancedSheetsFormatter:
                 avg5 = best_item.get('avg5_in_gold', 0)
                 price = best_item.get('price_gold', 0)
                 
+                # Fallback: jeśli brak avg5, użyj ceny jako baseline
+                if avg5 <= 0:
+                    avg5 = price
+                
                 if avg5 > 0:
                     discount_pct = ((avg5 - price) / avg5) * 100
                     
-                    if discount_pct > 15:  # Rabat > 15%
+                    # Zmniejsz próg dla pierwszego uruchomienia (gdy brak danych historycznych)
+                    threshold = 5 if avg5 == price else 15
+                    
+                    if discount_pct > threshold:  # Rabat > threshold%
                         alerts.append({
                             'type': "🛒 MARKET DEAL",
                             'asset': f"Item {item_id}",
@@ -790,13 +819,18 @@ class EnhancedSheetsFormatter:
         
         # 3. Alerty pracy (super oferty)
         if best_jobs:
-            avg_salary = sum(job.get('salary_gold', 0) for job in best_jobs) / len(best_jobs)
+            # Użyj wage_gold zamiast salary_gold dla kompatybilności
+            salaries = [job.get('wage_gold', job.get('salary_gold', 0)) for job in best_jobs]
+            avg_salary = sum(salaries) / len(salaries) if salaries else 0
             
             for job in best_jobs[:5]:  # Top 5 ofert
-                salary = job.get('salary_gold', 0)
+                salary = job.get('wage_gold', job.get('salary_gold', 0))
                 premium = ((salary - avg_salary) / avg_salary * 100) if avg_salary > 0 else 0
                 
-                if premium > 50:  # Premium > 50%
+                # Zmniejsz próg dla pierwszego uruchomienia
+                threshold = 20 if avg_salary > 0 else 0
+                
+                if premium > threshold:  # Premium > threshold%
                     alerts.append({
                         'type': "💼 HIGH SALARY",
                         'asset': job.get('job_title', 'Job'),
@@ -864,5 +898,9 @@ class EnhancedSheetsFormatter:
         
         if not alerts:
             sheet.append(["No active alerts", "Monitor markets", "—", "—", "—", "—", "🟢 LOW", "⏰ WAIT"])
+            
+            # Dodaj dodatkowe informacje dla pierwszego uruchomienia
+            if not historical_data:
+                sheet.append(["ℹ️ First Run", "Building baseline data", "System", "—", "—", "—", "🟢 LOW", "📊 COLLECTING"])
         
         return sheet

@@ -510,14 +510,14 @@ Usage examples:
             elif args.command == 'google-sheets-report':
                 # Check if economic-only flag is set
                 if args.economic_only:
-                    # Use only economic section (like option 3 in interactive menu)
+                    # Use economic and production sections (same as run_google_sheets_economic_report)
                     sections = {
                         'military': False,
                         'warriors': False, 
                         'economic': True,
-                        'production': False
+                        'production': True
                     }
-                    print("📊 Generating Google Sheets report with economic section only...")
+                    print("📊 Generating Google Sheets report with economic and production sections...")
                 else:
                     # For command line mode without flag, use all sections by default
                     sections = {

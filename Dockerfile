@@ -63,8 +63,8 @@ service cron start\n\
 echo "Cron configuration:"\n\
 crontab -l\n\
 \n\
-# Generate initial report\n\
-cd /app && /usr/local/bin/python3 main.py google-sheets-report --economic-only\n\
+# Initialize data and generate initial report\n\
+cd /app && /usr/local/bin/python3 src/cli/docker_init_data.py\n\
 \n\
 # Keep container running and show logs\n\
 tail -f /app/logs/cron.log' > /app/start.sh
