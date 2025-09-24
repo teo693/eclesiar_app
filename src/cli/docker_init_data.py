@@ -13,8 +13,8 @@ import sys
 import time
 from datetime import datetime, timedelta
 
-# Add the src directory to the Python path
-sys.path.insert(0, '/app/src')
+# Add the app directory to the Python path
+sys.path.insert(0, '/app')
 
 from src.core.services.database_manager_service import DatabaseManagerService
 from src.core.services.database_first_orchestrator import DatabaseFirstOrchestrator

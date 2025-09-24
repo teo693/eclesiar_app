@@ -12,8 +12,8 @@ import sys
 import json
 from datetime import datetime
 
-# Add the src directory to the Python path
-sys.path.insert(0, '/app/src')
+# Add the app directory to the Python path
+sys.path.insert(0, '/app')
 
 def debug_data_issues():
     """Debug data issues in the application"""
