@@ -47,7 +47,7 @@ def debug_database():
     print("-" * 20)
     
     try:
-        from core.services.database_manager_service import DatabaseManagerService
+        from src.core.services.database_manager_service import DatabaseManagerService
         
         db_manager = DatabaseManagerService()
         
@@ -93,7 +93,7 @@ def debug_historical_data():
     print("-" * 25)
     
     try:
-        from data.storage.cache import load_historical_data
+        from src.data.storage.cache import load_historical_data
         
         historical_data = load_historical_data()
         print(f"✅ Historical Data: {len(historical_data) if historical_data else 0} entries")
@@ -159,7 +159,7 @@ def debug_api_connectivity():
     print("-" * 25)
     
     try:
-        from data.api.client import EclesiarAPIClient
+        from src.data.api.client import EclesiarAPIClient
         from config.settings.base import AUTH_TOKEN
         
         if not AUTH_TOKEN:
@@ -190,7 +190,7 @@ def debug_report_data():
     print("-" * 20)
     
     try:
-        from core.services.database_first_orchestrator import DatabaseFirstOrchestrator
+        from src.core.services.database_first_orchestrator import DatabaseFirstOrchestrator
         
         orchestrator = DatabaseFirstOrchestrator()
         

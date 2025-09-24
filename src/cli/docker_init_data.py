@@ -16,9 +16,9 @@ from datetime import datetime, timedelta
 # Add the src directory to the Python path
 sys.path.insert(0, '/app/src')
 
-from core.services.database_manager_service import DatabaseManagerService
-from core.services.database_first_orchestrator import DatabaseFirstOrchestrator
-from data.storage.cache import save_historical_data
+from src.core.services.database_manager_service import DatabaseManagerService
+from src.core.services.database_first_orchestrator import DatabaseFirstOrchestrator
+from src.data.storage.cache import save_historical_data
 
 def initialize_docker_data():
     """Initialize data for Docker environment"""
@@ -116,7 +116,7 @@ def wait_for_api():
     while attempt < max_attempts:
         try:
             # Try to import and test API connection
-            from data.api.client import EclesiarAPIClient
+            from src.data.api.client import EclesiarAPIClient
             from config.settings.base import AUTH_TOKEN
             
             client = EclesiarAPIClient(AUTH_TOKEN)

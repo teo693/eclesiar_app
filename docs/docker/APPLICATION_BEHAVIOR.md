@@ -7,7 +7,7 @@
 1. **Build Phase**:
    - Builds Docker image from Dockerfile
    - Installs system dependencies (cron, curl, procps)
-   - Installs Python dependencies from `requirements/base.txt`
+   - Installs Python dependencies from `requirements/docker.txt` (optimized for Docker)
    - Copies application code to `/app/`
    - Creates necessary directories (`/app/logs`, `/app/reports`, `/app/data`, `/app/cred`)
 

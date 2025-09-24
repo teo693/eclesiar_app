@@ -22,11 +22,11 @@ RUN apt-get update && apt-get install -y \
 # Create symlink for python -> python3 to avoid 'python: not found' errors
 RUN ln -sf /usr/local/bin/python3 /usr/local/bin/python
 
-# Copy requirements first for better caching
-COPY requirements/base.txt /app/requirements/
+# Copy Docker-optimized requirements first for better caching
+COPY requirements/docker.txt /app/requirements/
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements/base.txt
+# Install Python dependencies (Docker-optimized)
+RUN pip install --no-cache-dir -r requirements/docker.txt
 
 # Copy application code
 COPY . /app/
