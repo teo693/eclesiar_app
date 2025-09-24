@@ -355,7 +355,7 @@ class EnhancedSheetsFormatter:
                 str(business_id),
                 country_with_flag,
                 f"{salary_gold:.6f}",
-                f"{salary_local:.2f}",
+                f"{salary_local:.6f}",
                 currency,
                 str(eco_skill) if eco_skill > 0 else "No req.",
                 f"#{global_rank}",
@@ -497,7 +497,7 @@ class EnhancedSheetsFormatter:
                 opp['quality'],
                 f"{opp['price_gold']:.6f}",
                 opp['country'],
-                f"{opp['price_local']:.2f}",
+                f"{opp['price_local']:.6f}",
                 opp['currency'],
                 str(int(opp['stock'])) if opp['stock'] else "—",
                 f"{opp['avg5']:.6f}" if opp['avg5'] else "—",
@@ -673,7 +673,23 @@ class EnhancedSheetsFormatter:
             
             # Średnia płaca w kraju
             country_jobs = [job for job in best_jobs if job.get('country_name') == country_name]
-            avg_salary = sum(job.get('salary_gold', 0) for job in country_jobs) / len(country_jobs) if country_jobs else 0
+            
+            # ✅ DEBUG: Log salary calculation
+            if country_name in ['Poland', 'Germany', 'United States']:  # Debug for major countries
+                print(f"🔍 DEBUG: Calculating avg salary for {country_name}")
+                print(f"   Found {len(country_jobs)} jobs")
+                if country_jobs:
+                    sample_job = country_jobs[0]
+                    print(f"   Sample job fields: {list(sample_job.keys())}")
+                    print(f"   Sample job salary_gold: {sample_job.get('salary_gold')}")
+                    print(f"   Sample job wage_gold: {sample_job.get('wage_gold')}")
+            
+            # ✅ FIX: Use fallback for salary_gold -> wage_gold
+            avg_salary = sum(job.get('salary_gold', job.get('wage_gold', 0)) for job in country_jobs) / len(country_jobs) if country_jobs else 0
+            
+            # ✅ DEBUG: Log calculated average
+            if country_name in ['Poland', 'Germany', 'United States']:
+                print(f"   Calculated avg_salary: {avg_salary}")
             
             # Najlepsze możliwości
             opportunities_count = len(country_jobs)

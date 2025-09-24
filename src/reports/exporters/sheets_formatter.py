@@ -302,7 +302,7 @@ class SheetsFormatter:
                 jobs_data.append([
                     job.get('country', 'N/A'),
                     job.get('position', 'N/A'),
-                    f"{job.get('salary_gold', 0):.2f}",
+                    f"{job.get('salary_gold', 0):.6f}",
                     job.get('currency', 'N/A'),
                     job.get('region', 'N/A')
                 ])

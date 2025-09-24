@@ -98,6 +98,17 @@ def process_regions_data(regions: List[Dict[str, Any]], eco_countries: Dict[int,
                 bonus_score += bonus_value
                 bonus_parts.append(f"{bonus_type}:{bonus_value}")
                 bonus_by_type[bonus_type] = bonus_value  # Przechowuj bonus według typu
+                
+                # ✅ DEBUG: Log oil/fuel bonus types from API
+                if bonus_type.upper() in ['OIL', 'FUEL', 'PALIWO']:
+                    region_name = region.get("region_name", region.get("name", "Unknown"))
+                    print(f"🔍 DEBUG: Found {bonus_type} bonus in region {region_name}: {bonus_value}%")
+                
+                # ✅ DEBUG: Log all bonus types for first few regions to understand API format
+                if len(processed_regions) < 5:  # Only for first 5 regions
+                    region_name = region.get("region_name", region.get("name", "Unknown"))
+                    print(f"🔍 DEBUG: Region {region_name} has bonus type: {bonus_type} = {bonus_value}%")
+            
             bonus_description = " ".join(bonus_parts)
         
         # Oblicz bonus_per_pollution

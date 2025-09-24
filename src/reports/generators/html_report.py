@@ -951,7 +951,7 @@ def generate_html_report(
                     country = offer.get('country', 'Unknown')
                     salary = offer.get('salary', 0)
                     description = offer.get('description', 'No description')
-                    html_content += f'<tr><td>{i}</td><td>{country}</td><td>{salary:.2f}</td><td>{description}</td></tr>'
+                    html_content += f'<tr><td>{i}</td><td>{country}</td><td>{salary:.6f}</td><td>{description}</td></tr>'
                 html_content += '</table>'
             
             # Currency rates vs GOLD

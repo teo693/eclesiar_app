@@ -51,8 +51,9 @@ class RegionCalculationService:
             "grain": "GRAIN",
             "zboże": "GRAIN",
             "food": "FOOD",
-            "fuel": "OIL",
-            "paliwo": "OIL",
+            "fuel": "OIL",      # Map to OIL (primary)
+            "oil": "OIL",       # ✅ FIX: Add oil mapping
+            "paliwo": "OIL",    # Polish for fuel
             "titanium": "TITANIUM",
             "tytan": "TITANIUM",
             "airplane ticket": "TICKETS",
@@ -85,6 +86,19 @@ class RegionCalculationService:
         if expected_bonus_type in bonus_by_type:
             bonus_value = bonus_by_type[expected_bonus_type]
             return bonus_value / 100.0, expected_bonus_type  # Konwersja na ułamek
+        
+        # ✅ DEBUG: Check if API uses FUEL instead of OIL
+        if item_name.lower() in ['fuel', 'oil']:
+            region_name = region_data.get('region_name', region_data.get('name', 'Unknown'))
+            print(f"🔍 DEBUG: RegionCalculationService - Checking {item_name} bonus for region {region_name}")
+            print(f"   Expected bonus type: {expected_bonus_type}")
+            print(f"   Available bonus types: {list(bonus_by_type.keys())}")
+            print(f"   Bonus description: '{bonus_description}'")
+            
+            # Check if FUEL exists instead of OIL
+            if 'FUEL' in bonus_by_type and expected_bonus_type == 'OIL':
+                print(f"   ✅ Found FUEL bonus instead of OIL: {bonus_by_type['FUEL']}%")
+                return bonus_by_type['FUEL'] / 100.0, 'FUEL'
         
         return 0.0, "None"
     

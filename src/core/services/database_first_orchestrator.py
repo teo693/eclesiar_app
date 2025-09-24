@@ -207,18 +207,29 @@ class DatabaseFirstOrchestrator:
     def _process_job_offers(self, job_offers: List[Dict]) -> List[Dict]:
         """Processes job offers to format expected by reports"""
         processed = []
+        
+        # ✅ DEBUG: Log job offers processing
+        print(f"🔍 DEBUG: Processing {len(job_offers) if job_offers else 0} job offers")
+        if job_offers:
+            sample_job = job_offers[0]
+            print(f"   Sample job fields: {list(sample_job.keys())}")
+            print(f"   Sample job wage_gold: {sample_job.get('wage_gold')}")
+        
         for job in job_offers[:50]:  # Top 50 offers
             processed.append({
                 'country_id': job.get('country_id'),
                 'country_name': job.get('country_name'),
                 'wage': job.get('wage_original'),
                 'wage_gold': job.get('wage_gold'),
+                'salary_gold': job.get('wage_gold'),  # ✅ FIX: Add salary_gold for compatibility
                 'currency_id': job.get('currency_id'),
                 'currency_name': job.get('currency_name'),
                 'job_title': job.get('job_title', 'Unknown'),
                 'business_name': job.get('business_name', 'Unknown'),
                 'business_id': job.get('country_id', 0)  # Fallback for compatibility
             })
+        
+        print(f"   ✅ Processed {len(processed)} job offers for reports")
         return processed
     
     def _process_market_offers(self, market_offers: List[Dict]) -> Dict[int, List[Dict]]:

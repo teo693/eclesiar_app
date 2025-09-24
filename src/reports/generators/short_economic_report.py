@@ -418,7 +418,7 @@ def generate_short_economic_report(
                 # Local salary with currency
                 salary_original = job.get('salary_original', 0)
                 currency_name = job.get('currency_name', 'N/A')
-                row_cells[4].text = f"{salary_original:.2f} {currency_name}"
+                row_cells[4].text = f"{salary_original:.6f} {currency_name}"
         else:
             document.add_paragraph("No job offers data available.")
         

@@ -65,7 +65,8 @@ class ProductionCalculationService:
             "grain": ["GRAIN", "grain", "food", "general"],
             "iron": ["IRON", "iron", "weapon", "aircraft", "general"],
             "titanium": ["TITANIUM", "titanium", "aircraft", "general"],
-            "fuel": ["OIL", "fuel", "aircraft", "general"],
+            "fuel": ["OIL", "FUEL", "fuel", "aircraft", "general"],  # ✅ FIX: Add FUEL mapping
+            "oil": ["OIL", "FUEL", "fuel", "aircraft", "general"],   # ✅ FIX: Add oil mapping
             
             # Produkty
             "food": ["FOOD", "food", "grain", "general"],
@@ -282,9 +283,25 @@ class ProductionCalculationService:
         # Find relevant bonus for this item
         item_bonus_types = self.bonus_type_mapping.get(item_name.lower(), [])
         
+        # ✅ DEBUG: Log oil/fuel bonus detection
+        if item_name.lower() in ['fuel', 'oil']:
+            region_name = region_data.get('region_name', region_data.get('name', 'Unknown'))
+            print(f"🔍 DEBUG: Checking {item_name} bonus for region {region_name}")
+            print(f"   Bonus description: '{bonus_description}'")
+            print(f"   Parsed bonuses: {bonus_by_type}")
+            print(f"   Looking for types: {item_bonus_types}")
+        
         for bonus_type in item_bonus_types:
             if bonus_type.upper() in bonus_by_type:
-                return bonus_by_type[bonus_type.upper()] / 100.0, bonus_type.upper()
+                bonus_value = bonus_by_type[bonus_type.upper()] / 100.0
+                # ✅ DEBUG: Log found bonus
+                if item_name.lower() in ['fuel', 'oil']:
+                    print(f"   ✅ Found {bonus_type.upper()} bonus: {bonus_value:.2%}")
+                return bonus_value, bonus_type.upper()
+        
+        # ✅ DEBUG: Log no bonus found
+        if item_name.lower() in ['fuel', 'oil']:
+            print(f"   ❌ No bonus found for {item_name}")
         
         return 0.0, "None"
     
