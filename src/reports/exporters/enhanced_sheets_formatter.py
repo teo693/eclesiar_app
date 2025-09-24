@@ -553,6 +553,10 @@ class EnhancedSheetsFormatter:
             # Określ specjalizację
             specialization = "General"
             if bonus_description:
+                # ✅ DEBUG: Log OIL regions processing
+                if "OIL:" in bonus_description or "FUEL:" in bonus_description:
+                    print(f"🔍 DEBUG: Processing OIL region {region_name} ({country_name}) - bonus: {bonus_description}")
+                
                 if "WEAPONS:" in bonus_description:
                     specialization = "🔫 Weapons"
                 elif "FOOD:" in bonus_description:
@@ -567,6 +571,12 @@ class EnhancedSheetsFormatter:
                     specialization = "🔩 Titanium"
                 elif "TICKETS:" in bonus_description:
                     specialization = "🎫 Tickets"
+                elif "OIL:" in bonus_description:  # ✅ FIX: Add OIL specialization
+                    specialization = "🛢️ Oil/Fuel"
+                    print(f"   ✅ Set specialization to Oil/Fuel for {region_name}")
+                elif "FUEL:" in bonus_description:  # ✅ FIX: Add FUEL specialization
+                    specialization = "🛢️ Oil/Fuel"
+                    print(f"   ✅ Set specialization to Oil/Fuel for {region_name}")
             
             # Oblicz efektywność (bonus vs pollution)
             efficiency = bonus_score / (1 + pollution/100) if pollution > 0 else bonus_score
