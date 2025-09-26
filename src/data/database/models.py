@@ -218,11 +218,11 @@ def save_item_prices_from_cheapest(cheapest_by_item: Dict[Any, List[Dict[str, An
         # Save top offer (cheapest)
         e = entries[0]
         country_id = e.get("country_id")
-        country_name = e.get("country_name")
+        country_name = e.get("country_name") or e.get("country")
         currency_id = e.get("currency_id")
         currency_name = e.get("currency_name")
-        price_original = e.get("price_in_currency")
-        price_gold = e.get("price_in_gold")
+        price_original = e.get("price_in_currency") or e.get("price_currency")
+        price_gold = e.get("price_in_gold") or e.get("price_gold")
         try:
             price_original_f = float(price_original) if price_original is not None else None
         except Exception:

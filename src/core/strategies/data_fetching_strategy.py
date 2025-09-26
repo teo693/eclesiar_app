@@ -484,16 +484,23 @@ class OptimizedDataFetchingStrategy(DataFetchingStrategy):
                     num_items = min(20, max(10, len(sorted_items)))
                     selected_items = sorted_items[:num_items]
                     
-                    # Oblicz średnią z 5 najtańszych
-                    top5_items = sorted_items[:5]
-                    if top5_items:
-                        avg5_gold = sum(item['price_gold'] for item in top5_items) / len(top5_items)
-                        
-                        # Dodaj avg5_in_gold do wszystkich wybranych przedmiotów
-                        for item in selected_items:
-                            item['avg5_in_gold'] = round(avg5_gold, 6)
-                        
-                        cheapest_items[item_id] = selected_items
+                    # Oblicz średnią z ostatnich 5 dni z bazy danych
+                    from src.data.database.models import get_item_price_avg
+                    avg5_gold = get_item_price_avg(item_id, days=5)
+                    
+                    # Fallback: jeśli brak danych historycznych, użyj średniej z aktualnych ofert
+                    if avg5_gold is None:
+                        top5_items = sorted_items[:5]
+                        if top5_items:
+                            avg5_gold = sum(item['price_gold'] for item in top5_items) / len(top5_items)
+                        else:
+                            avg5_gold = 0
+                    
+                    # Dodaj avg5_in_gold do wszystkich wybranych przedmiotów
+                    for item in selected_items:
+                        item['avg5_in_gold'] = round(avg5_gold, 6)
+                    
+                    cheapest_items[item_id] = selected_items
                 
         except Exception as e:
             print(f"Error loading cheapest items from database: {e}")

@@ -348,9 +348,14 @@ def fetch_cheapest_items_from_all_countries(
                         if not rate or rate <= 0:
                             continue
 
-                        # Średnia z 5 najtańszych ofert w GOLD
-                        top5 = parsed[:5]
-                        avg5_gold = sum(p * rate for p, _ in top5) / len(top5)
+                        # Średnia z ostatnich 5 dni z bazy danych
+                        from src.data.database.models import get_item_price_avg
+                        avg5_gold = get_item_price_avg(item_id, days=5)
+                        
+                        # Fallback: jeśli brak danych historycznych, użyj średniej z aktualnych ofert
+                        if avg5_gold is None:
+                            top5 = parsed[:5]
+                            avg5_gold = sum(p * rate for p, _ in top5) / len(top5)
 
                         # Minimalna cena w GOLD
                         min_price_gold = min_price_currency * rate

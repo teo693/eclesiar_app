@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from src.data.database.models import init_db, save_snapshot
+from src.data.database.models import init_db, save_snapshot, save_item_prices_from_cheapest
 from src.data.api.client import fetch_data
 from src.core.services.economy_service import (
     fetch_countries_and_currencies,
@@ -212,6 +212,9 @@ class DatabaseManagerService:
             self._save_items_map(items_map)  # Zapisz items_map
             cheapest_items = fetch_cheapest_items_from_all_countries(eco_countries, items_map, currency_rates, gold_id)
             self._save_market_offers(cheapest_items, items_map)
+            
+            # Zapisz ceny do tabeli item_prices dla obliczania średnich historycznych
+            save_item_prices_from_cheapest(cheapest_items)
             
             return True
             
